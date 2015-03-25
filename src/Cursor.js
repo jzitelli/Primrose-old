@@ -49,15 +49,6 @@ var Cursor = (function () {
         this.moved = false;
     };
 
-    Cursor.prototype.rectify = function (lines) {
-        if (this.y >= lines.length) {
-            this.y = lines.length - 1;
-        }
-        if (this.x > lines[this.y].length) {
-            this.x = lines[this.y].length;
-        }
-    };
-
     Cursor.prototype.fullhome = function (lines) {
         this.i = 0;
         this.x = 0;
@@ -98,7 +89,9 @@ var Cursor = (function () {
                 --this.y;
                 this.x = lines[this.y].length;
             }
-            this.reverseFromNewline(lines);
+            if(this.reverseFromNewline(lines)){
+                ++this.i;
+            }
         }
         this.moved = true;
     };
@@ -201,7 +194,9 @@ var Cursor = (function () {
         if (this.x > 0 && lines[this.y][this.x - 1] === '\n') {
             --this.x;
             --this.i;
+            return true;
         }
+        return false;
     };
 
     return Cursor;

@@ -133,11 +133,10 @@ var Primrose = (function () {
         }
 
         function pointerStart(x, y) {
-            console.log(fmt("$1, $2", x, y));
             if (options.pointerEventSource) {
                 for (var i = 0; i < Primrose.EDITORS.length; ++i) {
                     var e = Primrose.EDITORS[i];
-                    if (e !== this) {
+                    if (e !== self) {
                         e.blur();
                     }
                 }
@@ -373,7 +372,9 @@ var Primrose = (function () {
         this.setTheme = function (t) {
             theme = t || Themes.DEFAULT;
             renderer.setTheme(theme);
-            changed = renderer.resize();
+            renderer.resize();
+            changed = true;
+            this.drawText();
         };
 
         this.getTheme = function () {
@@ -762,8 +763,6 @@ var Primrose = (function () {
                         if (this.frontCursor.moved && !this.backCursor.moved) {
                             this.backCursor.copy(this.frontCursor);
                         }
-                        this.frontCursor.rectify(scrollLines);
-                        this.backCursor.rectify(scrollLines);
                         clampScroll();
                         evt.preventDefault();
                     }
