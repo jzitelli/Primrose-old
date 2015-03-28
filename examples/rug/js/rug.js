@@ -22,17 +22,16 @@ effect.setSize(window.innerWidth, window.innerHeight);
 // Create a VR manager helper to enter and exit VR mode.
 var vrmgr = new WebVRManager(effect);
 
+// Create 3d objects
+var geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+var material = new THREE.MeshNormalMaterial();
+var cube = new THREE.Mesh(geometry, material);
 
-// // Create 3d objects
-// var geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-// var material = new THREE.MeshNormalMaterial();
-// var cube = new THREE.Mesh(geometry, material);
+// Position cube mesh
+cube.position.z = -1;
 
-// // Position cube mesh
-// cube.position.z = -1;
-
-// // Add cube mesh to your three.js scene
-// scene.add(cube);
+// Add cube mesh to your three.js scene
+scene.add(cube);
 
 
 // from PRIMROSE demo.js
