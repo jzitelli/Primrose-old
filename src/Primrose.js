@@ -40,9 +40,9 @@ var Primrose = (function () {
                 tokenizer,
                 tokens,
                 tokenRows,
-                scrollLines,
                 theme,
                 pointer = new Point(),
+                lastPointer = new Point(),
                 tabWidth,
                 tabString,
                 currentTouchID,
@@ -89,31 +89,25 @@ var Primrose = (function () {
             }
             else {
                 while (0 < self.scroll.y &&
-                        self.scroll.y > scrollLines.length - gridBounds.height) {
+                        self.scroll.y > tokenRows.length - gridBounds.height) {
                     --self.scroll.y;
                 }
             }
         }
 
         function readClipboard(evt) {
-            var i = evt.clipboardData.types.indexOf("text/plain");
-            if (i < 0) {
-                for (i = 0; i < evt.clipboardData.types.length; ++i) {
-                    if (/^text/.test(evt.clipboardData.types[i])) {
-                        break;
-                    }
-                }
-            }
-            if (i >= 0) {
-                var type = evt.clipboardData.types[i],
-                        str = evt.clipboardData.getData(type);
-                evt.preventDefault();
+            evt.returnValue = false;
+            var clipboard = evt.clipboardData || window.clipboardData,
+                    str = clipboard.getData(window.clipboardData ? "Text" :
+                            "text/plain");
+            if (str) {
                 self.pasteAtCursor(str);
             }
         }
 
         function setSurrogateSize() {
-            var bounds = renderer.getCanvas().getBoundingClientRect();
+            var bounds = renderer.getCanvas()
+                    .getBoundingClientRect();
             surrogateContainer.style.left = px(bounds.left);
             surrogateContainer.style.top = px(window.scrollY + bounds.top);
             surrogateContainer.style.width = 0;
@@ -128,8 +122,46 @@ var Primrose = (function () {
             changed = true;
             pointer.set(x, y);
             renderer.pixel2cell(pointer, self.scroll, gridBounds);
-            cursor.setXY(pointer.x, pointer.y, scrollLines);
-            setSurrogateCursor();
+            var gx = pointer.x - self.scroll.x;
+            var gy = pointer.y - self.scroll.y;
+            var onBottom = gy >= gridBounds.height;
+            var onLeft = gx < 0;
+            var onRight = pointer.x >= gridBounds.width;
+            if (!onBottom && !onLeft && !onRight) {
+                cursor.setXY(pointer.x, pointer.y, tokenRows);
+                setSurrogateCursor();
+                self.backCursor.copy(cursor);
+            }
+            else if (onRight && !onBottom) {
+                var scrollHeight = tokenRows.length - gridBounds.height;
+                if (gy >= 0 && scrollHeight >= 0) {
+                    var sy = gy * scrollHeight / gridBounds.height;
+                    self.scroll.y = Math.floor(sy);
+                }
+            }
+            else if (onBottom && !onLeft) {
+                var maxWidth = 0;
+                for (var dy = 0; dy < tokenRows.length; ++dy) {
+                    var tokenRow = tokenRows[dy];
+                    var width = 0;
+                    for (var dx = 0; dx < tokenRow.length; ++dx) {
+                        width += tokenRow[dx].value.length;
+                    }
+                    maxWidth = Math.max(maxWidth, width);
+                }
+                var scrollWidth = maxWidth - gridBounds.width;
+                if (gx >= 0 && scrollWidth >= 0) {
+                    var sx = gx * scrollWidth / gridBounds.width;
+                    self.scroll.x = Math.floor(sx);
+                }
+            }
+            else if (onLeft && !onBottom) {
+                // clicked in number-line gutter
+            }
+            else {
+                // clicked in the lower-left corner
+            }
+            lastPointer.copy(pointer);
         }
 
         function pointerStart(x, y) {
@@ -141,14 +173,16 @@ var Primrose = (function () {
                     }
                 }
                 self.focus();
-                var bounds = options.pointerEventSource.getBoundingClientRect();
+                var bounds =
+                        options.pointerEventSource.getBoundingClientRect();
                 self.startPointer(x - bounds.left, y - bounds.top);
             }
         }
 
         function pointerMove(x, y) {
             if (options.pointerEventSource) {
-                var bounds = options.pointerEventSource.getBoundingClientRect();
+                var bounds =
+                        options.pointerEventSource.getBoundingClientRect();
                 self.movePointer(x - bounds.left, y - bounds.top);
             }
         }
@@ -224,9 +258,9 @@ var Primrose = (function () {
 
         function makeCursorCommand(name) {
             var method = name.toLowerCase();
-            self["cursor" + name] = function (lines, cursor) {
+            self["cursor" + name] = function (tokenRows, cursor) {
                 changed = true;
-                cursor[method](lines);
+                cursor[method](tokenRows);
                 self.scrollIntoView(cursor);
             };
         }
@@ -245,10 +279,10 @@ var Primrose = (function () {
 
             if (showScrollBars) {
                 if (wordWrap) {
-                    bottomRightGutter.set(1, 0);
+                    bottomRightGutter.set(renderer.VSCROLL_WIDTH, 0);
                 }
                 else {
-                    bottomRightGutter.set(1, 1);
+                    bottomRightGutter.set(renderer.VSCROLL_WIDTH, 1);
                 }
             }
             else {
@@ -257,10 +291,12 @@ var Primrose = (function () {
 
             var x = topLeftGutter.width + lineCountWidth,
                     y = 0,
-                    w = Math.floor(self.getWidth() / renderer.character.width) -
+                    w = Math.floor(self.getWidth() /
+                            renderer.character.width) -
                     x -
                     bottomRightGutter.width,
-                    h = Math.floor(self.getHeight() / renderer.character.height) -
+                    h = Math.floor(self.getHeight() /
+                            renderer.character.height) -
                     y -
                     bottomRightGutter.height;
             gridBounds.set(x, y, w, h);
@@ -272,23 +308,24 @@ var Primrose = (function () {
             surrogate.style.height = px(gridBounds.height * ch);
 
             // group the tokens into rows
-            scrollLines = [""];
             tokenRows = [[]];
+            var currentRowWidth = 0;
             var tokenQueue = tokens.slice();
             for (var i = 0; i < tokenQueue.length; ++i) {
                 var t = tokenQueue[i].clone();
-                var wrap = wordWrap && scrollLines[scrollLines.length - 1].length + t.value.length > gridBounds.width;
-                var lb = t.type === "newlines" || wrap;
+                var widthLeft = gridBounds.width - currentRowWidth;
+                var wrap = wordWrap && t.value.length > widthLeft;
+                var breakLine = t.type === "newlines" || wrap;
                 if (wrap) {
-                    tokenQueue.splice(i + 1, 0, t.splitAt(gridBounds.width - scrollLines[scrollLines.length - 1].length));
+                    tokenQueue.splice(i + 1, 0, t.splitAt(widthLeft));
                 }
 
                 tokenRows[tokenRows.length - 1].push(t);
-                scrollLines[scrollLines.length - 1] += t.value;
+                currentRowWidth += t.value.length;
 
-                if (lb) {
+                if (breakLine) {
                     tokenRows.push([]);
-                    scrollLines.push("");
+                    currentRowWidth = 0;
                 }
             }
             return lineCountWidth;
@@ -304,15 +341,15 @@ var Primrose = (function () {
             "Home", "End",
             "FullHome", "FullEnd"].map(makeCursorCommand.bind(this));
 
-        this.cursorPageUp = function (lines, cursor) {
+        this.cursorPageUp = function (tokenRows, cursor) {
             changed = true;
-            cursor.incY(-gridBounds.height, lines);
+            cursor.incY(-gridBounds.height, tokenRows);
             this.scrollIntoView(cursor);
         };
 
-        this.cursorPageDown = function (lines, cursor) {
+        this.cursorPageDown = function (tokenRows, cursor) {
             changed = true;
-            cursor.incY(gridBounds.height, lines);
+            cursor.incY(gridBounds.height, tokenRows);
             this.scrollIntoView(cursor);
         };
 
@@ -422,7 +459,10 @@ var Primrose = (function () {
 
         this.setCodePage = function (cp) {
             changed = true;
-            var key, code, char, name;
+            var key,
+                    code,
+                    char,
+                    name;
             codePage = cp;
             if (!codePage) {
                 var lang = (navigator.languages && navigator.languages[0]) ||
@@ -567,9 +607,11 @@ var Primrose = (function () {
         }
 
         this.scrollIntoView = function (currentCursor) {
-            this.scroll.y += minDelta(currentCursor.y, this.scroll.y, this.scroll.y + gridBounds.height);
+            this.scroll.y += minDelta(currentCursor.y, this.scroll.y,
+                    this.scroll.y + gridBounds.height);
             if (!wordWrap) {
-                this.scroll.x += minDelta(currentCursor.x, this.scroll.x, this.scroll.x + gridBounds.width);
+                this.scroll.x += minDelta(currentCursor.x, this.scroll.x,
+                        this.scroll.x + gridBounds.width);
             }
             clampScroll();
         };
@@ -608,19 +650,28 @@ var Primrose = (function () {
         this.cell2i = function (x, y) {
             var i = 0;
             for (var dy = 0; dy < y; ++dy) {
-                i += scrollLines[dy].length + 1;
+                var tokenRow = tokenRows[dy];
+                for (var dx = 0; dx < tokenRow.length; ++dx) {
+                    i += tokenRow[dx].value.length;
+                }
+                ++i;
             }
             i += x;
             return i;
         };
 
         this.i2cell = function (i) {
-            for (var y = 0; y < scrollLines.length; ++y) {
-                if (i <= scrollLines.length) {
+            for (var y = 0; y < tokenRows.length; ++y) {
+                var tokenRow = tokenRows[y];
+                var rowWidth = 0;
+                for (var x = 0; x < tokenRow.length; ++x) {
+                    rowWidth += tokenRow[x].value.length;
+                }
+                if (i <= rowWidth) {
                     return {x: i, y: y};
                 }
                 else {
-                    i -= scrollLines.length - 1;
+                    i -= rowWidth - 1;
                 }
             }
         };
@@ -644,7 +695,6 @@ var Primrose = (function () {
 
         this.startPointer = function (x, y) {
             setCursorXY(this.frontCursor, x, y);
-            this.backCursor.copy(this.frontCursor);
             dragging = true;
             this.drawText();
         };
@@ -661,25 +711,35 @@ var Primrose = (function () {
             surrogate.focus();
         };
 
-        this.bindEvents = function (keyEventSource, pointerEventSource, wheelEventSource) {
-            if (keyEventSource) {
-                keyEventSource.addEventListener("keydown", this.editText.bind(
+        function setFalse(evt) {
+            evt.returnValue = false;
+        }
+
+        this.bindEvents = function (k, p, w) {
+            if (k) {
+                k.addEventListener("keydown", this.editText.bind(this));
+                surrogate.addEventListener("beforecopy", setFalse);
+                surrogate.addEventListener("beforecut", setFalse);
+                k.addEventListener("beforepaste", setFalse);
+                surrogate.addEventListener("copy", this.copySelectedText.bind(
                         this));
+                surrogate.addEventListener("cut", this.cutSelectedText.bind(
+                        this));
+                k.addEventListener("paste", readClipboard.bind(this));
             }
 
-            if (pointerEventSource) {
-                pointerEventSource.addEventListener("wheel", this.readWheel.bind(
-                        this));
-                pointerEventSource.addEventListener("mousedown", mouseButtonDown);
-                pointerEventSource.addEventListener("mousemove", mouseMove);
-                pointerEventSource.addEventListener("mouseup", mouseButtonUp);
-                pointerEventSource.addEventListener("touchstart", touchStart);
-                pointerEventSource.addEventListener("touchmove", touchMove);
-                pointerEventSource.addEventListener("touchend", touchEnd);
+            if (p) {
+                p.addEventListener("wheel", this.readWheel.bind(this));
+                p.addEventListener("mousedown", mouseButtonDown);
+                p.addEventListener("mousemove", mouseMove);
+                p.addEventListener("mouseup", mouseButtonUp);
+                p.addEventListener("touchstart", touchStart);
+                p.addEventListener("touchmove", touchMove);
+                p.addEventListener("touchend", touchEnd);
             }
 
-            if (wheelEventSource) {
-                wheelEventSource.addEventListener("wheel", this.readWheel.bind(this));
+            if (w) {
+                w.addEventListener("wheel", this.readWheel.bind(this));
             }
         };
 
@@ -690,12 +750,13 @@ var Primrose = (function () {
             if (this.frontCursor.i !== this.backCursor.i || str.length > 0) {
                 // TODO: don't rejoin the string first.
                 var minCursor = Cursor.min(this.frontCursor, this.backCursor),
-                        maxCursor = Cursor.max(this.frontCursor, this.backCursor),
+                        maxCursor = Cursor.max(this.frontCursor,
+                                this.backCursor),
                         text = this.getText(),
                         left = text.substring(0, minCursor.i),
                         right = text.substring(maxCursor.i);
                 this.setText(left + str + right);
-                minCursor.advanceN(scrollLines, str.length);
+                minCursor.advanceN(tokenRows, str.length);
                 this.scrollIntoView(maxCursor);
                 clampScroll();
                 maxCursor.copy(minCursor);
@@ -709,12 +770,16 @@ var Primrose = (function () {
         };
 
         this.copySelectedText = function (evt) {
+            evt.returnValue = false;
             if (this.frontCursor.i !== this.backCursor.i) {
                 var minCursor = Cursor.min(this.frontCursor, this.backCursor),
-                        maxCursor = Cursor.max(this.frontCursor, this.backCursor),
+                        maxCursor = Cursor.max(this.frontCursor,
+                                this.backCursor),
                         text = this.getText(),
                         str = text.substring(minCursor.i, maxCursor.i);
-                evt.clipboardData.setData("text/plain", str);
+                var clipboard = evt.clipboardData || window.clipboardData;
+                clipboard.setData(window.clipboardData ? "Text" : "text/plain",
+                        str);
             }
             evt.preventDefault();
         };
@@ -730,7 +795,8 @@ var Primrose = (function () {
                 evt = evt || event;
 
                 var key = evt.keyCode;
-                if (key !== Keys.CTRL && key !== Keys.ALT && key !== Keys.META_L &&
+                if (key !== Keys.CTRL && key !== Keys.ALT && key !==
+                        Keys.META_L &&
                         key !== Keys.META_R && key !== Keys.SHIFT) {
                     var oldDeadKeyState = deadKeyState;
 
@@ -759,7 +825,7 @@ var Primrose = (function () {
                     if (func) {
                         this.frontCursor.moved = false;
                         this.backCursor.moved = false;
-                        func(self, scrollLines);
+                        func(self, tokenRows);
                         if (this.frontCursor.moved && !this.backCursor.moved) {
                             this.backCursor.copy(this.frontCursor);
                         }
@@ -788,7 +854,7 @@ var Primrose = (function () {
                     tokenRows,
                     this.frontCursor, this.backCursor,
                     gridBounds,
-                    this.scroll.x, this.scroll.y,
+                    this.scroll,
                     focused, showLineNumbers, showScrollBars, wordWrap,
                     lineCountWidth);
 
@@ -804,16 +870,19 @@ var Primrose = (function () {
         //
         // different browsers have different sets of keycodes for less-frequently
         // used keys like.
-        browser = isChrome ? "CHROMIUM" : (isFirefox ? "FIREFOX" : (isIE ? "IE" :
+        browser = isChrome ? "CHROMIUM" : (isFirefox ? "FIREFOX" : (isIE ?
+                "IE" :
                 (isOpera ? "OPERA" : (isSafari ? "SAFARI" : "UNKNOWN"))));
 
         //
         // the `surrogate` textarea makes the soft-keyboard appear on mobile devices.
         surrogate.style.position = "absolute";
         surrogateContainer = makeHidingContainer(
-                "primrose-surrogate-textarea-container-" + renderer.id, surrogate);
+                "primrose-surrogate-textarea-container-" + renderer.id,
+                surrogate);
 
-        document.body.insertBefore(surrogateContainer, document.body.children[0]);
+        document.body.insertBefore(surrogateContainer,
+                document.body.children[0]);
 
         this.setWheelScrollSpeed(options.wheelScrollSpeed);
         this.setWordWrap(!options.disableWordWrap);
@@ -826,22 +895,27 @@ var Primrose = (function () {
         this.setOperatingSystem(options.os);
         this.setCommandSystem(options.commands);
         this.setText(options.file);
-        this.bindEvents(options.keyEventSource, options.pointerEventSource, options.wheelEventSource);
+        this.bindEvents(options.keyEventSource, options.pointerEventSource,
+                options.wheelEventSource);
 
         this.themeSelect = makeSelectorFromObj("primrose-theme-selector-" +
                 renderer.id, Themes, theme.name, self, "setTheme", "theme");
         this.commandSystemSelect = makeSelectorFromObj(
                 "primrose-command-system-selector-" + renderer.id, Commands,
-                commandSystem.name, self, "setCommandSystem", "command system");
-        this.tokenizerSelect = makeSelectorFromObj("primrose-tokenizer-selector-" +
+                commandSystem.name, self, "setCommandSystem",
+                "command system");
+        this.tokenizerSelect = makeSelectorFromObj(
+                "primrose-tokenizer-selector-" +
                 renderer.id, Grammar, tokenizer.name, self, "setTokenizer",
                 "language syntax", Grammar);
-        this.keyboardSelect = makeSelectorFromObj("primrose-keyboard-selector-" +
+        this.keyboardSelect = makeSelectorFromObj(
+                "primrose-keyboard-selector-" +
                 renderer.id, CodePage, codePage.name, self, "setCodePage",
                 "localization", CodePage);
         this.operatingSystemSelect = makeSelectorFromObj(
                 "primrose-operating-system-selector-" + renderer.id,
-                OperatingSystem, operatingSystem.name, self, "setOperatingSystem",
+                OperatingSystem, operatingSystem.name, self,
+                "setOperatingSystem",
                 "shortcut style", OperatingSystem);
 
 
@@ -855,9 +929,6 @@ var Primrose = (function () {
             self.forceDraw();
         });
 
-        surrogate.addEventListener("copy", this.copySelectedText.bind(this));
-        surrogate.addEventListener("cut", this.cutSelectedText.bind(this));
-        surrogate.addEventListener("paste", readClipboard.bind(this));
         setSurrogateSize();
     }
 
