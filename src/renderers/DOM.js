@@ -2,33 +2,121 @@
 
 window.Primrose = window.Primrose || { };
 window.Primrose.Renderers = window.Primrose.Renderers || { };
-window.Primrose.Renderers.Canvas = ( function ( ) {
+window.Primrose.Renderers.DOM = ( function ( ) {
   "use strict";
+  
+  var Size = Primrose.Size,
+      Cursor = Primrose.Cursor,
+      defaultTheme = Primrose.Themes.Default;
 
-  return function ( canvasElementOrID, options ) {
+  function FakeContext ( target ) {
+    var self = this;
+    this.font = null;
+    this.fillStyle = null;
+    var translate = [ new Point() ];
+
+    function setFont(elem){
+      elem.style.font = self.font;
+      elem.style.lineHeight = px(parseInt(self.font, 10));
+      elem.style.padding = "0";
+      elem.style.margin = "0";
+    }
+
+    this.measureText = function ( txt ) {
+      var tester = document.createElement( "div" );
+      setFont(tester);
+      tester.style.position = "absolute";
+      tester.style.visibility = "hidden";
+      tester.innerHTML = txt;
+      document.body.appendChild( tester );
+      var size = new Size( tester.clientWidth, tester.clientHeight );
+      document.body.removeChild( tester );
+      return size;
+    };
+
+    this.clearRect = function(){
+        target.innerHTML = "";
+    };
+
+    this.drawImage = function(img, x, y){
+      var top = translate[translate.length - 1];
+      img.style.position = "absolute";
+      img.style.left = px(x + top.x);
+      img.style.top = px(y + top.y);
+      target.appendChild(img);
+    };
+
+    this.fillRect = function ( x, y, w, h ) {
+      var top = translate[translate.length - 1];
+      var box = document.createElement( "div" );
+      box.style.position = "absolute";
+      box.style.left = px( x + top.x);
+      box.style.top = px( y + top.y );
+      box.style.width = px( w );
+      box.style.height = px( h );
+      box.style.backgroundColor = this.fillStyle;
+      target.appendChild( box );
+    };
+
+    this.fillText = function(str, x, y){
+      var top = translate[translate.length - 1];
+      var box = document.createElement( "span" );
+      box.style.position = "absolute";
+      box.style.left = px( x + top.x );
+      box.style.top = px( y + top.y );
+      setFont(box);
+      box.style.color = this.fillStyle;
+      box.appendChild(document.createTextNode(str));
+      target.appendChild( box );
+    };
+
+    this.save = function () {
+      var top = translate[translate.length - 1];
+      translate.push(top.clone());
+    };
+
+    this.restore = function(){
+      translate.pop();
+    };
+
+    this.translate = function(x, y){
+      var top = translate[translate.length - 1];
+      top.x += x;
+      top.y += y;
+    };
+  }
+
+  window.HTMLDivElement.prototype.getContext = function ( type ) {
+    if ( type !== "2d" ) {
+      throw new Exception( "type parameter needs to be '2d'." );
+    }
+    this.style.width = pct(100);
+    this.style.height = pct(100);
+    return new FakeContext( this );
+  };
+
+  return function ( domElementOrID, options ) {
     var self = this,
-        canvas = cascadeElement( canvasElementOrID, "canvas",
-            window.HTMLCanvasElement ),
-        bgCanvas = cascadeElement( canvas.id + "-back", "canvas",
-            window.HTMLCanvasElement ),
-        fgCanvas = cascadeElement( canvas.id + "-front", "canvas",
-            window.HTMLCanvasElement ),
-        trimCanvas = cascadeElement( canvas.id + "-trim", "canvas",
-            window.HTMLCanvasElement ),
-        gfx = canvas.getContext( "2d" ),
-        fgfx = fgCanvas.getContext( "2d" ),
-        bgfx = bgCanvas.getContext( "2d" ),
-        tgfx = trimCanvas.getContext( "2d" ),
+        div = cascadeElement( domElementOrID, "div",
+            window.HTMLDivElement ),
+        bgDiv = cascadeElement( div.id + "-back", "div",
+            window.HTMLDivElement ),
+        fgDiv = cascadeElement( div.id + "-front", "div",
+            window.HTMLDivElement ),
+        trimDiv = cascadeElement( div.id + "-trim", "div",
+            window.HTMLDivElement ),
+        gfx = div.getContext( "2d" ),
+        fgfx = fgDiv.getContext( "2d" ),
+        bgfx = bgDiv.getContext( "2d" ),
+        tgfx = trimDiv.getContext( "2d" ),
         theme = null,
-        texture = null,
-        pickingTexture = null,
-        pickingPixelBuffer = null,
-        strictSize = options.strictSize;
+        oldWidth = null,
+        oldHeight = null;
 
     this.VSCROLL_WIDTH = 2;
 
-    this.character = new Primrose.Size();
-    this.id = canvas.id;
+    this.character = new Size();
+    this.id = div.id;
     this.autoBindEvents = true;
 
     this.setTheme = function ( t ) {
@@ -36,38 +124,30 @@ window.Primrose.Renderers.Canvas = ( function ( ) {
     };
 
     this.pixel2cell = function ( point, scroll, gridBounds ) {
-      var r = this.getPixelRatio();
-      var x = point.x * canvas.width / canvas.clientWidth;
-      var y = point.y * canvas.height / canvas.clientHeight;
       point.set(
-          Math.round( x * r / this.character.width ) + scroll.x - gridBounds.x,
-          Math.floor( ( y * r / this.character.height ) - 0.25 ) + scroll.y );
+          Math.round( point.x / this.character.width ) + scroll.x -
+          gridBounds.x,
+          Math.floor( ( point.y / this.character.height ) - 0.25 ) +
+          scroll.y );
     };
 
     this.hasResized = function () {
-      var r = this.getPixelRatio(),
-          oldWidth = canvas.width,
-          oldHeight = canvas.height,
-          newWidth = canvas.clientWidth * r,
-          newHeight = canvas.clientHeight * r;
+      var newWidth = div.clientWidth,
+          newHeight = div.clientHeight;
       return oldWidth !== newWidth || oldHeight !== newHeight;
     };
 
     this.resize = function () {
       var changed = false;
       if ( theme ) {
-        var r = this.getPixelRatio(),
-            oldCharacterWidth = this.character.width,
+        var oldCharacterWidth = this.character.width,
             oldCharacterHeight = this.character.height,
-            oldWidth = canvas.width,
-            oldHeight = canvas.height,
-            newWidth = ( strictSize && strictSize.width ) ||
-            ( canvas.clientWidth * r ),
-            newHeight = ( strictSize && strictSize.height ) ||
-            ( canvas.clientHeight * r ),
+            newWidth = div.clientWidth,
+            newHeight = div.clientHeight,
             oldFont = gfx.font;
-        this.character.height = theme.fontSize * r;
-        gfx.font = this.character.height + "px " + theme.fontFamily;
+        this.character.height = theme.fontSize;
+        gfx.font = px( this.character.height ) + " " + theme.fontFamily;
+
         // measure 100 letter M's, then divide by 100, to get the width of an M
         // to two decimal places on systems that return integer values from
         // measureText.
@@ -79,35 +159,36 @@ window.Primrose.Renderers.Canvas = ( function ( ) {
             oldFont !== gfx.font;
 
         if ( newWidth > 0 && newHeight > 0 ) {
-          bgCanvas.width =
-              fgCanvas.width =
-              trimCanvas.width =
-              canvas.width = newWidth;
-          bgCanvas.height =
-              fgCanvas.height =
-              trimCanvas.height =
-              canvas.height = newHeight;
+          bgDiv.width =
+              fgDiv.width =
+              trimDiv.width = newWidth;
+          bgDiv.height =
+              fgDiv.height =
+              trimDiv.height = newHeight;
 
           changed = changed ||
               oldWidth !== newWidth ||
               oldHeight !== newWidth;
+
+          oldWidth = newWidth;
+          oldHeight = newHeight;
         }
       }
       return changed;
     };
 
     this.setSize = function ( w, h ) {
-      canvas.style.width = w + "px";
-      canvas.style.height = h + "px";
+      div.style.width = px( w );
+      div.style.height = px( h );
       return this.resize();
     };
 
     this.getWidth = function () {
-      return canvas.width;
+      return oldWidth;
     };
 
     this.getHeight = function () {
-      return canvas.height;
+      return oldHeight;
     };
 
     function fillRect ( gfx, fill, x, y, w, h ) {
@@ -121,17 +202,17 @@ window.Primrose.Renderers.Canvas = ( function ( ) {
 
     function renderCanvasBackground ( tokenRows, frontCursor, backCursor,
         gridBounds, scroll, focused ) {
-      var minCursor = Primrose.Cursor.min( frontCursor, backCursor ),
-          maxCursor = Primrose.Cursor.max( frontCursor, backCursor ),
-          tokenFront = new Primrose.Cursor(),
-          tokenBack = new Primrose.Cursor(),
-          clearFunc = theme.regular.backColor ? "fillRect" : "clearRect";
+      var minCursor = Cursor.min( frontCursor, backCursor ),
+          maxCursor = Cursor.max( frontCursor, backCursor ),
+          tokenFront = new Cursor(),
+          tokenBack = new Cursor();
 
       if ( theme.regular.backColor ) {
         bgfx.fillStyle = theme.regular.backColor;
+        bgDiv.style.backgroundColor = theme.regular.backColor;
       }
 
-      bgfx[clearFunc]( 0, 0, canvas.width, canvas.height );
+      bgfx.clearRect( 0, 0, oldWidth, oldHeight );
       bgfx.save();
       bgfx.translate( ( gridBounds.x - scroll.x ) * self.character.width,
           -scroll.y * self.character.height );
@@ -140,7 +221,7 @@ window.Primrose.Renderers.Canvas = ( function ( ) {
       // draw the current row highlighter
       if ( focused ) {
         fillRect( bgfx, theme.regular.currentRowBackColor ||
-            Primrose.Themes.Default.regular.currentRowBackColor,
+            defaultTheme.regular.currentRowBackColor,
             0, minCursor.y + 0.2,
             gridBounds.width, maxCursor.y - minCursor.y + 1 );
       }
@@ -162,12 +243,11 @@ window.Primrose.Renderers.Canvas = ( function ( ) {
             var inSelection = minCursor.i <= tokenBack.i && tokenFront.i <
                 maxCursor.i;
             if ( inSelection ) {
-              var selectionFront = Primrose.Cursor.max( minCursor,
-                  tokenFront );
-              var selectionBack = Primrose.Cursor.min( maxCursor, tokenBack );
+              var selectionFront = Cursor.max( minCursor, tokenFront );
+              var selectionBack = Cursor.min( maxCursor, tokenBack );
               var cw = selectionBack.i - selectionFront.i;
               fillRect( bgfx, theme.regular.selectedBackColor ||
-                  Primrose.Themes.Default.regular.selectedBackColor,
+                  defaultTheme.regular.selectedBackColor,
                   selectionFront.x, selectionFront.y + 0.2,
                   cw, 1 );
             }
@@ -185,18 +265,18 @@ window.Primrose.Renderers.Canvas = ( function ( ) {
       if ( focused ) {
         var cc = theme.cursorColor || "black";
         var w = 1 / self.character.width;
-        fillRect( bgfx, cc, minCursor.x, minCursor.y, w, 1 );
-        fillRect( bgfx, cc, maxCursor.x, maxCursor.y, w, 1 );
+        fillRect(bgfx, cc, minCursor.x, minCursor.y, w, 1);
+        fillRect(bgfx, cc, maxCursor.x, maxCursor.y, w, 1);
       }
       bgfx.restore();
     }
 
     function renderCanvasForeground ( tokenRows, gridBounds, scroll ) {
-      var tokenFront = new Primrose.Cursor(),
-          tokenBack = new Primrose.Cursor(),
+      var tokenFront = new Cursor(),
+          tokenBack = new Cursor(),
           maxLineWidth = 0;
 
-      fgfx.clearRect( 0, 0, canvas.width, canvas.height );
+      fgfx.clearRect( 0, 0, oldWidth, oldHeight );
       fgfx.save();
       fgfx.translate( ( gridBounds.x - scroll.x ) * self.character.width,
           -scroll.y * self.character.height );
@@ -223,7 +303,7 @@ window.Primrose.Renderers.Canvas = ( function ( ) {
             fgfx.fillText(
                 t.value,
                 tokenFront.x * self.character.width,
-                ( y + 1 ) * self.character.height );
+                y * self.character.height );
           }
 
           tokenFront.copy( tokenBack );
@@ -240,7 +320,7 @@ window.Primrose.Renderers.Canvas = ( function ( ) {
 
     function renderCanvasTrim ( tokenRows, gridBounds, scroll, showLineNumbers,
         showScrollBars, wordWrap, lineCountWidth, maxLineWidth ) {
-      tgfx.clearRect( 0, 0, canvas.width, canvas.height );
+      tgfx.clearRect( 0, 0, oldWidth, oldHeight );
       tgfx.save();
       tgfx.translate( 0, -scroll.y * self.character.height );
       if ( showLineNumbers ) {
@@ -258,7 +338,7 @@ window.Primrose.Renderers.Canvas = ( function ( ) {
           }
           fillRect( tgfx,
               theme.regular.selectedBackColor ||
-              Primrose.Themes.Default.regular.selectedBackColor,
+              defaultTheme.regular.selectedBackColor,
               0, y + 0.2,
               gridBounds.x, 1 );
           tgfx.font = "bold " + self.character.height + "px " +
@@ -268,7 +348,7 @@ window.Primrose.Renderers.Canvas = ( function ( ) {
             tgfx.fillStyle = theme.regular.foreColor;
             tgfx.fillText(
                 lineNumber,
-                0, ( y + 1 ) * self.character.height );
+                0, y * self.character.height );
           }
           lastLine = currentLine;
         }
@@ -286,7 +366,7 @@ window.Primrose.Renderers.Canvas = ( function ( ) {
             gridBounds.y * self.character.height;
 
         tgfx.fillStyle = theme.regular.selectedBackColor ||
-            Primrose.Themes.Default.regular.selectedBackColor;
+            defaultTheme.regular.selectedBackColor;
         // horizontal
         if ( !wordWrap && maxLineWidth > gridBounds.width ) {
           var scrollBarWidth = drawWidth * ( gridBounds.width / maxLineWidth );
@@ -302,7 +382,7 @@ window.Primrose.Renderers.Canvas = ( function ( ) {
           var scrollBarHeight = drawHeight * ( gridBounds.height /
               tokenRows.length );
           tgfx.fillRect(
-              canvas.width - self.VSCROLL_WIDTH * self.character.width,
+              oldWidth - self.VSCROLL_WIDTH * self.character.width,
               scrollY,
               self.VSCROLL_WIDTH * self.character.width,
               Math.max( self.character.height, scrollBarHeight ) );
@@ -316,99 +396,40 @@ window.Primrose.Renderers.Canvas = ( function ( ) {
         scroll,
         focused, showLineNumbers, showScrollBars, wordWrap,
         lineCountWidth ) {
-      if ( theme ) {
-        var maxLineWidth = 0;
+      var maxLineWidth = 0;
 
-        renderCanvasBackground( tokenRows, frontCursor, backCursor, gridBounds,
-            scroll, focused );
-        maxLineWidth = renderCanvasForeground( tokenRows, gridBounds, scroll );
-        renderCanvasTrim( tokenRows, gridBounds, scroll, showLineNumbers,
-            showScrollBars, wordWrap, lineCountWidth, maxLineWidth );
+      renderCanvasBackground( tokenRows, frontCursor, backCursor, gridBounds,
+          scroll, focused );
+      maxLineWidth = renderCanvasForeground( tokenRows, gridBounds, scroll );
+      renderCanvasTrim( tokenRows, gridBounds, scroll, showLineNumbers,
+          showScrollBars, wordWrap, lineCountWidth, maxLineWidth );
 
-        gfx.clearRect( 0, 0, canvas.width, canvas.height );
-        gfx.drawImage( bgCanvas, 0, 0 );
-        gfx.drawImage( fgCanvas, 0, 0 );
-        gfx.drawImage( trimCanvas, 0, 0 );
-
-        if ( texture ) {
-          texture.needsUpdate = true;
-        }
-      }
+      gfx.clearRect( 0, 0, oldWidth, oldHeight );
+      gfx.drawImage( bgDiv, 0, 0 );
+      gfx.drawImage( fgDiv, 0, 0 );
+      gfx.drawImage( trimDiv, 0, 0 );
     };
 
     this.getDOMElement = function () {
-      return canvas;
-    };
-
-    this.getTexture = function ( anisotropy ) {
-      if ( typeof window.THREE !== "undefined" && !texture ) {
-        texture = new THREE.Texture( canvas );
-        texture.anisotropy = anisotropy || 8;
-        texture.needsUpdate = true;
-      }
-      return texture;
-    };
-
-    this.getPickingTexture = function () {
-      if ( !pickingTexture ) {
-        var c = document.createElement( "canvas" ),
-            w = this.getWidth(),
-            h = this.getHeight();
-        c.width = w;
-        c.height = h;
-
-        var gfx = c.getContext( "2d" ),
-            pixels = gfx.createImageData( w, h );
-
-        for ( var i = 0,
-            p = 0,
-            l = w * h; i < l; ++i, p += 4 ) {
-          pixels.data[p] = ( 0xff0000 & i ) >> 16;
-          pixels.data[p + 1] = ( 0x00ff00 & i ) >> 8;
-          pixels.data[p + 2] = ( 0x0000ff & i ) >> 0;
-          pixels.data[p + 3] = 0xff;
-        }
-        gfx.putImageData( pixels, 0, 0 );
-        pickingTexture = new THREE.Texture( c, THREE.UVMapping,
-            THREE.RepeatWrapping, THREE.RepeatWrapping, THREE.NearestFilter,
-            THREE.NearestMipMapNearestFilter, THREE.RGBAFormat,
-            THREE.UnsignedByteType, 0 );
-        pickingTexture.needsUpdate = true;
-      }
-      return pickingTexture;
+      return div;
     };
 
     this.getPixelRatio = function () {
-      return window.devicePixelRatio || 1;
+      return 1;
     };
 
-    this.getPixelIndex = function ( gl, x, y ) {
-      if ( !pickingPixelBuffer ) {
-        pickingPixelBuffer = new Uint8Array( 4 );
-      }
-
-      gl.readPixels( x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE,
-          pickingPixelBuffer );
-
-      var i = ( pickingPixelBuffer[0] << 16 ) |
-          ( pickingPixelBuffer[1] << 8 ) |
-          ( pickingPixelBuffer[2] << 0 );
-      return { x: i % canvas.clientWidth, y: i / canvas.clientWidth };
-    };
-
-
-    if ( !( canvasElementOrID instanceof window.HTMLCanvasElement ) &&
+    if ( !( domElementOrID instanceof window.HTMLDivElement ) &&
         options.width && options.height ) {
-      canvas.style.position = "absolute";
-      canvas.style.width = options.width;
-      canvas.style.height = options.height;
+      div.style.position = "absolute";
+      div.style.width = options.width;
+      div.style.height = options.height;
     }
 
-    if ( !canvas.parentElement ) {
+    if ( !div.parentElement ) {
       this.autoBindEvents = false;
       document.body.appendChild( makeHidingContainer(
           "primrose-container-" +
-          canvas.id, canvas ) );
+          div.id, div ) );
     }
   };
-} )();
+} );
