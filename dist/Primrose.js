@@ -1,5 +1,5 @@
 /*
-  Primrose v0.11.0 2015-04-17
+  Primrose v0.11.5 2015-04-19
   gplv3
   Copyright (C) 2015 Sean T. McBeth [sean@seanmcbeth.com]
   https://www.primroseeditor.com
@@ -41,20 +41,23 @@ window.RTCSessionDescription = window.RTCSessionDescription ||
     function () {
     };
 
-window.Element.prototype.requestPointerLock = window.Element.prototype.requestPointerLock ||
+window.Element.prototype.requestPointerLock =
+    window.Element.prototype.requestPointerLock ||
     window.Element.prototype.webkitRequestPointerLock ||
     window.Element.prototype.mozRequestPointerLock ||
     function () {
     };
 
-window.Element.prototype.requestFullscreen = window.Element.prototype.requestFullscreen ||
+window.Element.prototype.requestFullscreen =
+    window.Element.prototype.requestFullscreen ||
     window.Element.prototype.webkitRequestFullscreen ||
     window.Element.prototype.mozRequestFullScreen ||
     window.Element.prototype.msRequestFullscreen ||
     function () {
     };
 
-window.Document.prototype.exitFullscreen = window.Document.prototype.exitFullscreen ||
+window.Document.prototype.exitFullscreen =
+    window.Document.prototype.exitFullscreen ||
     window.Document.prototype.webkitExitFullscreen ||
     window.Document.prototype.mozCancelFullScreen ||
     window.Document.prototype.msExitFullscreen ||
@@ -252,18 +255,23 @@ function cascadeElement ( id, tag, DOMClass ) {
   return elem;
 }
 
-function copyObject ( dest, source, depth ) {
-  depth = depth | 0;
-  for ( var key in source ) {
-    if ( source.hasOwnProperty( key ) ) {
-      if ( typeof ( source[key] ) !== "object" ) {
-        dest[key] = source[key];
-      }
-      else if ( depth < 3 ) {
-        if ( !dest[key] ) {
-          dest[key] = { };
+function copyObject ( dest, source ) {
+  var stack = [ { dest: dest, source: source } ];
+  while ( stack.length > 0 ) {
+    var frame = stack.pop(),
+        source = frame.source,
+        dest = frame.dest;
+    for ( var key in source ) {
+      if ( source.hasOwnProperty( key ) ) {
+        if ( typeof ( source[key] ) !== "object" ) {
+          dest[key] = source[key];
         }
-        copyObject( dest[key], source[key], depth + 1 );
+        else {
+          if ( !dest[key] ) {
+            dest[key] = { };
+          }
+          stack.push( { dest: dest[key], source: source[key] } );
+        }
       }
     }
   }
@@ -800,7 +808,7 @@ window.Primrose.CodePage = ( function ( ) {
         "90": "Z"
       }
     } );
-
+    
     copyObject( this, options );
 
     for ( var i = 0; i <= 9; ++i ) {
@@ -1133,7 +1141,7 @@ window.Primrose.Keys = ( function ( ) {
     BACKSPACE: 8,
     TAB: 9,
     ENTER: 13,
-    SPACEBAR: 32,
+    SPACE: 32,
     DELETE: 46,
     ///////////////////////////////////////////////////////////////////////////
     // lock keys
@@ -1156,6 +1164,48 @@ window.Primrose.Keys = ( function ( ) {
     RIGHTARROW: 39,
     DOWNARROW: 40,
     SELECTKEY: 93,
+    ///////////////////////////////////////////////////////////////////////////
+    // numbers
+    ///////////////////////////////////////////////////////////////////////////
+    NUMBER0: 48,
+    NUMBER1: 49,
+    NUMBER2: 50,
+    NUMBER3: 51,
+    NUMBER4: 52,
+    NUMBER5: 53,
+    NUMBER6: 54,
+    NUMBER7: 55,
+    NUMBER8: 56,
+    NUMBER9: 57,
+    ///////////////////////////////////////////////////////////////////////////
+    // letters
+    ///////////////////////////////////////////////////////////////////////////
+    A: 65,
+    B: 66,
+    C: 67,
+    D: 68,
+    E: 69,
+    F: 70,
+    G: 71,
+    H: 72,
+    I: 73,
+    J: 74,
+    K: 75,
+    L: 76,
+    M: 77,
+    N: 78,
+    O: 79,
+    P: 80,
+    Q: 81,
+    R: 82,
+    S: 83,
+    T: 84,
+    U: 85,
+    V: 86,
+    W: 87,
+    X: 88,
+    Y: 89,
+    Z: 90,
     ///////////////////////////////////////////////////////////////////////////
     // numpad
     ///////////////////////////////////////////////////////////////////////////
@@ -1777,7 +1827,7 @@ window.Primrose.TextBox = ( function ( ) {
               renderer.character.height ) -
           y -
           bottomRightGutter.height;
-      gridBounds.set( x, y, w, h );
+      gridBounds.set( x + 2, y, w - 2, h - 2 );
       var cw = renderer.character.width / renderer.getPixelRatio();
       var ch = renderer.character.height / renderer.getPixelRatio();
       surrogate.style.left = px( gridBounds.x * cw );
@@ -2956,8 +3006,8 @@ window.Primrose.CommandPacks.TextEditor = ( function () {
 
   return {
     name: "Basic commands",
-    NORMAL_SPACEBAR: " ",
-    SHIFT_SPACEBAR: " ",
+    NORMAL_SPACE: " ",
+    SHIFT_SPACE: " ",
     NORMAL_BACKSPACE: function ( prim, tokenRows ) {
       if ( prim.frontCursor.i === prim.backCursor.i ) {
         prim.frontCursor.left( tokenRows );
@@ -3004,8 +3054,8 @@ window.Primrose.CommandPacks.TextEditor = ( function () {
 
   function TextEditor ( operatingSystem, codePage, editor ) {
     var commands = {
-      NORMAL_SPACEBAR: " ",
-      SHIFT_SPACEBAR: " ",
+      NORMAL_SPACE: " ",
+      SHIFT_SPACE: " ",
       NORMAL_BACKSPACE: function ( prim, tokenRows ) {
         if ( prim.frontCursor.i === prim.backCursor.i ) {
           prim.frontCursor.left( tokenRows );
@@ -3043,7 +3093,7 @@ window.Primrose.CommandPacks.TextEditor = ( function () {
       }
     };
 
-    var allCommands = {};
+    var allCommands = { };
 
     copyObject( allCommands, codePage );
     copyObject( allCommands, operatingSystem );
@@ -3075,7 +3125,7 @@ window.Primrose.Grammars.Basic = ( function ( ) {
     [ "strings", /'(?:\\'|[^'])*'/ ],
     [ "numbers", /-?(?:(?:\b\d*)?\.)?\b\d+\b/ ],
     [ "keywords",
-      /\b(?:RESTORE|REPEAT|RETURN|LOAD|LABEL|DATA|READ|THEN|ELSE|FOR|DIM|LET|IF|TO|STEP|NEXT|WHILE|WEND|UNTIL|GOTO|GOSUB|ON|TAB|AT|END|STOP|PRINT|INPUT|RND|INT|CLS|CLK)\b/
+      /\b(?:RESTORE|REPEAT|RETURN|LOAD|LABEL|DATA|READ|THEN|ELSE|FOR|DIM|LET|IF|TO|STEP|NEXT|WHILE|WEND|UNTIL|GOTO|GOSUB|ON|TAB|AT|END|STOP|PRINT|INPUT|RND|INT|CLS|CLK|LEN)\b/
     ],
     [ "keywords", /^DEF FN/ ],
     [ "operators",
@@ -3112,6 +3162,9 @@ window.Primrose.Grammars.Basic = ( function ( ) {
           },
           CLK: function ( ) {
             return Date.now( ) / 3600000;
+          },
+          LEN: function ( id ) {
+            return id.length;
           },
           LINE: function ( ) {
             return lineNumbers[counter];
@@ -3153,21 +3206,6 @@ window.Primrose.Grammars.Basic = ( function ( ) {
       }
       else if ( token.type !== "regular" && token.type !== "comments" ) {
         token.value = tokenMap[token.value] || token.value;
-
-        if ( token.type === "identifiers" &&
-            token.value[token.value.length - 1] === "$" &&
-            tokens[0].type === "operators" &&
-            tokens[0].value === "(" ) {
-          tokens[0].value = "[";
-          for ( var j = 1; j < tokens.length; ++j ) {
-            if ( tokens[j].type === "operators" && tokens[j].value ===
-                ")" ) {
-              tokens[j].value = "]";
-              break;
-            }
-          }
-        }
-
         currentLine.push( token );
       }
     }
@@ -3217,7 +3255,7 @@ window.Primrose.Grammars.Basic = ( function ( ) {
                 ( line.length > 0 && line[0].type === "operators" &&
                     line[0].value === "=" ) ) {
               line.unshift( op );
-              return setValue( line );
+              return translate( line );
             }
             else {
               error( "Unknown command. >>> " + op.value );
@@ -3246,10 +3284,39 @@ window.Primrose.Grammars.Basic = ( function ( ) {
     }
 
     function evaluate ( line ) {
-      var script = line.map( function ( token ) {
-        return token.value;
-      } )
-          .join( " " );
+      var script = "";
+      for(var i = 0; i < line.length; ++i){
+        var t = line[i];
+        var nest = 0;
+        if(t.type === "identifiers" &&
+            typeof state[t.value] !== "function" &&
+            i < line.length - 1 &&
+            line[i+1].value === "("){
+          for(var j = i + 1; j < line.length; ++j){
+            var t2 = line[j];
+            if(t2.value === "("){
+              if(nest === 0){
+                t2.value = "[";
+              }
+              ++nest;
+            }
+            else if(t2.value === ")"){
+              --nest;
+              if(nest === 0){
+                t2.value = "]";
+              }
+            }
+            else if(t2.value === "," && nest === 1){
+              t2.value = "][";
+            }
+
+            if(nest === 0){
+              break;
+            }
+          }
+        }
+        script += t.value;
+      }
       with ( state ) {
         try {
           return eval( script );
@@ -3264,61 +3331,67 @@ window.Primrose.Grammars.Basic = ( function ( ) {
     }
 
     function declareVariable ( line ) {
-      var id = line.shift( );
-      if ( id.type !== "identifiers" ) {
-        error( "Identifier expected: " + id.value );
+      var decl = [ ],
+          decls = [ decl ],
+          nest = 0,
+          i;
+      for ( i = 0; i < line.length; ++i ) {
+        var t = line[i];
+        if ( t.value === "(" ) {
+          ++nest;
+        }
+        else if ( t.value === ")" ) {
+          --nest;
+        }
+        if ( nest === 0 && t.value === "," ) {
+          decl = [ ];
+          decls.push( decl );
+        }
+        else {
+          decl.push( t );
+        }
       }
-      else {
-        var val = null;
-        id = id.value;
-        if ( id[id.length - 1] === "$" ) {
-          val = [ ];
-          if ( line.length === 3 &&
-              line[0].type === "operators" && line[0].value === "(" &&
-              line[1].type === "numbers" &&
-              line[2].type === "operators" && line[2].value === ")" ) {
-            for ( var i = Math.floor( parseFloat( line[1].value ) ); i > 0;
-                --i ) {
-              val.push( null );
+      for ( i = 0; i < decls.length; ++i ) {
+        decl = decls[i];
+        var id = decl.shift( );
+        if ( id.type !== "identifiers" ) {
+          error( "Identifier expected: " + id.value );
+        }
+        else {
+          var val = null,
+              j;
+          id = id.value;
+          if ( decl[0].value === "(" && decl[decl.length - 1].value === ")" ) {
+            var sizes = [ ];
+            for ( j = 1; j < decl.length - 1; ++j ) {
+              if ( decl[j].type === "numbers" ) {
+                sizes.push( decl[j].value | 0 );
+              }
+            }
+            if ( sizes.length === 0 ) {
+              val = [ ];
+            }
+            else {
+              val = new Array( sizes[0] );
+              var queue = [val];
+              for( j = 1; j < sizes.length; ++j){
+                var size = sizes[j];
+                for(var k = 0, l = queue.length; k < l; ++k){
+                  var arr = queue.shift();
+                  for(var m = 0; m < arr.length; ++m){
+                    arr[m] = new Array(size);
+                    if(j < sizes.length - 1){
+                      queue.push(arr[m]);
+                    }
+                  }
+                }
+              }
             }
           }
-        }
-        state[id] = val;
-        return true;
-      }
-    }
-
-    function setValue ( line ) {
-      var name = line.shift( );
-      var equals = line.shift( );
-      var val = null;
-      if ( name.type !== "identifiers" ) {
-        error( "Identifier expected. >>> " + name.value );
-      }
-      else if ( equals.type === "operators" && equals.value === "=" ) {
-        val = evaluate( line );
-        state[name.value] = val;
-      }
-      else if ( equals.type === "operators" && equals.value === "[" ) {
-        var idxExpr = [ ];
-        while ( line.length > 0 && line[0].type !== "operators" &&
-            line[0].value !== "]" ) {
-          idxExpr.push( line.shift( ) );
-        }
-        if ( line.length > 0 ) {
-          line.shift( ); // burn the close paren
-          equals = line.shift( );
-          if ( equals.type === "operators" && equals.value === "=" ) {
-            val = evaluate( line );
-            state[name.value][evaluate( idxExpr )] = val;
-          }
+          state[id] = val;
+          return true;
         }
       }
-      else {
-        error( "Expected equals sign. >>> " + equals.value );
-      }
-
-      return true;
     }
 
     function print ( line ) {
@@ -3426,7 +3499,7 @@ window.Primrose.Grammars.Basic = ( function ( ) {
     function labelLine ( line ) {
       line.push( EQUAL_SIGN );
       line.push( toNum( lineNumbers[counter] ) );
-      return setValue( line );
+      return translate( line );
     }
 
     function waitForInput ( line ) {
@@ -3443,7 +3516,7 @@ window.Primrose.Grammars.Basic = ( function ( ) {
         else {
           valueToken = toStr( str );
         }
-        setValue( [ toVar, EQUAL_SIGN, valueToken ] );
+        evaluate( [ toVar, EQUAL_SIGN, valueToken ] );
         if ( next ) {
           next( );
         }
@@ -3615,7 +3688,7 @@ window.Primrose.Grammars.Basic = ( function ( ) {
       ++dataCounter;
       line.push( EQUAL_SIGN );
       line.push( toNum( value ) );
-      return setValue( line );
+      return translate( line );
     }
 
     function restoreData () {
@@ -3647,9 +3720,14 @@ window.Primrose.Grammars.Basic = ( function ( ) {
       return true;
     }
 
+    function translate(line){
+      evaluate(line);
+      return true;
+    }
+
     var commands = {
       DIM: declareVariable,
-      LET: setValue,
+      LET: translate,
       PRINT: print,
       GOTO: setProgramCounter,
       IF: checkConditional,
@@ -3679,7 +3757,7 @@ window.Primrose.Grammars.Basic = ( function ( ) {
     return function ( ) {
       if ( !isDone ) {
         var goNext = true;
-        while (goNext){
+        while ( goNext ) {
           var line = getLine( counter );
           goNext = process( line );
           ++counter;
@@ -3781,7 +3859,7 @@ window.Primrose.Renderers.Canvas = ( function ( ) {
         texture = null,
         pickingTexture = null,
         pickingPixelBuffer = null,
-        strictSize = options.strictSize;
+        strictSize = options.size;
 
     this.VSCROLL_WIDTH = 2;
 
@@ -4156,10 +4234,10 @@ window.Primrose.Renderers.Canvas = ( function ( ) {
 
 
     if ( !( canvasElementOrID instanceof window.HTMLCanvasElement ) &&
-        options.width && options.height ) {
+        strictSize ) {
       canvas.style.position = "absolute";
-      canvas.style.width = options.width;
-      canvas.style.height = options.height;
+      canvas.style.width = strictSize.width;
+      canvas.style.height = strictSize.height;
     }
 
     if ( !canvas.parentElement ) {
@@ -4688,4 +4766,4 @@ window.Primrose.Themes.Default = ( function ( ) {
       fontStyle: "underline italic"
     }
   };
-} )();Primrose.VERSION = "v0.11.0";
+} )();Primrose.VERSION = "v0.11.5";

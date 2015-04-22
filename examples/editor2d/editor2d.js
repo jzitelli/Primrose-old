@@ -30,7 +30,7 @@ function editor2d () {
 
   var running = false;
   var inputCallback = null;
-  var currentIndex = 0;
+  var currentEditIndex = 0;
   var currentProgram = null;
 
   function toEnd (  ) {
@@ -58,7 +58,7 @@ function editor2d () {
   function loadFile ( fileName, callback ) {
     GET( fileName.toLowerCase(), "text", function ( file ) {
       if ( isOSX ) {
-        file = file.replace( "CTRL+ENTER", "CMD+OPT+E" );
+        file = file.replace( "CTRL+SHIFT+SPACE", "CMD+OPT+E" );
       }
       editor.value = currentProgram = file;
       if ( callback ) {
@@ -80,7 +80,7 @@ function editor2d () {
     flush();
     inputCallback = callback;
     toEnd( );
-    currentIndex = editor.selectionStart;
+    currentEditIndex = editor.selectionStart;
   }
 
   var buffer = "";
@@ -91,7 +91,7 @@ function editor2d () {
 
   editor.addEventListener( "keydown", function ( evt ) {
     if ( running && inputCallback && evt.keyCode === Primrose.Keys.ENTER ) {
-      var str = editor.value.substring( currentIndex );
+      var str = editor.value.substring( currentEditIndex );
       str = str.substring( 0, str.length - 1 );
       inputCallback( str );
       inputCallback = null;

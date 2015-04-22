@@ -8,19 +8,19 @@
 8  REM        http://bit.ly/1PYytsT
 9  REM        http://www.citypages.com/content/printVersion/1740595/
 10 REM
-11 REM You can see the source code here, which less than 700 lines of a dialect
-12 REM of BASIC for the CDC Cyber 70/73-26 mainframe computer. I've had to make
-13 REM a few minor changes to correct a few bugs in the copy that I found, as
-14 REM well as to fudge a few minor issues with my interpreter.
+11 REM You can see the source code here, which is less than 700 lines of BASIC
+12 REM for the CDC Cyber 70/73-26 mainframe computer. I've had to make a few
+13 REM minor changes to correct a few bugs in the copy that I found, as well as
+14 REM to fudge a few minor issues with my interpreter.
 15 REM
-16 REM Run the program at any time by hitting CTRL+ENTER on your keyboard.
+16 REM Run the program at any time by hitting CTRL+SHIFT+SPACE on your keyboard.
 17 REM Type commands when prompted. The game mostly uses numeric commands, but
 18 REM there is a shooting mini-game that requires you to quickly type a given
 19 REM word, so pay attention for when it comes up.
 20 REM
 21 REM As of right now, the interpreter has a minor issue that it will not be
 22 REM able to read your input correctly if you move the cursor before typing.
-23 REM If you do move the cursor, just hit CTRL+END (or CMD+DONW ARROW on your
+23 REM If you do move the cursor, just hit CTRL+END (or CMD+DOWN ARROW on your
 24 REM Apple ][ descendent) and the cursor will be placed correctly.
 25 REM
 26 REM                                                                thank you
@@ -148,7 +148,7 @@
 1140 IF T >= 0 THEN 1170
 1150 PRINT "YOU OVERSPENT-YOU ONLY HAD $700 TO SPEND. BUY AGAIN"
 1160 GOTO 830
-1170 B=50+B
+1170 B=50*B
 1180 PRINT "AFTER ALL YOUR PURCHASES, YOU NOW HAVE ";T;" DOLLARS LEFT"
 1190 PRINT
 1200 PRINT "MONDAY MARCH 29 1847"
