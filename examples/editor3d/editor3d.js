@@ -174,12 +174,14 @@ function editor3d () {
 
     var fs = 25,
         ft = 25;
-    var sky_texture = document.getElementById('#sky-texture'); //.innerHTML || "bg2.jpg";
+
+    var sky_texture = document.getElementById('#sky-texture');
     if (sky_texture)
       sky_texture = sky_texture.innerHTML;
     else
-      sky_texture = "bg2.jpg";
-    var floor_texture = document.getElementById('#floor-texture'); //.innerHTML || "deck.png";
+      sky_texture = "images/default_bg.jpg";
+
+    var floor_texture = document.getElementById('#floor-texture');
     if (floor_texture) {
       floor_texture = floor_texture.innerHTML;
       fs = 1; ft = 1;
@@ -187,7 +189,6 @@ function editor3d () {
     else {
       floor_texture = "deck.png";
     }
-
 
     var gl = renderer.getContext( ),
         sky = textured( shell( 50, 8, 4, Math.PI * 2, Math.PI ),

@@ -48,7 +48,9 @@ editor_js_a = Markup(r"""log("Hello world!");
 // focus on this window and hit CTRL+SHIFT+SPACE (Windows/Linux) or CMD+OPT+E (OS X) to execute.
 """)
 
-editor_js_b = Markup(r"""log('\n\neditor B!');
+# with open('editor_b.js', 'r') as f:
+#     editor_js_b = Markup(f.read())
+editor_js_b = Markup(r"""log('editor B!');
 
 var textgeom = new THREE.TextGeometry('Hello, World!',
     {size: 1, height: 0.2, curveSegments: 3,
