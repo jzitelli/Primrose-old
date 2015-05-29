@@ -10,11 +10,11 @@ app = Flask(__name__, static_url_path='', static_folder=STATIC_FOLDER)
 def editor3d():
     logger = logging.getLogger(__name__)
     if 'sky_texture' in request.args:
-        sky_texture = Markup('<div id="sky-texture">images/%s</div>' % request.args['sky_texture'])
+        sky_texture = Markup('<div id="#sky-texture">images/%s</div>' % request.args['sky_texture'])
     else:
         sky_texture = ''
     if 'floor_texture' in request.args:
-        floor_texture = Markup('<div id="floor-texture">images/%s</div>' % request.args['floor_texture'])
+        floor_texture = Markup('<div id="#floor-texture">images/%s</div>' % request.args['floor_texture'])
     else:
         floor_texture = ''
 
@@ -28,48 +28,49 @@ def editor3d():
 
 editor_js_a = Markup(r"""log("Hello world!");
 
-var ball = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 0.25),
-    new THREE.MeshLambertMaterial(
-        {map: THREE.ImageUtils.loadTexture("bg1.jpg")}));
 
-ball.position.y = 0.25;
-scene.add(ball);
+//var ball = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 0.25),
+//    new THREE.MeshLambertMaterial(
+//        {map: THREE.ImageUtils.loadTexture("bg1.jpg"),
+//         minFilter: THREE.NearestFilter}));
+//
+//ball.position.y = 0.25;
+//scene.add(ball);
+//
+//var radius = 3, angle = 0, dAngle = Math.PI / 360;
+//setInterval(function() {
+//    ball.position.x = radius * Math.cos(angle);
+//    ball.position.z = radius * Math.sin(angle);
+//    angle += dAngle;
+//}, 8);
 
-var radius = 3, angle = 0, dAngle = Math.PI / 360;
-setInterval(function() {
-    ball.position.x = radius * Math.cos(angle);
-    ball.position.z = radius * Math.sin(angle);
-    angle += dAngle;
-}, 8);
 
 // focus on this window and hit CTRL+SHIFT+SPACE (Windows/Linux) or CMD+OPT+E (OS X) to execute.
 """)
 
-editor_js_b = Markup(r"""console.log('asdfasdfasgdsfgsdhsdg');
+editor_js_b = Markup(r"""log('\n\neditor B!');
 
 var textgeom = new THREE.TextGeometry('Hello, World!',
     {size: 1, height: 0.2, curveSegments: 3,
      font: 'janda manatee solid', weight: 'normal',
      bevelThickness: 3, bevelSize: 3, bevelEnabled: false});
-
-// var textgeom = new THREE.TextGeometry('asdfasdfasgdsfgsdhsdg', {font: 'helvetiker', weight: 'normal'});
+//var textgeom = new THREE.TextGeometry('asdfasdfasgdsfgsdhsdg',
+//    {size: 1, height: 0.2, font: 'helvetiker', weight: 'normal'});
 
 var mesh = new THREE.Mesh(textgeom,
-    new THREE.MeshLambertMaterial({color: 0xff0000, transparent: false, shading: THREE.FlatShading, side: THREE.DoubleSide}));
+    new THREE.MeshLambertMaterial({color: 0xfff000}));
 
-mesh.position.x = 2;
 mesh.position.y = 0.25;
-mesh.position.z = 2;
 
 scene.add(mesh);
 
-var radius = 3, angle = 0, dAngle = Math.PI / 360;
+var radiusb = 3, angleb = 0, dAngleb = Math.PI / 360;
 
 setInterval(function() {
-  mesh.position.x = radius * Math.cos(angle);
-  mesh.position.z = radius * Math.sin(angle);
-  mesh.rotation.y = angle / 2;
-  angle += dAngle;
+  mesh.position.x = radiusb * Math.cos(angleb);
+  mesh.position.z = radiusb * Math.sin(angleb);
+  mesh.rotation.y = angleb / 2;
+  angleb += dAngleb;
 }, 8);
 
 // focus on this window and hit CTRL+SHIFT+SPACE (Windows/Linux) or CMD+OPT+E (OS X) to execute.
