@@ -75,3 +75,23 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+asdf
+diff421
+*.py~
+examples/editor3d/dist/Primrose.js
+examples/editor3d/dist/Primrose.min.js
+examples/editor3d/lib/InsideSphereGeometry.js
+examples/editor3d/lib/janda_manatee_solid_regular.typeface.js
+examples/editor3d/lib/helvetiker_bold.typeface.js
+examples/editor3d/lib/helvetiker_regular.typeface.js
+examples/editor3d/lib/VREffect.js
+examples/editor3d/test/Basic.js
+examples/editor3d/test/Point.js
+examples/editor3d/test/Rectangle.js
+examples/editor3d/test/Grammar.js
+examples/editor3d/test/Size.js
+examples/editor3d/lib/three.min.js
+examples/editor3d/test/testing.js
+lib/helvetiker_bold.typeface.js
+lib/helvetiker_regular.typeface.js
+lib/janda_manatee_solid_regular.typeface.js
