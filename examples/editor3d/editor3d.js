@@ -19,9 +19,6 @@
 
 var scene = new THREE.Scene();
 
-// var audio = new Audio('audio/bobdylan_2.mp3');
-// audio.play();
-
 function editor3d() {
   "use strict";
   var modA = isOSX ? "metaKey" : "ctrlKey",
@@ -157,50 +154,40 @@ function editor3d() {
       antialias: true
     });
 
+    // put javascript in me exclamation points
+    var initial_contents = "";
+
     var prim1 = new Primrose.TextBox("editor1", {
       tokenizer: Primrose.Grammars.JavaScript,
-      size: new Primrose.Size(2 * 1024, 1024),
+      size: new Primrose.Size(2 * 1024, 2*1024),
       fontSize: (vrDisplay ? 40 : 20) / window.devicePixelRatio,
-      file: "// put javascript in me!!!",
+      file: initial_contents,
       theme: Primrose.Themes.Dark
     });
     $.ajax({
-        url: "editor_a.js",
-        success: function (data){
-              console.log(data);
-              prim1.overwriteText(data);
+        url: "/script_contents?filename=editor_a.js",
+        success: function (data) {
+              prim1.overwriteText(data.contents);
+              prim1.drawText();
+              console.log("loaded " + data.filename);
         }
     });
 
     var prim2 = new Primrose.TextBox("editor2", {
       tokenizer: Primrose.Grammars.JavaScript,
-      size: new Primrose.Size(2 * 1024, 1024),
+      size: new Primrose.Size(2 * 1024, 2*1024),
       fontSize: (vrDisplay ? 40 : 20) / window.devicePixelRatio,
-      file: "// put javascript in me!!!",
+      file: initial_contents,
       theme: Primrose.Themes.Dark
     });
     $.ajax({
-        url: "editor_b.js",
-        success: function (data){
-              console.log(data);
-              prim2.overwriteText(data);
+        url: "/script_contents?filename=editor_b.js",
+        success: function (data) {
+              prim2.overwriteText(initial_contents + data.contents);
+              prim2.drawText();
+              console.log("loaded " + data.filename);
         }
     });
-
-
-    // // instantiate a loader
-    // var loader = new THREE.JSONLoader();
-    // // load a resource
-    // loader.load(
-    //   // resource URL
-    //   'monitor.json',
-    //   // Function when resource is loaded
-    //   function ( geometry, materials ) {
-    //     var material = new THREE.MeshFaceMaterial( materials );
-    //     var object = new THREE.Mesh( geometry, material );
-    //     scene.add( object );
-    //   }
-    // );
 
     var sky_texture = document.getElementById('#sky-texture').innerHTML;
     var sky = textured(shell(50, 8, 4, Math.PI * 2, Math.PI), sky_texture);
@@ -233,9 +220,9 @@ function editor3d() {
     directionalLight.position.set(0.2, 1, 0);
     scene.add(directionalLight);
 
-    directionalLight = new THREE.DirectionalLight(0x723f55, 1.5);
-    directionalLight.position.set(-0.3, 0.4, 0.3);
-    scene.add(directionalLight);
+    // directionalLight = new THREE.DirectionalLight(0x723f55, 1.5);
+    // directionalLight.position.set(-0.3, 0.4, 0.3);
+    // scene.add(directionalLight);
 
     var pointLight = new THREE.PointLight(0x44ffff, 0.8);
     pointLight.position.y = 5;
@@ -252,10 +239,13 @@ function editor3d() {
     pickingScene.add(shellEditorPicker);
     pickingScene.add(flatEditorPicker);
 
+    var gotGP = false;
+    // TODO: how to fix problem when page reloads, gamepadconnected event does not happen???
     window.addEventListener("gamepadconnected", function(e) {
       console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
         e.gamepad.index, e.gamepad.id,
         e.gamepad.buttons.length, e.gamepad.axes.length);
+      gotGP = true;
     });
 
     window.addEventListener("resize", refreshSize);
@@ -353,7 +343,7 @@ function editor3d() {
     function textgeom_log(msg, color) {
       var textgeom = new THREE.TextGeometry(msg, {
         size: 1.0,
-        height: 0.2,
+        height: 0.4,
         font: 'janda manatee solid',
         weight: 'normal'
       });
@@ -394,11 +384,12 @@ function editor3d() {
           if ((isOSX && evt.keyCode === 69) || (!isOSX &&
               evt.keyCode ===
               32)) {
-            try {
-              eval(currentEditor.getLines().join(''));
-            } catch (exp) {
-              log(exp.message);
-            }
+            eval(currentEditor.getLines().join(''));
+            // try {
+            //   eval(currentEditor.getLines().join(''));
+            // } catch (exp) {
+            //   log(exp.message);
+            // }
             evt.preventDefault();
           } else if (evt.keyCode === 38) {
             currentEditor.increaseFontSize();
@@ -596,6 +587,7 @@ function editor3d() {
       lastTouchY = null;
     }
 
+
     function update(dt) {
       // forward moves towards where you are looking in VR mode:
       if (vrSensor) {
@@ -612,24 +604,31 @@ function editor3d() {
         }
       }
 
-      var gp = navigator.getGamepads();
-      var ss = 1;
-      var pad;
-      for (var j = 3; j < gp.length; j++) {
-        pad = gp[j];
-        //for (var k = 0; k < pad.axes.length; k++) {
-        //  console.log('' + pad.axes[k]);
-        //}
+      var cos = Math.cos(body.rotation.y), //+ heading ),
+          sin = Math.sin(body.rotation.y); //+ heading );
+
+      if (gotGP) {
+        var DEAD_THRESHOLD = 5 * 0.0666;
+        var gp = navigator.getGamepads()[0];
+        var ws = gp.axes[1];
+        var ad = gp.axes[0];
+        var sf = Math.sqrt(ws*ws + ad*ad);
+        if (sf > DEAD_THRESHOLD) {
+          body.position.z += dt * SPEED * cos * ws;
+          body.position.x += dt * SPEED * cos * ad;
+        }
+        // var lr = gp.axes[2];
+        // if (lr > DEAD_THRESHOLD || lr < -DEAD_THRESHOLD) {
+        //   heading -= 0.002 * lr * dt;
+        // }
       }
 
-      var cos = Math.cos(body.rotation.y), //+ heading ),
-        sin = Math.sin(body.rotation.y); //+ heading );
       if (keyState[ctrls.forwardKey.dataset.keycode]) {
-        body.position.z -= dt * ss * SPEED * cos;
-        body.position.x -= dt * ss * SPEED * sin;
+        body.position.z -= dt * SPEED * cos;
+        body.position.x -= dt * SPEED * sin;
       } else if (keyState[ctrls.backKey.dataset.keycode]) {
-        body.position.z += dt * ss * SPEED * cos;
-        body.position.x += dt * ss * SPEED * sin;
+        body.position.z += dt * SPEED * cos;
+        body.position.x += dt * SPEED * sin;
       }
       if (keyState[ctrls.leftKey.dataset.keycode]) {
         body.position.x -= dt * SPEED * cos;
@@ -643,11 +642,14 @@ function editor3d() {
         cos);
       body.position.x -= dt * SPEED * (touchStrafe * cos + touchDrive *
         sin);
+
       body.position.x = Math.min(12.5, Math.max(-12.5, body.position.x));
       body.position.z = Math.min(12.5, Math.max(-12.5, body.position.z));
+
       body.rotation.set(0, 0, 0, 0);
       body.rotateY(heading);
       body.rotateX(pitch);
+
       sky.position.copy(body.position);
 
       if (dragging) {

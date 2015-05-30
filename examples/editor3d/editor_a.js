@@ -16,6 +16,6 @@ setInterval(function() {
 	box.position.x = radius * Math.cos(angle);
 	box.position.z = radius * Math.sin(angle);
 	angle += dAngle;
-}, 8);
+}, 5);
 
 // focus on this window and hit CTRL+SHIFT+SPACE (Windows/Linux) or CMD+OPT+E (OS X) to execute.

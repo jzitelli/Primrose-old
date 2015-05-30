@@ -2,7 +2,7 @@ import os
 import shutil
 import logging
 
-from flask import Flask, Markup, render_template, request
+from flask import Flask, Markup, render_template, request, jsonify
 
 STATIC_FOLDER = os.getcwd()
 
@@ -22,18 +22,15 @@ def editor3d():
     else:
         floor_texture = Markup("deck.png")
 
-    with open('editor_a.js', 'r') as f:
-        editor_js_a = Markup(f.read())
-
-    with open('editor_b.js', 'r') as f:
-        editor_js_b = Markup(f.read())
+    # with open('editor_a.js', 'r') as f:
+    #     editor_js_a = Markup(f.read())
+    # with open('editor_b.js', 'r') as f:
+    #     editor_js_b = Markup(f.read())
 
     logger.debug("sky_texture = %s" % sky_texture)
     logger.debug("floor_texture = %s" % floor_texture)
 
     return render_template("index.html",
-                           editor_js_a="editor_a.js", #editor_js_a,
-                           editor_js_b="editor_b.js", #editor_js_b,
                            sky_texture=sky_texture,
                            floor_texture=floor_texture)
 
@@ -44,6 +41,12 @@ def script_contents():
         contents = f.read()
     return jsonify(filename=filename, contents=contents)
 
+def setup():
+    import urllib.request
+    if not os.path.exists(os.path.join(STATIC_FOLDER,
+                                       'lib',
+                                       'helvetiker_regular.typeface.js')):
+        pass #urllib.request.urlopen()
 
 def main():
     primrose_root = os.getenv("PRIMROSE_PATH", os.path.abspath(os.path.join(STATIC_FOLDER, os.path.pardir, os.path.pardir)))

@@ -95,3 +95,8 @@ examples/editor3d/test/testing.js
 lib/helvetiker_bold.typeface.js
 lib/helvetiker_regular.typeface.js
 lib/janda_manatee_solid_regular.typeface.js
+dist/jplayer/jquery.jplayer.js
+dist/jplayer/jquery.jplayer.min.js
+dist/jplayer/jquery.jplayer.swf
+examples/editor3d/dist/jplayer/jquery.jplayer.min.js
+examples/editor3d/dist/jplayer/jquery.jplayer.swf
