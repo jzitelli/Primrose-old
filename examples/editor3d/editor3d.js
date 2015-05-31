@@ -30,7 +30,6 @@ function editor3d() {
       renderer,
       ctrls = findEverything();
 
-
   function clearKeyOption(evt) {
     this.value = "";
     this.dataset.keycode = "";
@@ -125,12 +124,9 @@ function editor3d() {
       pitch = 0,
       keyState = {},
       w1 = 2,
-      h = 1.25,
+      h = 2,
       w2 = 2,
       pickingScene = new THREE.Scene(),
-      body = new THREE.Object3D(),
-      camera = new THREE.PerspectiveCamera(50, ctrls.output.width /
-        ctrls.output.height, 0.1, 1000),
       back = new THREE.WebGLRenderTarget(ctrls.output.width,
         ctrls.output.height, {
           wrapS: THREE.ClampToEdgeWrapping,
@@ -154,13 +150,18 @@ function editor3d() {
       antialias: true
     });
 
-    // put javascript in me exclamation points
+    var body = new THREE.Object3D();
+    var camera = new THREE.PerspectiveCamera(50, ctrls.output.width /
+      ctrls.output.height, 0.1, 1000);
+
+    // TODO: investigate exclamation points??
+    //var initial_contents = "// put javascript in me(exclamation points)";
     var initial_contents = "";
 
     var prim1 = new Primrose.TextBox("editor1", {
       tokenizer: Primrose.Grammars.JavaScript,
-      size: new Primrose.Size(2 * 1024, 2*1024),
-      fontSize: (vrDisplay ? 40 : 20) / window.devicePixelRatio,
+      size: new Primrose.Size(w1 * 1024, w1 * 1024),
+      fontSize: (vrDisplay ? 40 : 20), // / window.devicePixelRatio,
       file: initial_contents,
       theme: Primrose.Themes.Dark
     });
@@ -175,8 +176,8 @@ function editor3d() {
 
     var prim2 = new Primrose.TextBox("editor2", {
       tokenizer: Primrose.Grammars.JavaScript,
-      size: new Primrose.Size(2 * 1024, 2*1024),
-      fontSize: (vrDisplay ? 40 : 20) / window.devicePixelRatio,
+      size: new Primrose.Size(w2 * 1024, w2 * 1024),
+      fontSize: (vrDisplay ? 40 : 20), // / window.devicePixelRatio,
       file: initial_contents,
       theme: Primrose.Themes.Dark
     });
@@ -210,6 +211,8 @@ function editor3d() {
       flatEditorPicker = textured(flatGeom, prim2.getRenderer()
         .getPickingTexture());
 
+    var body_arrow;
+
     body.position.set(0, 0, w1);
     floor.position.set(0, -3, 0);
     flatEditor.position.x = flatEditorPicker.position.x = 4;
@@ -220,9 +223,9 @@ function editor3d() {
     directionalLight.position.set(0.2, 1, 0);
     scene.add(directionalLight);
 
-    // directionalLight = new THREE.DirectionalLight(0x723f55, 1.5);
-    // directionalLight.position.set(-0.3, 0.4, 0.3);
-    // scene.add(directionalLight);
+    directionalLight = new THREE.DirectionalLight(0x826f95, 0.9);
+    directionalLight.position.set(-0.3, 0.4, 0.3);
+    scene.add(directionalLight);
 
     var pointLight = new THREE.PointLight(0x44ffff, 0.8);
     pointLight.position.y = 5;
@@ -236,17 +239,34 @@ function editor3d() {
     scene.add(body);
     scene.add(pointer);
 
+    var dir = new THREE.Vector3(0, 0, 0);
+    body_arrow = new THREE.ArrowHelper(dir, body.position, 1, 0xffff00);
+    scene.add(body_arrow);
+
+    //var camera_helper = new THREE.CameraHelper(fakeCamera);
+    //scene.add(camera_helper);
+
     pickingScene.add(shellEditorPicker);
     pickingScene.add(flatEditorPicker);
 
-    var gotGP = false;
     // TODO: how to fix problem when page reloads, gamepadconnected event does not happen???
-    window.addEventListener("gamepadconnected", function(e) {
+    console.log(navigator.getGamepads());
+    var gamepad = navigator.getGamepads()[0];
+    var gotGP = gamepad || false;
+    function gamepadConnected(gp) {
+      gamepad = gp;
       console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
-        e.gamepad.index, e.gamepad.id,
-        e.gamepad.buttons.length, e.gamepad.axes.length);
+        gp.index, gp.id,
+        gp.buttons.length, gp.axes.length);
       gotGP = true;
-    });
+    }
+    if (gamepad)
+      gamepadConnected(gamepad);
+    else
+      window.addEventListener("gamepadconnected", function(e) {
+        gamepad = navigator.getGamepads()[e.gamepad.index];
+        gamepadConnected(gamepad);
+      });
 
     window.addEventListener("resize", refreshSize);
     window.addEventListener("keydown", keyDown);
@@ -371,6 +391,22 @@ function editor3d() {
         currentEditor.editText(evt);
       } else {
         keyState[evt.keyCode] = true;
+        if (evt.keyCode === Primrose.Keys.SPACE) {
+          console.log("pressed space");
+          var textbox = new Primrose.TextBox("editor3", {
+            tokenizer: Primrose.Grammars.JavaScript,
+            size: new Primrose.Size(w2 * 1024, w2 * 1024),
+            fontSize: (vrDisplay ? 40 : 20), // / window.devicePixelRatio,
+            file: "initial_contents",
+            theme: Primrose.Themes.Dark
+          });
+          var flatGeom = quad(w2, h);
+          var flatEditor = textured(flatGeom, textbox);
+          var flatEditorPicker = textured(flatGeom, textbox.getRenderer().getPickingTexture());
+          flatEditor.position.z = flatEditorPicker.position.z = 2;
+          scene.add(flatEditor);
+          scene.add(flatEditorPicker);
+        }
         // if (evt.keyCode === 80) {
         //   // p was pressed - make a plane based on current orientation of the HMD
         //   plane_from_HMD();
@@ -384,12 +420,11 @@ function editor3d() {
           if ((isOSX && evt.keyCode === 69) || (!isOSX &&
               evt.keyCode ===
               32)) {
-            eval(currentEditor.getLines().join(''));
-            // try {
-            //   eval(currentEditor.getLines().join(''));
-            // } catch (exp) {
-            //   log(exp.message);
-            // }
+            try {
+              eval(currentEditor.getLines().join(''));
+            } catch (exp) {
+              log(exp.message);
+            }
             evt.preventDefault();
           } else if (evt.keyCode === 38) {
             currentEditor.increaseFontSize();
@@ -426,16 +461,19 @@ function editor3d() {
         for (var i = 0; i < objects.length; ++i) {
           var obj = objects[i];
           if (obj.object !== pointer) {
-            pointer.position.set(0, 0, 0);
-            pointer.lookAt(obj.face.normal);
-            pointer.position.copy(obj.point);
-            currentObject = obj.object;
-            if (currentObject === shellEditor) {
-              currentEditor = prim1;
-            } else if (currentObject === flatEditor) {
-              currentEditor = prim2;
+            try {
+              pointer.position.set(0, 0, 0);
+              pointer.lookAt(obj.face.normal);
+              pointer.position.copy(obj.point);
+              currentObject = obj.object;
+              if (currentObject === shellEditor) {
+                currentEditor = prim1;
+              } else if (currentObject === flatEditor) {
+                currentEditor = prim2;
+              }
+              break;
+            } catch (exp) {
             }
-            break;
           }
         }
       }
@@ -593,35 +631,43 @@ function editor3d() {
       if (vrSensor) {
         var state = vrSensor.getImmediateState ? vrSensor.getImmediateState() : vrSensor.getState();
         if (state.position) {
-          camera.position.set(state.position.x, state.position.y,
-            state.position.z);
+          camera.position.copy(state.position);
         }
         if (state.orientation) {
-          camera.quaternion.set(state.orientation.x, state.orientation.y,
-            state.orientation.z, state.orientation.w);
-          body.quaternion.set(state.orientation.x, state.orientation.y,
-            state.orientation.z, state.orientation.w);
+          camera.quaternion.copy(state.orientation);
+          body.quaternion.copy(state.orientation);
         }
       }
 
-      var cos = Math.cos(body.rotation.y), //+ heading ),
-          sin = Math.sin(body.rotation.y); //+ heading );
+      body.rotation.set(0, 0, 0, 0);
+      body.rotateY(heading);
+      body.rotateX(pitch);
 
-      if (gotGP) {
-        var DEAD_THRESHOLD = 5 * 0.0666;
-        var gp = navigator.getGamepads()[0];
-        var ws = gp.axes[1];
-        var ad = gp.axes[0];
-        var sf = Math.sqrt(ws*ws + ad*ad);
-        if (sf > DEAD_THRESHOLD) {
-          body.position.z += dt * SPEED * cos * ws;
-          body.position.x += dt * SPEED * cos * ad;
-        }
-        // var lr = gp.axes[2];
-        // if (lr > DEAD_THRESHOLD || lr < -DEAD_THRESHOLD) {
-        //   heading -= 0.002 * lr * dt;
-        // }
-      }
+      body_arrow.rotation.copy(body.rotation);
+      body_arrow.rotateX(-Math.PI / 2);
+
+      var cos, sin;
+      cos = Math.cos(body.rotation.y);
+      sin = Math.sin(body.rotation.y);
+
+      // if (gotGP) {
+      //   var DEAD_THRESHOLD = 5 * 0.0666;
+
+      //   var lr = gamepad.axes[2];
+      //   if (lr > DEAD_THRESHOLD || lr < -DEAD_THRESHOLD) {
+      //     body.rotateY(0.002 * lr * dt);
+      //     cos = Math.cos(body.rotation.y);
+      //     sin = Math.sin(body.rotation.y);
+      //   }
+
+      //   var ws = gamepad.axes[1];
+      //   var ad = gamepad.axes[0];
+      //   var sf = Math.sqrt(ws*ws + ad*ad);
+      //   if (sf > DEAD_THRESHOLD) {
+      //     body.position.z += dt * SPEED * (cos * ws + sin * ad);
+      //     body.position.x += dt * SPEED * (sin * ws + cos * ad);
+      //   }
+      // }
 
       if (keyState[ctrls.forwardKey.dataset.keycode]) {
         body.position.z -= dt * SPEED * cos;
@@ -630,6 +676,7 @@ function editor3d() {
         body.position.z += dt * SPEED * cos;
         body.position.x += dt * SPEED * sin;
       }
+
       if (keyState[ctrls.leftKey.dataset.keycode]) {
         body.position.x -= dt * SPEED * cos;
         body.position.z += dt * SPEED * sin;
@@ -646,9 +693,8 @@ function editor3d() {
       body.position.x = Math.min(12.5, Math.max(-12.5, body.position.x));
       body.position.z = Math.min(12.5, Math.max(-12.5, body.position.z));
 
-      body.rotation.set(0, 0, 0, 0);
-      body.rotateY(heading);
-      body.rotateX(pitch);
+      body_arrow.position.copy(body.position);
+      body_arrow.position.z -= 1.0;
 
       sky.position.copy(body.position);
 

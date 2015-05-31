@@ -3,8 +3,8 @@ var textgeom = new THREE.TextGeometry("Hello World!", {
   height: 0.4,
   font: 'janda manatee solid',
   weight: 'normal',
-  bevelThickness: 0.03,
-  bevelSize: 0.07,
+  bevelThickness: 0.04,
+  bevelSize: 0.04,
   bevelEnabled: true
 });
 
@@ -13,18 +13,26 @@ var mesh = new THREE.Mesh(textgeom,
       transparent: false,
       side: THREE.DoubleSide
     }));
-
 mesh.position.x = body.position.x + 0.2;
-mesh.position.y = 0.25;
+mesh.position.y = 0.35;
 mesh.position.z = body.position.z + 2;
+
 scene.add(mesh);
 
-var radiusb = 3,
-    angleb = 0,
-    dAngleb = Math.PI / 360;
+$.ajax({
+  url: "fourier_surface?m=128&n=128",
+  success: function(data) {
+    console.log(data.points);
+  }
+});
+
+var radius = 3,
+    angle = 0,
+    dAngle = Math.PI / 360;
 
 setInterval(function () {
-  mesh.position.x = radiusb * Math.cos(angleb);
-  mesh.position.z = radiusb * Math.sin(angleb);
-  mesh.rotation.y = angleb / 2;
-  angleb += dAngleb;}, 8);
+  mesh.position.x = radius * Math.cos(angle);
+  mesh.position.z = radius * Math.sin(angle);
+  mesh.rotation.y = angle / 2;
+  angle += dAngle;
+}, 8);
