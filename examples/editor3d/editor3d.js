@@ -28,7 +28,11 @@ function editor3d() {
       vrSensor,
       vrEffect,
       renderer,
+      gamepad,
+      gotGP = false,
       ctrls = findEverything();
+
+  $("#main").hide();
 
   function clearKeyOption(evt) {
     this.value = "";
@@ -83,6 +87,19 @@ function editor3d() {
       elem.webkitRequestPointerLock();
     } else if (elem.mozRequestPointerLock) {
       elem.mozRequestPointerLock();
+    }
+  }
+
+  function gotGamepads(gamepads) {
+    for (var i = 0; i < gamepads.length; i++) {
+      if (gamepads[i]) {
+        gamepad = gamepads[i];
+        if (gamepad.id.substring(0, 4) === "Xbox") {
+          console.log("Gamepad connected at index %d", gamepad.index);
+          gotGP = true;
+          break;
+        }
+      }
     }
   }
 
@@ -190,12 +207,12 @@ function editor3d() {
         }
     });
 
-    var sky_texture = document.getElementById('#sky-texture').innerHTML;
+    var sky_texture = document.getElementById('sky-texture').innerHTML;
     var sky = textured(shell(50, 8, 4, Math.PI * 2, Math.PI), sky_texture);
 
     var fs = 25,
         ft = 25,
-        floor_texture = document.getElementById('#floor-texture').innerHTML;
+        floor_texture = document.getElementById('floor-texture').innerHTML;
     if (floor_texture != 'deck.png')
       fs = ft = 1;
     var floor = textured(box(25, 1, 25), floor_texture, fs, ft);
@@ -249,23 +266,8 @@ function editor3d() {
     pickingScene.add(shellEditorPicker);
     pickingScene.add(flatEditorPicker);
 
-    // TODO: how to fix problem when page reloads, gamepadconnected event does not happen???
-    console.log(navigator.getGamepads());
-    var gamepad = navigator.getGamepads()[0];
-    var gotGP = gamepad || false;
-    function gamepadConnected(gp) {
-      gamepad = gp;
-      console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
-        gp.index, gp.id,
-        gp.buttons.length, gp.axes.length);
-      gotGP = true;
-    }
-    if (gamepad)
-      gamepadConnected(gamepad);
-    else
-      window.addEventListener("gamepadconnected", function(e) {
-        gamepad = navigator.getGamepads()[e.gamepad.index];
-        gamepadConnected(gamepad);
+    window.addEventListener("gamepadconnected", function(e) {      
+      gotGamepads(navigator.getGamepads());
       });
 
     window.addEventListener("resize", refreshSize);
@@ -360,23 +362,41 @@ function editor3d() {
       // }
     }
 
+    var textgeom_log_buffer = [];
+    var textgeom_log_geoms = [];
+    var textgeom_log_meshes = [];
+    var buffsize = 10;
     function textgeom_log(msg, color) {
-      var textgeom = new THREE.TextGeometry(msg, {
-        size: 1.0,
-        height: 0.4,
-        font: 'janda manatee solid',
-        weight: 'normal'
-      });
+      // TODO: one geom per *unique* line
+      msg = msg + textgeom_log_buffer.length;
+      textgeom_log_buffer.push(msg);
+      var size = 0.5;
+      var height = 0.1;
+      var textgeom = new THREE.TextGeometry(msg, {size: size,
+            height: height,
+            font: 'janda manatee solid',
+            weight: 'normal'
+          });
+      textgeom_log_geoms.push(textgeom);
       var mesh = new THREE.Mesh(textgeom,
-        new THREE.MeshLambertMaterial({
-          color: color || 0xffffff,
-          transparent: false,
-          side: THREE.DoubleSide
-        }));
-      mesh.position.x = body.position.x + 0.2;
-      mesh.position.z = body.position.z + 2;
-      mesh.position.y = 0.35;
+          new THREE.MeshLambertMaterial({
+            color: color || 0xffffff,
+            transparent: false,
+            side: THREE.DoubleSide
+          }));
       scene.add(mesh);
+      textgeom_log_meshes.push(mesh);
+
+      if (textgeom_log_meshes.length > buffsize) {
+        scene.remove(textgeom_log_meshes.shift());
+      }
+
+      for (var i = 0; i < textgeom_log_meshes.length; ++i) {
+        mesh = textgeom_log_meshes[i];
+        mesh.position.x = body.position.x - 10.0;
+        mesh.position.z = body.position.z - 10.0;
+        mesh.position.y = 5 + (textgeom_log_meshes.length - i - 1) * 1.25 * size;
+      }
     }
 
     function keyDown(evt) {
@@ -391,22 +411,23 @@ function editor3d() {
         currentEditor.editText(evt);
       } else {
         keyState[evt.keyCode] = true;
-        if (evt.keyCode === Primrose.Keys.SPACE) {
-          console.log("pressed space");
-          var textbox = new Primrose.TextBox("editor3", {
-            tokenizer: Primrose.Grammars.JavaScript,
-            size: new Primrose.Size(w2 * 1024, w2 * 1024),
-            fontSize: (vrDisplay ? 40 : 20), // / window.devicePixelRatio,
-            file: "initial_contents",
-            theme: Primrose.Themes.Dark
-          });
-          var flatGeom = quad(w2, h);
-          var flatEditor = textured(flatGeom, textbox);
-          var flatEditorPicker = textured(flatGeom, textbox.getRenderer().getPickingTexture());
-          flatEditor.position.z = flatEditorPicker.position.z = 2;
-          scene.add(flatEditor);
-          scene.add(flatEditorPicker);
-        }
+        // if (evt.keyCode === Primrose.Keys.SPACE) {
+        //   console.log("pressed space");
+        //   var textbox = new Primrose.TextBox("editor3", {
+        //     tokenizer: Primrose.Grammars.JavaScript,
+        //     size: new Primrose.Size(w2 * 1024, w2 * 1024),
+        //     fontSize: (vrDisplay ? 40 : 20), // / window.devicePixelRatio,
+        //     file: "initial_contents",
+        //     theme: Primrose.Themes.Dark
+        //   });
+        //   var flatGeom = quad(w2, h);
+        //   var flatEditor = textured(flatGeom, textbox);
+        //   var flatEditorPicker = textured(flatGeom, textbox.getRenderer().getPickingTexture());
+        //   flatEditor.position.z = flatEditorPicker.position.z = 2;
+        //   scene.add(flatEditor);
+        //   scene.add(flatEditorPicker);
+        // }
+
         // if (evt.keyCode === 80) {
         //   // p was pressed - make a plane based on current orientation of the HMD
         //   plane_from_HMD();
@@ -650,24 +671,25 @@ function editor3d() {
       cos = Math.cos(body.rotation.y);
       sin = Math.sin(body.rotation.y);
 
-      // if (gotGP) {
-      //   var DEAD_THRESHOLD = 5 * 0.0666;
+      if (false && gotGP) {
+        var DEAD_THRESHOLD = 1 * 0.0666;
 
-      //   var lr = gamepad.axes[2];
-      //   if (lr > DEAD_THRESHOLD || lr < -DEAD_THRESHOLD) {
-      //     body.rotateY(0.002 * lr * dt);
-      //     cos = Math.cos(body.rotation.y);
-      //     sin = Math.sin(body.rotation.y);
-      //   }
+        // var lr = gamepad.axes[2];
+        // if (lr > DEAD_THRESHOLD || lr < -DEAD_THRESHOLD) {
+        //   body.rotateY(0.002 * lr * dt);
+        //   cos = Math.cos(body.rotation.y);
+        //   sin = Math.sin(body.rotation.y);
+        // }
 
-      //   var ws = gamepad.axes[1];
-      //   var ad = gamepad.axes[0];
-      //   var sf = Math.sqrt(ws*ws + ad*ad);
-      //   if (sf > DEAD_THRESHOLD) {
-      //     body.position.z += dt * SPEED * (cos * ws + sin * ad);
-      //     body.position.x += dt * SPEED * (sin * ws + cos * ad);
-      //   }
-      // }
+        var ws = gamepad.axes[1];
+        var ad = gamepad.axes[0];
+        var sf = Math.sqrt(ws*ws + ad*ad);
+        if (sf > DEAD_THRESHOLD) {
+          console.log(body.position.z);
+          body.position.z -= dt * SPEED * cos;
+          body.position.x -= dt * SPEED * sin;
+        }
+      }
 
       if (keyState[ctrls.forwardKey.dataset.keycode]) {
         body.position.z -= dt * SPEED * cos;
@@ -799,6 +821,10 @@ function editor3d() {
         currentEditor[op + "Picking"](gl, pointerX, pointerY);
       }
     }
+  }
+
+  if (navigator.getGamepads) {
+    gotGamepads(navigator.getGamepads());
   }
 
   if (navigator.getVRDevices) {

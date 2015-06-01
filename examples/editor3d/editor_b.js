@@ -1,3 +1,10 @@
+$.ajax({
+  url: "fourier_surface?m=128&n=128",
+  success: function(data) {
+    console.log(data.points);
+  }
+});
+
 var textgeom = new THREE.TextGeometry("Hello World!", {
   size: 1.0,
   height: 0.4,
@@ -15,16 +22,9 @@ var mesh = new THREE.Mesh(textgeom,
     }));
 mesh.position.x = body.position.x + 0.2;
 mesh.position.y = 0.35;
-mesh.position.z = body.position.z + 2;
+mesh.position.z = body.position.z + 0.5*scene.length;
 
 scene.add(mesh);
-
-$.ajax({
-  url: "fourier_surface?m=128&n=128",
-  success: function(data) {
-    console.log(data.points);
-  }
-});
 
 var radius = 3,
     angle = 0,
