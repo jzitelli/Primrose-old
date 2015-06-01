@@ -22,7 +22,7 @@ var pickingScene = new THREE.Scene();
 var editors = [];
 var editor_geoms = [];
 
-function editor3d() {
+function editor3d_tour() {
   "use strict";
   var modA = isOSX ? "metaKey" : "ctrlKey",
       modB = isOSX ? "altKey" : "shiftKey",
@@ -227,14 +227,12 @@ function editor3d() {
     editor_geoms.push(shellEditor);
     editor_geoms.push(flatEditor);
 
-    var sky_texture = $("#skyTexture").val();
+    var sky_texture = "images/bg4.jpg";
     var sky = textured(shell(50, 8, 4, Math.PI * 2, Math.PI), sky_texture);
 
-    var fs = 1,
-        ft = 1,
-        floor_texture = $('#floorTexture').val();
-    if (floor_texture === 'deck.png')
-      fs = ft = 25;
+    var fs = 25,
+        ft = 25,
+        floor_texture = "deck.png";
     var floor = textured(box(25, 1, 25), floor_texture, fs, ft);
 
     var gl = renderer.getContext();
@@ -420,8 +418,6 @@ function editor3d() {
         currentEditor.editText(evt);
       } else {
         keyState[evt.keyCode] = true;
-
-        console.log("keydown: " + evt.keyCode);
 
         if (evt.keyCode === 84) { //Primrose.Keys.t) {
           var textbox = new Primrose.TextBox("editor" + editors.length+1, {

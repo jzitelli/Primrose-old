@@ -1,47 +1,75 @@
 import os
 import shutil
 import logging
+logger = logging.getLogger(__name__)
 
 from flask import Flask, Markup, render_template, request, jsonify
 
 STATIC_FOLDER = os.getcwd()
+PRIMROSE_ROOT = os.getenv("PRIMROSE_ROOT",
+                          os.path.abspath(os.path.join(STATIC_FOLDER,
+                                          os.path.pardir,
+                                          os.path.pardir)))
 
 app = Flask(__name__, static_url_path='', static_folder=STATIC_FOLDER)
 
 @app.route("/")
 def editor3d():
-    logger = logging.getLogger(__name__)
     if 'sky_texture' in request.args:
         sky_texture = "images/%s" % request.args['sky_texture']
     else:
         sky_texture = os.getenv("PRIMROSE_SKY_TEXTURE", "bg2.jpg")
-
     if 'floor_texture' in request.args:
         floor_texture = "images/%s" % request.args['floor_texture']
     else:
         floor_texture = os.getenv("PRIMROSE_FLOOR_TEXTURE", "deck.png")
-
-    logger.debug("sky_texture = %s" % sky_texture)
-    logger.debug("floor_texture = %s" % floor_texture)
-
     return render_template("index.html",
                            sky_texture=sky_texture,
                            floor_texture=floor_texture)
 
-@app.route("/script_contents")
-def script_contents():
-    logger = logging.getLogger(__name__)
+@app.route("/tour")
+def editor3d_tour():
+    return render_template("tour.html")
+
+@app.route("/git_url")
+def git_url():
+    # check out url:
+    url = request.args.get('url', 'local version')
+    head = request.args.get('head', os.path.join('templates', 'head.html'))
+    body = request.args.get('body', os.path.join('templates', 'body.html'))
+    #git.checkout(url, "gitclone") # TODO: default to origin of clone
+    # generate head html:
+    with open(head, 'r') as f:
+        head = f.read();
+        #logger.debug(head)
+    with open(body, 'r') as f:
+        body = f.read();
+        #logger.debug(body)
+    return render_template("git_url.html", git_url=url, head=Markup(head), body=Markup(body))
+
+@app.route("/read")
+def read_file():
     filename = request.args['filename']
     with open(filename, 'r') as f:
-        contents = f.read()
-    logger.debug("sending back %s:\n\n\n%s\n\n\n" % (filename, contents))
-    return jsonify(filename=filename, contents=contents)
+        value = f.read()
+    #logger.debug("sending back %s:\n\n\n%s\n\n\n" % (filename, value))
+    return jsonify(args=request.args, value=value)
+
+@app.route("/log")
+def debug_log():
+    logger.debug(request.args['string'])
+    return jsonify(string=request.args['string'])
+
+@app.route("/python_eval")
+def python_eval():
+    pystr = request.args['pystr']
+    return jsonify(value=eval(pystr), args=request.args)
 
 @app.route("/fourier_surface")
 def fourier_surface():
-    logger = logging.getLogger(__name__)
     m, n = request.args['m'], request.args['n']
-    return jsonify(m=m, n=n, points=range(5))
+    return jsonify(points=range(5), args=request.args)
+
 
 # TODO: how to automatically install all dependencies
 # def setup():
@@ -53,12 +81,8 @@ def fourier_surface():
 
 
 def main():
-    primrose_root = os.getenv("PRIMROSE_ROOT",
-                              os.path.abspath(os.path.join(STATIC_FOLDER,
-                                              os.path.pardir,
-                                              os.path.pardir)))
     for dir_ in ['dist', 'lib', 'test']:
-        src_dir = os.path.join(primrose_root, dir_)
+        src_dir = os.path.join(PRIMROSE_ROOT, dir_)
         path = os.path.join(STATIC_FOLDER, dir_)
         try:
             shutil.rmtree(path)
@@ -66,10 +90,13 @@ def main():
             print("couldn't clean directory %s, i don't care" % path)
         except WindowsError:
             print("stupid WindowsError, i don't care!!")
-        shutil.copytree(src_dir, path)
-    app.run()
+        try:
+            shutil.copytree(src_dir, path)
+        except WindowsError:
+            print("stupid WindowsError, i don't care!!")
 
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     main()
+    app.run()
