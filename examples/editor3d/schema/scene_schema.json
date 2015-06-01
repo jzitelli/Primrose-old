@@ -1,0 +1,32 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"title": "scene configuration schema",
+	"description": "scene configuration schema",
+	"type": "object",
+	"definitions": {
+		"editor": {
+			"type": "object",
+			"properties": {
+				"text": "string",
+				"width": "number",
+				"height": "number"
+			}
+		}
+	},
+	"properties": {
+		"floor_texture": {
+			"type": "string"
+		},
+		"sky_texture": {
+			"type": "string"
+		},
+		"editors": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/editor"
+			},
+			"minItems": 1,
+			"uniqueItems": true
+		}
+	}
+}

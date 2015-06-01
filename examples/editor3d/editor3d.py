@@ -1,7 +1,8 @@
 import os
 import shutil
 import logging
-import urllib2
+import json
+import jsonschema
 logger = logging.getLogger(__name__)
 
 from flask import Flask, Markup, render_template, render_template_string, request, jsonify
@@ -11,6 +12,9 @@ PRIMROSE_ROOT = os.getenv("PRIMROSE_ROOT",
                           os.path.abspath(os.path.join(STATIC_FOLDER,
                                           os.path.pardir,
                                           os.path.pardir)))
+
+with open("schema/scene_schema.json") as f:
+    SCENE_SCHEMA = json.loads(f.read())
 
 app = Flask(__name__, static_url_path='', static_folder=STATIC_FOLDER)
 
@@ -40,16 +44,12 @@ def git_url():
 
 <!-- 
 #
-#
-#
  -->
 <head>
 <meta git_url="{{git_url}}">
 %s
 </head>
 <!-- 
-#
-#
 #
  -->
 %s
@@ -62,7 +62,6 @@ def read_file():
     filename = request.args['filename']
     with open(filename, 'r') as f:
         value = f.read()
-    #logger.debug("sending back %s:\n\n\n%s\n\n\n" % (filename, value))
     return jsonify(args=request.args, value=value)
 
 @app.route("/log")
@@ -73,10 +72,13 @@ def debug_log():
 @app.route("/python_eval")
 def python_eval():
     pystr = request.args['pystr']
-    logger.debug(pystr)
+    logger.debug("""executing...
+----------------------------------------------------
+%s
+----------------------------------------------------""" % pystr)
     try:
-        #value = eval(pystr)
         execlocals = locals()
+        execlocals.pop('value', None)
         exec(pystr, globals(), execlocals)
         value = execlocals['value']
     except Exception as err:
@@ -115,6 +117,6 @@ def main():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG, format="%(levelname)s %(name)s %(funcName)s %(lineno)d:\n%(message)s")
+    logging.basicConfig(level=logging.DEBUG, format="%(levelname)s %(name)s %(funcName)s %(lineno)d:\n%(message)s\n")
     main()
     app.run()

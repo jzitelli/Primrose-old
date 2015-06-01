@@ -383,6 +383,7 @@ function editor3d() {
 
     function log(msg, color) {
       console.log(msg);
+      $.ajax({url: "log?string=" + msg}); //.replace('\n', '%0A')})
       textgeom_log(msg, color || 0xffaa33);
       // if ( currentEditor ) {
       //   currentEditor.overwriteText( msg );
