@@ -186,7 +186,7 @@ function editor3d() {
       theme: Primrose.Themes.Dark
     });
     $.ajax({
-        url: "/read?filename=editor_a.js",
+        url: "/read?filename=editor_a.py",
         success: function (data) {
               prim1.overwriteText(data.value);
               prim1.drawText();
@@ -441,8 +441,6 @@ function editor3d() {
       } else {
         keyState[evt.keyCode] = true;
 
-        console.log("keydown: " + evt.keyCode);
-
         if (evt.keyCode === 84) { //Primrose.Keys.t) {
           var textbox = new Primrose.TextBox("editor" + editors.length+1, {
              tokenizer: Primrose.Grammars.JavaScript,
@@ -460,11 +458,11 @@ function editor3d() {
            pickingScene.add(flatEditorPicker);
            editors.push(textbox);
            editor_geoms.push(flatEditor);
-        } else if (evt.keyCode === 80) {
+        } else if (evt.keyCode === 77) {
           $("#main").toggle();
-        //   plane_from_HMD();
+        } else if (evt.keyCode === 80) {
+          //makeHMDrect();
         }
-
       }
       if (evt[modA] && evt[modB]) {
         if (evt.keyCode === 70) {
@@ -486,6 +484,12 @@ function editor3d() {
           } else if (evt.keyCode === 40) {
             currentEditor.decreaseFontSize();
             evt.preventDefault();
+          } else if (evt.keyCode === 80) {
+            $.ajax({url: '/python_eval?pystr=' + currentEditor.getLines().join('%0A'),
+                    success: function(data) {
+                      log(data.value)
+                    }
+                    });
           }
         }
       }

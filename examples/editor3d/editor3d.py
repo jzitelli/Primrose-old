@@ -1,6 +1,7 @@
 import os
 import shutil
 import logging
+import urllib2
 logger = logging.getLogger(__name__)
 
 from flask import Flask, Markup, render_template, render_template_string, request, jsonify
@@ -67,12 +68,20 @@ def read_file():
 @app.route("/log")
 def debug_log():
     logger.debug(request.args['string'])
-    return jsonify(string=request.args['string'])
+    return jsonify(args=request.args)
 
 @app.route("/python_eval")
 def python_eval():
     pystr = request.args['pystr']
-    return jsonify(value=eval(pystr), args=request.args)
+    logger.debug(pystr)
+    try:
+        #value = eval(pystr)
+        execlocals = locals()
+        exec(pystr, globals(), execlocals)
+        value = execlocals['value']
+    except Exception as err:
+        value = str(err)
+    return jsonify(value=value, args=request.args)
 
 @app.route("/fourier_surface")
 def fourier_surface():
@@ -106,6 +115,6 @@ def main():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG, format="%(levelname)s %(name)s %(funcName)s %(lineno)d:\n%(message)s")
     main()
     app.run()
