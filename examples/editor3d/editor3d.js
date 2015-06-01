@@ -236,13 +236,13 @@ function editor3d() {
     if (floor_texture === 'deck.png')
       fs = ft = 25;
     var floor = textured(box(25, 1, 25), floor_texture, fs, ft);
+    floor.position.set(0, -3, 0);
 
     var gl = renderer.getContext();
 
     var body_arrow;
 
     body.position.set(0, 0, w1);
-    floor.position.set(0, -3, 0);
     flatEditor.position.x = flatEditorPicker.position.x = 4;
 
     body.add(camera);
@@ -304,6 +304,26 @@ function editor3d() {
       prim1.setShowScrollBars(ctrls.toggleScrollBars.checked);
       prim2.setShowScrollBars(ctrls.toggleScrollBars.checked);
     });
+
+    ctrls.floorTexture.addEventListener("change", function() {
+      console.log("changing floor texture...");
+      scene.remove(floor);
+      floor_texture = $("#floorTexture").val();
+      fs = ft = 1;
+      if (floor_texture === 'deck.png')
+        fs = ft = 25;
+      floor = textured(box(25, 1, 25), floor_texture, fs, ft);
+      floor.position.set(0, -3, 0);
+      scene.add(floor);
+    })
+
+    ctrls.skyTexture.addEventListener("change", function() {
+      console.log("changing sky background...");
+      scene.remove(sky);
+      sky_texture = $("#skyTexture").val();
+      sky = textured(shell(50, 8, 4, Math.PI * 2, Math.PI), sky_texture);
+      scene.add(sky);
+    })
 
     prim1.operatingSystemSelect.addEventListener("change", function() {
       prim2.setOperatingSystem(prim1.getOperatingSystem());

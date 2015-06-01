@@ -15,17 +15,7 @@ app = Flask(__name__, static_url_path='', static_folder=STATIC_FOLDER)
 
 @app.route("/")
 def editor3d():
-    if 'sky_texture' in request.args:
-        sky_texture = "images/%s" % request.args['sky_texture']
-    else:
-        sky_texture = os.getenv("PRIMROSE_SKY_TEXTURE", "bg2.jpg")
-    if 'floor_texture' in request.args:
-        floor_texture = "images/%s" % request.args['floor_texture']
-    else:
-        floor_texture = os.getenv("PRIMROSE_FLOOR_TEXTURE", "deck.png")
-    return render_template("index.html",
-                           sky_texture=sky_texture,
-                           floor_texture=floor_texture)
+    return render_template("index.html")
 
 @app.route("/tour")
 def editor3d_tour():
