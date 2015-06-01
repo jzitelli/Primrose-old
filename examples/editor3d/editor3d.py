@@ -3,7 +3,7 @@ import shutil
 import logging
 logger = logging.getLogger(__name__)
 
-from flask import Flask, Markup, render_template, request, jsonify
+from flask import Flask, Markup, render_template, render_template_string, request, jsonify
 
 STATIC_FOLDER = os.getcwd()
 PRIMROSE_ROOT = os.getenv("PRIMROSE_ROOT",
@@ -17,25 +17,44 @@ app = Flask(__name__, static_url_path='', static_folder=STATIC_FOLDER)
 def editor3d():
     return render_template("index.html")
 
+
 @app.route("/tour")
 def editor3d_tour():
     return render_template("tour.html")
+
 
 @app.route("/git_url")
 def git_url():
     # check out url:
     url = request.args.get('url', 'local version')
-    head = request.args.get('head', os.path.join('templates', 'head.html'))
-    body = request.args.get('body', os.path.join('templates', 'body.html'))
     #git.checkout(url, "gitclone") # TODO: default to origin of clone
-    # generate head html:
+    head = request.args.get('head', os.path.join('templates', 'head.html'))
     with open(head, 'r') as f:
         head = f.read();
-        #logger.debug(head)
+    body = request.args.get('body', os.path.join('templates', 'body.html'))
     with open(body, 'r') as f:
         body = f.read();
-        #logger.debug(body)
-    return render_template("git_url.html", git_url=url, head=Markup(head), body=Markup(body))
+    return render_template_string(r"""<!DOCTYPE html>
+<html>
+
+<!-- 
+#
+#
+#
+ -->
+<head>
+<meta git_url="{{git_url}}">
+%s
+</head>
+<!-- 
+#
+#
+#
+ -->
+%s
+
+</html>
+""" % (head, body), git_url=url)
 
 @app.route("/read")
 def read_file():
