@@ -240,12 +240,17 @@ function editor3d() {
     sceneConfig = getData(ctrls.sceneConfig.id);
     console.log("DOM scene config: " + sceneConfig);
     // TODO: fix
-    var vrLog = $.QueryString["vr_log"] || sceneConfig.vr_log; //$("#vrLog").val();
+    var vrLog = $.QueryString["vr_log"] === 'true';
+    console.log(vrLog);
+    if (vrLog === null) {
+      vrLog = sceneConfig.vr_log;
+    }
+
     function log(msg, color) {
       console.log(msg + " (this msg also logged to vr console)");
       $.ajax({url: "log?string=" + msg}); //.replace('\n', '%0A')})
       if (vrLog) {
-        textgeom_log(msg, color || 0xffaa33);
+        textgeom_log(msg, color || 0x00ff00);
       }
       // if ( currentEditor ) {
       //   currentEditor.overwriteText( msg );
@@ -292,7 +297,7 @@ function editor3d() {
             weight: 'normal'
           });
       textgeom_log_geoms.push(textgeom);
-      var material = new THREE.MeshLambertMaterial({color: color || 0xffffff,
+      var material = new THREE.MeshLambertMaterial({color: color || 0x00ff00,
         side: THREE.DoubleSide});
       var mesh = new THREE.Mesh(textgeom, material);
       scene.add(mesh);
@@ -461,7 +466,7 @@ function editor3d() {
     setupKeyOption(ctrls.addTextBoxKey, "N", 78);
     setupKeyOption(ctrls.saveKey, "V", 86);
     setupKeyOption(ctrls.menuKey, "M", 86);
-    setupKeyOption(ctrls.menuKey, "H", 72);
+    setupKeyOption(ctrls.helpKey, "H", 72);
     setupKeyOption(ctrls.captureHMDKey, "C", 67);
 
     if (vrDisplay) {
@@ -592,11 +597,11 @@ function editor3d() {
               .done(function(data) {
                         var lines = data.out.split('\n');
                         for (var i = 0; i < lines.length; ++i) {
-                          log(lines[i]);
+                          log(lines[i], 0x8822ee);
                         }
                         log("");
-                        log("python returned:", 0x8822EE);
-                        log(data.value, 0x8822EE);
+                        log("python returned:", 0x8822ee);
+                        log(data.value, 0x8822ee);
                     })
               .fail(function (jqXHR, textStatus) {
                   log(textStatus);
