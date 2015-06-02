@@ -1,4 +1,5 @@
 {
+	"log": false,
 	"floor_texture": "deck.png",
 	"floor_size": [25, 25],
 	"sky_texture": "images/axis_1_b.png",
@@ -7,7 +8,7 @@
 		"text": "log('hello world!');",
 		"width": 2.25,
 		"height": 1.5,
-		"position": [0, 0, 0.5],
+		"position": [0, 0, 0.0],
 		"filename": "editor0.js"
 	}, {
 		"id": "editor1",

@@ -42,7 +42,6 @@ function getData(key) {
   } 
 }
 
-
 var scene = new THREE.Scene();
 var pickingScene = new THREE.Scene();
 var editors = [];
@@ -58,8 +57,6 @@ function editor3d() {
       vrSensor,
       vrEffect,
       renderer,
-      gamepad,
-      gotGP = false,
       pitch = 0;
 
   ctrls = findEverything();
@@ -144,11 +141,11 @@ function editor3d() {
           shading: THREE.FlatShading
       });
 
+  var vrMenuMesh;
   function vrMenuCreate() {
     // TODO: cool pixel shader
-    var meshes = [];
+    var meshes = new THREE.Group();
     var selects = [ctrls.floorTexture, ctrls.skyTexture];
-    //var options = ctrls.skyTexture.children;
     for (var i = 0; i < Math.min(4, selects.length); ++i) {
       var geom = new THREE.TextGeometry(selects[i].value, { //options[i].value, {
             size: 0.5,
@@ -156,34 +153,23 @@ function editor3d() {
             font: 'janda manatee solid',
             weight: 'normal'
           });
-      //log("menu option " + options[i].value + " created");
       var mesh = new THREE.Mesh(geom, vrMenuMaterial);
-      mesh.position.copy(vrSensor.getState().position); //x = vrSensor.getState().positioncopy(vrSensor.position);
+      mesh.position.copy(vrSensor.getState().position);
       mesh.position.y += 1 + i;
       mesh.position.z -= 1;
-      meshes.push(mesh);
-      scene.add(mesh);
+      meshes.add(mesh);
     }
+    scene.add(mesh);
   }
 
+  function vrMenuShow() {
+
+  }
   // fps measure / profiler / optimizer
   // save current scene (e)
   // HMD pointer mode (p)
   // menu shortcut label
   // menu shortcut key
-
-  // function gotGamepads(gamepads) {
-  //   for (var i = 0; i < gamepads.length; i++) {
-  //     if (gamepads[i]) {
-  //       gamepad = gamepads[i];
-  //       if (gamepad.id.substring(0, 4) === "Xbox") {
-  //         log("Gamepad connected at index %d", gamepad.index);
-  //         gotGP = true;
-  //         break;
-  //       }
-  //     }
-  //   }
-  // }
 
   function PrimroseDemo(err) {
     if (err) {
@@ -256,9 +242,7 @@ function editor3d() {
       flatEditor.position.copy(body.position);
       flatEditor.position.z -= 2;
       if (editor.position) {
-        flatEditor.position.x += editor.position[0];
-        flatEditor.position.y += editor.position[1];
-        flatEditor.position.z += editor.position[2];
+        flatEditor.position.set(editor.position[0], editor.position[1], editor.position[2]);
       }
       scene.add(flatEditor);
       pickingScene.add(flatEditorPicker);
@@ -321,10 +305,6 @@ function editor3d() {
 
     //var camera_helper = new THREE.CameraHelper(fakeCamera);
     //scene.add(camera_helper);
-
-    // window.addEventListener("gamepadconnected", function(e) {      
-    //   gotGamepads(navigator.getGamepads());
-    //   });
 
     window.addEventListener("resize", refreshSize);
     window.addEventListener("keydown", keyDown);
@@ -396,7 +376,12 @@ function editor3d() {
     setupKeyOption(ctrls.rightKey, "D", 68);
     setupKeyOption(ctrls.forwardKey, "W", 87);
     setupKeyOption(ctrls.backKey, "S", 83);
-    setupKeyOption(ctrls.addTextBoxKey, "T", 84);
+
+    setupKeyOption(ctrls.addTextBoxKey, "N", 78);
+    setupKeyOption(ctrls.saveKey, "V", 86);
+    setupKeyOption(ctrls.menuKey, "M", 86);
+    setupKeyOption(ctrls.menuKey, "H", 72);
+    setupKeyOption(ctrls.captureHMDKey, "C", 67);
 
     if (vrDisplay) {
       ctrls.goRegular.style.display = "none";
@@ -515,8 +500,8 @@ function editor3d() {
         currentEditor.editText(evt);
       } else {
         keyState[evt.keyCode] = true;
-
-        if (evt.keyCode === 84) { //Primrose.Keys.t) {
+        // n
+        if (evt.keyCode === 78) {
           var params = {
             id: "editor a",
             width: 1,
@@ -524,14 +509,22 @@ function editor3d() {
             text: "log('hi');"
           };
           addTextBox(params);
+        // m
         } else if (evt.keyCode === 77) {
           $("#main").toggle();
-        } else if (evt.keyCode === 80) {
-          //makeHMDrect();
+        // v
+        } else if (evt.keyCode === 86) {
+          saveScene();
+        // h
+        } else if (evt.keyCode === 72) {
+          $("#main").toggle();
+        // c
+        } else if (evt.keyCode === 67) {
+          //captureHMDState();
         }
       }
       if (evt[modA] && evt[modB]) {
-        if (evt.keyCode === 70) {
+        if (evt.keyCode === 70) { // f
           goFullscreen();
           evt.preventDefault();
         } else if (currentEditor) {
@@ -539,9 +532,29 @@ function editor3d() {
               evt.keyCode ===
               32)) {
             try {
+              log("trying javascript eval...");
               eval(currentEditor.getLines().join(''));
             } catch (exp) {
               log(exp.message);
+              // $.ajax({url: '/python_eval?pystr=' + currentEditor.getLines().join('%0A'),
+              //         success: function(data) {
+              //           log(data.out);
+              //           log("");
+              //           log("returned:");
+              //           log(data.value);
+              //       }})
+
+              log("trying python exec...");
+              $.ajax({url: '/python_eval?pystr=' + currentEditor.getLines().join('%0A')})
+              .done(function(data) {
+                        log(data.out);
+                        log("");
+                        log("returned:");
+                        log(data.value);
+                    })
+              .fail(function (jqXHR, textStatus) {
+                  log(textStatus);
+              });
             }
             evt.preventDefault();
           } else if (evt.keyCode === 38) {
@@ -550,14 +563,8 @@ function editor3d() {
           } else if (evt.keyCode === 40) {
             currentEditor.decreaseFontSize();
             evt.preventDefault();
-          } else if (evt.keyCode === 69) {
-            $.ajax({url: '/python_eval?pystr=' + currentEditor.getLines().join('%0A'),
-                    success: function(data) {
-                      log(data.out);
-                      log("");
-                      log("returned:");
-                      log(data.value);
-                    }})
+          } else if (evt.keyCode === 69) { // e
+
           }
         }
       }
@@ -778,26 +785,6 @@ function editor3d() {
       cos = Math.cos(body.rotation.y);
       sin = Math.sin(body.rotation.y);
 
-      if (gotGP) {
-        var DEAD_THRESHOLD = 1 * 0.0666;
-
-        // var lr = gamepad.axes[2];
-        // if (lr > DEAD_THRESHOLD || lr < -DEAD_THRESHOLD) {
-        //   body.rotateY(0.002 * lr * dt);
-        //   cos = Math.cos(body.rotation.y);
-        //   sin = Math.sin(body.rotation.y);
-        // }
-
-        var ws = gamepad.axes[1];
-        var ad = gamepad.axes[0];
-        var sf = Math.sqrt(ws*ws + ad*ad);
-        if (sf > DEAD_THRESHOLD) {
-          console.log(body.position.z);
-          body.position.z -= dt * SPEED * cos;
-          body.position.x -= dt * SPEED * sin;
-        }
-      }
-
       if (keyState[ctrls.forwardKey.dataset.keycode]) {
         body.position.z -= dt * SPEED * cos;
         body.position.x -= dt * SPEED * sin;
@@ -931,10 +918,6 @@ function editor3d() {
   }
 
   $("#main").hide();
-
-  // if (navigator.getGamepads) {
-  //   gotGamepads(navigator.getGamepads());
-  // }
 
   if (navigator.getVRDevices) {
     navigator.getVRDevices()

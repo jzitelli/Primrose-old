@@ -1,9 +1,7 @@
 log("editor0 demo");
 
-var axisHelper = new THREE.AxisHelper(1);
-scene.add(axisHelper);
+var L = floorSize[0];
 
-var L = 25;
 function surface(u, v) {
 	return new THREE.Vector3(L * u, L * v, 1.4 * (Math.sin(-11*(1-u)) * Math.sin(9*v)));
 }
