@@ -1,0 +1,825 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"li",
+				"listdir	function"
+			],
+			[
+				"iter",
+				"iter_trees	function"
+			],
+			[
+				"get",
+				"getcwd"
+			],
+			[
+				"textgeom_log",
+				"textgeom_log_geoms"
+			],
+			[
+				"direc",
+				"directionalLight"
+			],
+			[
+				"TextB",
+				"TextBox"
+			],
+			[
+				"inn",
+				"innerHeight"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "templates/index.html",
+			"settings":
+			{
+				"buffer_size": 5061,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "templates/head.html",
+			"settings":
+			{
+				"buffer_size": 1599,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "editor3d.py",
+			"settings":
+			{
+				"buffer_size": 5750,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "test.py",
+			"settings":
+			{
+				"buffer_size": 2392,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "templates/body.html",
+			"settings":
+			{
+				"buffer_size": 3238,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "editor3d.sublime-project",
+			"settings":
+			{
+				"buffer_size": 541,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "editor3d_flask.js",
+			"settings":
+			{
+				"buffer_size": 29153,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "data/default_scene.json",
+			"settings":
+			{
+				"buffer_size": 308,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "schema/scene_schema.json",
+			"settings":
+			{
+				"buffer_size": 702,
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 104.0,
+		"last_filter": "install",
+		"selected_items":
+		[
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: ",
+				"Package Control: Enable Package"
+			],
+			[
+				"",
+				"Git: Commit history"
+			],
+			[
+				"git",
+				"Set Syntax: Graphviz (DOT)"
+			]
+		],
+		"width": 400.0
+	},
+	"console":
+	{
+		"height": 219.0,
+		"history":
+		[
+			"print(sys.path);",
+			"print sys.path",
+			"import sys",
+			"from Flask import render_template",
+			"import urllib.request,os,hashlib; h = 'eb2297e1a458f27d836c04bb0cbaf282' + 'd0e7a3098092775ccb37ca9d6b2e4b7d'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)",
+			"dir()",
+			"ls",
+			"import SimpleHTTPServer",
+			"python",
+			"os.getcwd()",
+			"import os",
+			"dir()",
+			"dir"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/C/Users/jzitelli/Documents/GitHub/Primrose",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/schema",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/templates",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/lib",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/src/code_pages",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/src/themes"
+	],
+	"file_history":
+	[
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/editor3d.js",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/test.py",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/.gitignore",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/editor3d_flask.js",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/schema/scene_schema.json",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/editor3d.py",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/templates/head.html",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/editor_a.py",
+		"/C/Users/jzitelli/Dropbox/taiper.txt",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/editor3d_tour.js",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/templates/index.html",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/editor_b.js",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/dist/Primrose.js",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/editor_a.js",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/templates/tour.html",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/index.html",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/templates/body.html",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/templates/git_url.html",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/dist/Primrose.js",
+		"/C/Users/jzitelli/AppData/Roaming/Sublime Text 3/Packages/Default/Default (Windows).sublime-keymap",
+		"/C/Users/jzitelli/AppData/Roaming/Sublime Text 3/Packages/User/Default (Windows).sublime-keymap",
+		"/C/Users/jzitelli/AppData/Roaming/Sublime Text 3/Packages/User/Git.sublime-keymap",
+		"/C/Users/jzitelli/AppData/Roaming/Sublime Text 3/Packages/User/Preferences.sublime-settings",
+		"/C/Users/jzitelli/AppData/Roaming/Sublime Text 3/Packages/Git/Git.sublime-settings",
+		"/C/Users/jzitelli/AppData/Roaming/Sublime Text 3/Packages/GitGutter/Default (Windows).sublime-keymap",
+		"/C/Users/jzitelli/AppData/Roaming/Sublime Text 3/Packages/GitGutter/GitGutter.sublime-settings",
+		"/C/Users/jzitelli/AppData/Roaming/Sublime Text 3/Packages/User/Git.sublime-settings",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/.gitignore",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/init_scene.js",
+		"/C/Users/jzitelli/AppData/Roaming/Sublime Text 3/Packages/User/JavaScript.sublime-settings",
+		"/C/Users/jzitelli/AppData/Roaming/Sublime Text 3/Packages/User/JSON.sublime-settings",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/snippets.js",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/src/TextBox.js",
+		"/C/Users/jzitelli/Downloads/cmder/README.md",
+		"/C/Users/jzitelli/Desktop/subvr-2014-11-05.xml",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/asdf",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/lib/janda_manatee_solid_regular.typeface.js",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/lib/helvetiker_regular.typeface.js",
+		"/C/Users/jzitelli/Dropbox/taipeq.txt",
+		"/E/misc/school/rst/plane_wave_scattering/_build/latex/hp-FEMroughsurfacescattering.pdf",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/demo.js",
+		"/C/Users/jzitelli/Documents/GitHub/rug/js/editor3d.js",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/core.js",
+		"/C/Users/jzitelli/Documents/GitHub/rug/src/index.py",
+		"/C/Users/jzitelli/Documents/GitHub/rug/src/templates/editor3d.html",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/src/grammars/JavaScript.js",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/src/TextEditor.js",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/test/Basic.js",
+		"/C/Users/jzitelli/Documents/GitHub/rug/Primrose/Gruntfile.js",
+		"/C/Users/jzitelli/AppData/Roaming/Sublime Text 3/Packages/User/Python.sublime-settings",
+		"/C/Users/jzitelli/Documents/GitHub/subvr/rug/src/static/js/editor3d.js",
+		"/C/Users/jzitelli/Documents/GitHub/subvr/rug/src/static/js/Primrose.js",
+		"/E/rug/apr201515/rug/src/templates/editor3d.html",
+		"/E/rug/apr201515/rug/src/static/test/Basic.js",
+		"/E/rug/apr201515/rug/src/index.py",
+		"/E/rug/apr201515/rug/src/static/js/editor3d.js",
+		"/C/Users/jzitelli/Downloads/scene.json",
+		"/E/rug/apr201515/rug/src/static/js/pdop.js",
+		"/E/rug/apr201515/rug/src/editor3d.py",
+		"/E/rug/mar201509/rug/src/index.py",
+		"/E/rug/mar201509/rug/src/static/js/pdop.js",
+		"/E/rug/apr201515/rug/src/static/lib/apple_tree.js",
+		"/E/rug/mar201509/rug/src/static/js/seascape_with_cubesnakes.js",
+		"/E/rug/mar201509/rug/src/templates/pdop.html",
+		"/E/rug/apr201515/rug/src/static/Primrose/test/Basic.js",
+		"/E/rug/apr201515/rug/setup.py",
+		"/E/rug/apr201515/Primrose-master/examples/editor3d/editor3d_flask.py",
+		"/E/rug/apr201515/rug/src/static/js/seascape_with_cubesnakes.js",
+		"/E/rug/apr201515/rug/src/templates/pdop.html",
+		"/E/rug/apr201515/Primrose-master/examples/editor3d/index.html",
+		"/E/rug/mar201509/rug/src/static/js/sswcs.js",
+		"/C/Users/jzitelli/Dropbox/songs/tabs/love hurts.txt",
+		"/E/rug/mar201509/rug/src/static/js/apple_tree.js",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/rug/index.html",
+		"/C/Users/jzitelli/Documents/GitHub/webvr-boilerplate/index.html",
+		"/E/rug/src/templates/open.html",
+		"/E/rug/src/static/js/Primrose.js",
+		"/E/rug/src/static/js/pdop.js",
+		"/E/rug/src/index.py",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/index.html~",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/rug/js/Primrose.js",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/rug/js/rug.js",
+		"/E/rug/src/templates/pdop.html",
+		"/E/Primrose/javascripts/demo.js",
+		"/E/rug/asdf.html",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/rug/Splines garden demo.htm",
+		"/E/vr/Primrose/javascripts/demo.js",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/rug/js/sswcs.js",
+		"/E/vr/Primrose/stylesheets/main.css",
+		"/E/vr/Primrose/stylesheets/button.css",
+		"/E/vr/Primrose/index.html",
+		"/E/vr/Primrose/original.html",
+		"/C/Users/jzitelli/Documents/GitHub/subvr/test.py"
+	],
+	"find":
+	{
+		"height": 38.0
+	},
+	"find_in_files":
+	{
+		"height": 90.0,
+		"where_history":
+		[
+			"C:\\Users\\jzitelli\\Documents\\GitHub\\Primrose\\src",
+			"C:\\Users\\jzitelli\\Documents\\GitHub\\Primrose\\examples\\editor3d",
+			"E:\\vr\\Primrose,<open files>",
+			"E:\\vr\\Primrose"
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"children",
+			"gotgamep",
+			"sky",
+			"addeventli",
+			"prim1",
+			"gl",
+			"cascadeElem",
+			"logging",
+			"web",
+			"webb",
+			"_flask",
+			"jsonsch",
+			"json",
+			"vrBody",
+			"vrmenu",
+			"geom",
+			"THREE.MeshB",
+			"trace",
+			"log",
+			"keydown",
+			"addeve",
+			"log(",
+			"logger",
+			"bevel",
+			"log(",
+			"read",
+			"primrose",
+			"STATIC",
+			"editor3d",
+			"findEverything",
+			"ctrls",
+			"cntrls",
+			"pickingscene",
+			"editors",
+			"pitch",
+			"esc",
+			"vr",
+			"gotvr",
+			"log(",
+			"prim1",
+			"log(",
+			"scene.remove",
+			"pickingscene",
+			"log(",
+			"\n            ",
+			"prim1",
+			"editor",
+			"pickingscene",
+			"editors",
+			"currentEdit",
+			"mousedown",
+			"pick",
+			"EDITORS",
+			"pickingSce",
+			"70",
+			"keydown",
+			"floor",
+			"scene.add",
+			"heading",
+			"scene.add",
+			"heading",
+			"gotgamepads",
+			"GAMEPADS",
+			"gotGP",
+			"gotgame",
+			"gotGP",
+			"gp",
+			"floor_texture",
+			"sky_texture",
+			"});\n",
+			"\n        ",
+			">\n",
+			"}\n",
+			"v",
+			"add",
+			"exp",
+			"add",
+			"addT",
+			"vrsensor",
+			"camera_he",
+			"camera",
+			"body_arrow",
+			"rotation",
+			"body_arrow",
+			"position",
+			"body_arr",
+			"array",
+			"position",
+			"update",
+			"textgeom",
+			"over",
+			"editor",
+			"file:",
+			"put java",
+			"file:",
+			"set",
+			"inner",
+			"heading",
+			"gotGP",
+			"function",
+			"event",
+			"ball",
+			"setinterva",
+			"light",
+			"Mater",
+			"Material",
+			"minF",
+			"THREE.N",
+			"src_root",
+			"THREE.N",
+			"box",
+			"textured",
+			"eval",
+			"scene.add",
+			"}\n",
+			"light$",
+			"light",
+			"scene.add",
+			"light",
+			"textge",
+			"log",
+			"normal",
+			"log",
+			"normal",
+			"scene",
+			"minfilter",
+			"minfil",
+			"minfilter"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"mesh",
+			"gamepad",
+			"position",
+			"arrow",
+			"rotation",
+			"mesh",
+			"box",
+			"primrose_rootyor"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 6,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "templates/index.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5061,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								230,
+								230
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "templates/head.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1599,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1226,
+								1226
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 20.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "editor3d.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5750,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3183,
+								3183
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1122.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "test.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2392,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1328,
+								1328
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": -0.0,
+						"translation.y": 924.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "templates/body.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3238,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								208,
+								208
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "editor3d.sublime-project",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 541,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								301,
+								301
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JSON.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "editor3d_flask.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 29153,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								7643,
+								7643
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 4126.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 7,
+					"file": "data/default_scene.json",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 308,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								230,
+								230
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JSON.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "schema/scene_schema.json",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 702,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								237,
+								230
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JSON.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": -0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 30.0
+	},
+	"input":
+	{
+		"height": 38.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			0.5,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 130.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.git":
+	{
+		"height": 142.0
+	},
+	"pinned_build_system": "",
+	"project": "editor3d.sublime-project",
+	"replace":
+	{
+		"height": 56.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": false,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 187.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+		"max_columns": 2
+	}
+}

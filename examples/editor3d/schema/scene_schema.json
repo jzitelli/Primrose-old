@@ -1,16 +1,31 @@
 {
 	"$schema": "http://json-schema.org/draft-04/schema#",
-	"title": "scene configuration schema",
-	"description": "scene configuration schema",
+	"title": "Primrose scene configuration schema",
 	"type": "object",
 	"definitions": {
 		"editor": {
 			"type": "object",
 			"properties": {
-				"text": "string",
-				"width": "number",
-				"height": "number"
-			}
+				"id": {
+					"type": "string"
+				},
+				"text": {
+					"type": "string"
+				},
+				"width": {
+					"type": "number"
+				},
+				"height": {
+					"type": "number"
+				},
+				"position": {
+					"type": "array",
+					"items": {
+						"type": "number"
+					}
+				}
+			},
+			"required": ["id"]
 		}
 	},
 	"properties": {
@@ -24,9 +39,7 @@
 			"type": "array",
 			"items": {
 				"$ref": "#/definitions/editor"
-			},
-			"minItems": 1,
-			"uniqueItems": true
+			}
 		}
 	}
 }

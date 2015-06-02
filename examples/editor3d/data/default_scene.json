@@ -1,0 +1,17 @@
+{
+	"floor_texture": "deck.png",
+	"sky_texture": "images/beach3.jpg",
+	"editors": [{
+		"id": "editor0",
+		"text": "log('hello world!');",
+		"width": 1,
+		"height": 1,
+		"position": [0, 0, 0]
+	}, {
+		"id": "editor1",
+		"text": "print('hello world!')",
+		"width": 2,
+		"height": 1,
+		"position": [2, 0, 0]
+	}]
+}

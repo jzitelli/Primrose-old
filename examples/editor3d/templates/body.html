@@ -1,7 +1,9 @@
-<body onload="editor3d()">
-
+<body onload="{{ onload if onload else 'editor3d()' }}">
   <div id="outputContainer">
     <canvas id="output"></canvas>
+    <div id="textBoxContainer">
+    {{ editors if editors else ''}}
+    </div>
   </div>
 
   <article id="main">
@@ -52,15 +54,11 @@
           <td>
               <label for="floorTexture">Floor / grid texture:</label>
               <select id="floorTexture">
-                <option selected="selected" value="deck.png">deck.png</option>
-                <option value="images/bg3.jpg">bg3.jpg</option>
+              {{ floor_textures if floor_textures else '<option selected="selected" value="deck.png">deck.png</option>' }}
               </select><br>
               <label for="skyTexture">Sky texture:</label>
               <select id="skyTexture">
-                <option selected="selected" value="bg2.jpg">bg2.jpg</option>
-                <option value="images/bg4.jpg">bg4.jpg</option>
-                <option value="images/bg7.jpg">bg7.jpg</option>
-                <option value="images/beach3.jpg">beach3.jpg</option>
+              {{ sky_textures if sky_textures else '<option selected="selected" value="images/beach3.jpg">beach3.jpg</option>' }}
               </select>
           </td>
           <td>
