@@ -1,6 +1,8 @@
 import os
 import shutil
 import json
+import sys
+from cStringIO import StringIO
 
 import jsonschema
 
@@ -129,14 +131,25 @@ def python_eval():
 ----------------------------------------------------
 %s
 ----------------------------------------------------""" % pystr)
+    # see http://stackoverflow.com/q/5136611/1911963
+    # setup the environment
+    backup = sys.stdout
+    # ####
+    sys.stdout = StringIO()     # capture output
     execlocals = locals()
+    execlocals.pop("backup")
     execlocals.pop('value', None)
     try:
         exec(pystr, globals(), execlocals)
         value = execlocals['value']
     except Exception as err:
         value = "an exception occurred: %s" % str(err)
-    return jsonify(value=value, args=request.args)
+    finally:
+        out = sys.stdout.getvalue() # release output
+        # ####
+        sys.stdout.close()  # close the stream 
+        sys.stdout = backup # restore original stdout
+    return jsonify(value=value, args=request.args, out=out)
 
 
 @app.route("/fourier_surface")

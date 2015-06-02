@@ -21,6 +21,7 @@ var scene = new THREE.Scene();
 var pickingScene = new THREE.Scene();
 var editors = [];
 var editor_geoms = [];
+var ctrls;
 
 function editor3d() {
   "use strict";
@@ -33,8 +34,9 @@ function editor3d() {
       renderer,
       gamepad,
       gotGP = false,
-      pitch = 0,
-      ctrls = findEverything();
+      pitch = 0;
+
+  ctrls = findEverything();
 
   $("#main").hide();
 
@@ -115,12 +117,45 @@ function editor3d() {
         vrDisplay = device;
       } else if (device instanceof window.PositionSensorVRDevice) {
         vrSensor = device;
+        window.vrSensor = vrSensor;
       }
       if (vrSensor && vrDisplay) {
         break;
       }
     }
     PrimroseDemo();
+    vrMenuCreate();
+  }
+
+  var vrMenuMaterial = new THREE.MeshBasicMaterial({
+          color: 0xffff00,
+          useScreenCoordinates: false,
+          shading: THREE.FlatShading
+      });
+  var vrLogMaterial = new THREE.MeshLambertMaterial({
+          color: 0x00ff00,
+          transparent: false,
+          side: THREE.DoubleSide
+          });
+
+  function vrMenuCreate() {
+    var meshes = [];
+    var options = ctrls.floorTexture.children;
+    for (var i = 0; i < options.length; ++i) {
+      var geom = new THREE.TextGeometry(options[i].value, {
+            size: 0.5,
+            height: 0.05,
+            font: 'janda manatee solid',
+            weight: 'normal'
+          });
+      log("menu option " + options[i].value + " created");
+      var mesh = new THREE.Mesh(geom, vrMenuMaterial);
+      mesh.position.copy(vrSensor.getState().position); //x = vrSensor.getState().positioncopy(vrSensor.position);
+      mesh.position.y += 1 + i;
+      mesh.position.z -= 1;
+      meshes.push(mesh);
+      scene.add(mesh);
+    }
   }
 
   function PrimroseDemo(err) {
@@ -399,7 +434,7 @@ function editor3d() {
       // TODO: one geom per *unique* line
       textgeom_log_buffer.push(msg);
       var size = 0.5;
-      var height = 0.1;
+      var height = 0.5 / 20;
       var textgeom = new THREE.TextGeometry(msg, {
             size: size,
             height: height,
@@ -407,12 +442,7 @@ function editor3d() {
             weight: 'normal'
           });
       textgeom_log_geoms.push(textgeom);
-      var mesh = new THREE.Mesh(textgeom,
-          new THREE.MeshLambertMaterial({
-            color: color || 0xffffff,
-            transparent: false,
-            side: THREE.DoubleSide
-          }));
+      var mesh = new THREE.Mesh(textgeom, vrLogMaterial);
       scene.add(mesh);
       textgeom_log_meshes.push(mesh);
 
@@ -424,7 +454,7 @@ function editor3d() {
         mesh = textgeom_log_meshes[i];
         mesh.position.x = body.position.x - 10.0;
         mesh.position.z = body.position.z - 10.0;
-        mesh.position.y = 2 + (textgeom_log_meshes.length - i - 1) * 1.25 * size;
+        mesh.position.y = 2 + (textgeom_log_meshes.length - i - 1) * 1.75 * size;
       }
     }
 

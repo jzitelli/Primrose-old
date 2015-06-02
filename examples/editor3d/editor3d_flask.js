@@ -491,11 +491,9 @@ function editor3d() {
       var mesh = new THREE.Mesh(textgeom, vrLogMaterial);
       scene.add(mesh);
       textgeom_log_meshes.push(mesh);
-
       if (textgeom_log_meshes.length > buffsize) {
         scene.remove(textgeom_log_meshes.shift());
       }
-
       for (var i = 0; i < textgeom_log_meshes.length; ++i) {
         mesh = textgeom_log_meshes[i];
         mesh.position.x = body.position.x - 10.0;
@@ -552,12 +550,14 @@ function editor3d() {
           } else if (evt.keyCode === 40) {
             currentEditor.decreaseFontSize();
             evt.preventDefault();
-          } else if (evt.keyCode === 80) {
+          } else if (evt.keyCode === 69) {
             $.ajax({url: '/python_eval?pystr=' + currentEditor.getLines().join('%0A'),
                     success: function(data) {
-                      log(data.value)
-                    }
-                    });
+                      log(data.out);
+                      log("");
+                      log("returned:");
+                      log(data.value);
+                    }})
           }
         }
       }
