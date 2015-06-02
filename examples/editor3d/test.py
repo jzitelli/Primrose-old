@@ -39,7 +39,7 @@ class FlaskTest(TestCase):
         self.app = editor3d.app.test_client()
 
     def test_index(self):
-        response = self.app.get('/')
+        response = self.app.get('/index')
         self.assertEqual(response.status_code, 200)
 
     def test_tour(self):
@@ -47,7 +47,7 @@ class FlaskTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_configured(self):
-        response = self.app.get('/config')
+        response = self.app.get('/')
         self.assertEqual(response.status_code, 200)
 
     def test_git_url(self):

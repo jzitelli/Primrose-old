@@ -23,7 +23,8 @@
 					"items": {
 						"type": "number"
 					}
-				}
+				},
+				"filename": {"type": "string"}
 			},
 			"required": ["id"]
 		}
@@ -40,6 +41,10 @@
 			"items": {
 				"$ref": "#/definitions/editor"
 			}
+		},
+		"floor_size": {
+			"type": "array",
+			"items": {"type": "number"}
 		}
 	}
 }

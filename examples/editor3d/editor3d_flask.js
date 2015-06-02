@@ -143,23 +143,20 @@ function editor3d() {
           useScreenCoordinates: false,
           shading: THREE.FlatShading
       });
-  var vrLogMaterial = new THREE.MeshLambertMaterial({
-          color: 0x00ff00,
-          transparent: false,
-          side: THREE.DoubleSide
-          });
 
   function vrMenuCreate() {
+    // TODO: cool pixel shader
     var meshes = [];
-    var options = ctrls.skyTexture.children;
-    for (var i = 0; i < Math.min(4, options.length); ++i) {
-      var geom = new THREE.TextGeometry(options[i].value, {
+    var selects = [ctrls.floorTexture, ctrls.skyTexture];
+    //var options = ctrls.skyTexture.children;
+    for (var i = 0; i < Math.min(4, selects.length); ++i) {
+      var geom = new THREE.TextGeometry(selects[i].value, { //options[i].value, {
             size: 0.5,
             height: 0.05,
             font: 'janda manatee solid',
             weight: 'normal'
           });
-      log("menu option " + options[i].value + " created");
+      //log("menu option " + options[i].value + " created");
       var mesh = new THREE.Mesh(geom, vrMenuMaterial);
       mesh.position.copy(vrSensor.getState().position); //x = vrSensor.getState().positioncopy(vrSensor.position);
       mesh.position.y += 1 + i;
@@ -168,6 +165,12 @@ function editor3d() {
       scene.add(mesh);
     }
   }
+
+  // fps measure / profiler / optimizer
+  // save current scene (e)
+  // HMD pointer mode (p)
+  // menu shortcut label
+  // menu shortcut key
 
   // function gotGamepads(gamepads) {
   //   for (var i = 0; i < gamepads.length; i++) {
@@ -203,9 +206,9 @@ function editor3d() {
       SPEED = 0.0015,
       heading = 0,
       keyState = {},
-      w1 = 3,
-      h = 3,
-      w2 = 3,
+      w1 = 2,
+      h = 2,
+      w2 = 2,
       back = new THREE.WebGLRenderTarget(ctrls.output.width,
         ctrls.output.height, {
           wrapS: THREE.ClampToEdgeWrapping,
@@ -230,7 +233,7 @@ function editor3d() {
     });
 
     var body = new THREE.Object3D();
-    var body_arrow;
+    var bodyArrow;
 
     var camera = new THREE.PerspectiveCamera(50, ctrls.output.width /
       ctrls.output.height, 0.1, 1000);
@@ -238,7 +241,7 @@ function editor3d() {
     // TODO: investigate exclamation points??
 
     var configParam = $.QueryString["config"];
-    //console.log(configParam);
+    console.log("url config: " + configParam);
     function addTextBox(editor) {
       var textbox = new Primrose.TextBox(editor.id, {
         tokenizer: Primrose.Grammars.JavaScript,
@@ -252,13 +255,23 @@ function editor3d() {
       var flatEditorPicker = textured(flatGeom, textbox.getRenderer().getPickingTexture());
       flatEditor.position.copy(body.position);
       flatEditor.position.z -= 2;
-      flatEditor.position.x += editor.position[0];
-      flatEditor.position.y += editor.position[1];
-      flatEditor.position.z += editor.position[2];
+      if (editor.position) {
+        flatEditor.position.x += editor.position[0];
+        flatEditor.position.y += editor.position[1];
+        flatEditor.position.z += editor.position[2];
+      }
       scene.add(flatEditor);
       pickingScene.add(flatEditorPicker);
       editors.push(textbox);
       editor_geoms.push(flatEditor);
+      if (editor.filename) {
+        $.ajax({
+          url: "/read?filename=" + editor.filename,
+          success: function (data) {
+                textbox.overwriteText(data.value);
+                textbox.drawText();
+                log("loaded " + data.args.filename);}});
+      }
     }
 
     for (var i = 0; i < ctrls.textBoxContainer.children.length; ++i) {
@@ -267,54 +280,23 @@ function editor3d() {
       addTextBox(editorConfig);
     }
 
-    // var prim1 = new Primrose.TextBox("editor1", {
-    //   tokenizer: Primrose.Grammars.JavaScript,
-    //   size: new Primrose.Size(w1 * 1024, w1 * 1024),
-    //   fontSize: (vrDisplay ? 40 : 20), // / window.devicePixelRatio,
-    //   file: initial_contents,
-    //   theme: Primrose.Themes.Dark
-    // });
-    // $.ajax({
-    //     url: "/read?filename=editor_a.py",
-    //     success: function (data) {
-    //           prim1.overwriteText(data.value);
-    //           prim1.drawText();
-    //           log("loaded " + data.args.filename);
-    //     }
-    // });
-    // editors.push(prim1);
-
-    // var shellGeom = shell(w1, 5, 10),
-    //   shellEditor = textured(shellGeom, prim1),
-    //   shellEditorPicker = textured(shellGeom, prim1.getRenderer()
-    //     .getPickingTexture()),
-    //   flatGeom = quad(w2, h),
-    //   flatEditor = textured(flatGeom, prim2),
-    //   flatEditorPicker = textured(flatGeom, prim2.getRenderer()
-    //     .getPickingTexture());
-    // flatEditor.position.x = flatEditorPicker.position.x = 4;
-
-    // scene.add(shellEditor);
-    // scene.add(flatEditor);
-
-    // pickingScene.add(shellEditorPicker);
-    // pickingScene.add(flatEditorPicker);
-
-    // editor_geoms.push(shellEditor);
-    // editor_geoms.push(flatEditor);
-
-
     var sky_texture = $("#skyTexture").val();
     var sky = textured(shell(50, 8, 4, Math.PI * 2, Math.PI), sky_texture);
     scene.add(sky);
 
+    // naming cpmnvetmatonm??
+    var floorTexture = $("#floorTexture").val(); // $.QueryString["floor_texture"] || $("#floorTexture").val();
     var fs = 1,
         ft = 1;
-    var floor_texture = $("#floorTexture").val();
-    if (floor_texture === "deck.png")
+    if (floorTexture === "deck.png")
       fs = ft = 25;
-    var floor = textured(box(25, 1, 25), floor_texture, fs, ft);
-    floor.position.set(0, -3, 0);
+    var floorSize = $.QueryString["floor_size"] || [25, 25]; //$("#floorSize").val();
+    console.log("setting floor size to: " + floorSize);
+    var floorPos = $.QueryString["floor_position"] || [0, -3, 0];
+    console.log("setting floor position to: " + floorPos);
+    var floor = textured(box(floorSize[0], 1, floorSize[1]), floorTexture, fs, ft);
+    floor.position.set(floorPos[0], floorPos[1], floorPos[2]); //-3, 0);
+    //floor.position.copy(floorPos); //set(0, -3, 0);
     scene.add(floor);
 
     var gl = renderer.getContext();
@@ -334,8 +316,8 @@ function editor3d() {
     scene.add(body);
     scene.add(pointer);
 
-    body_arrow = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 0), body.position, 1, 0xffff00);
-    scene.add(body_arrow);
+    //body_arrow = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 0), body.position, 1, 0xffff00);
+    //scene.add(body_arrow);
 
     //var camera_helper = new THREE.CameraHelper(fakeCamera);
     //scene.add(camera_helper);
@@ -362,34 +344,36 @@ function editor3d() {
     // ctrls.controls.appendChild(prim1.themeSelect);
 
     ctrls.toggleLineNumbers.addEventListener("change", function() {
-      // prim1.setShowLineNumbers(ctrls.toggleLineNumbers.checked);
-      // prim2.setShowLineNumbers(ctrls.toggleLineNumbers.checked);
+      for (var i = 0; i < editors.length; ++i) {
+        editors[i].setShowLineNumbers(ctrls.toggleLineNumbers.checked);
+      }
     });
 
     ctrls.toggleScrollBars.addEventListener("change", function() {
-      // prim1.setShowScrollBars(ctrls.toggleScrollBars.checked);
-      // prim2.setShowScrollBars(ctrls.toggleScrollBars.checked);
+      for (var i = 0; i < editors.length; ++i) {
+        editors[i].setShowScrollBars(ctrls.toggleScrollBars.checked);
+      }
     });
 
     ctrls.floorTexture.addEventListener("change", function() {
-      console.log("changing floor texture...");
-      scene.remove(floor); // TODO: probably a better way to change a texture...
-      floor_texture = $("#floorTexture").val();
+      floorTexture = $("#floorTexture").val();
+      log("changing floor texture to: " + floorTexture);
       fs = ft = 1;
-      if (floor_texture === 'deck.png')
+      if (floorTexture === 'deck.png')
         fs = ft = 25;
-      floor = textured(box(25, 1, 25), floor_texture, fs, ft);
-      floor.position.set(0, -3, 0);
-      scene.add(floor);
-    })
+      var newFloor = textured(box(floorSize[0], 1, floorSize[1]), floorTexture, fs, ft);
+      scene.remove(floor); // TODO: probably a better way to change a texture...
+      newFloor.position.set(floorPos[0], floorPos[1], floorPos[2]); //set(0, -3, 0);
+      scene.add(newFloor);
+    });
 
     ctrls.skyTexture.addEventListener("change", function() {
-      console.log("changing sky background...");
-      scene.remove(sky);
       sky_texture = $("#skyTexture").val();
-      sky = textured(shell(50, 8, 4, Math.PI * 2, Math.PI), sky_texture);
-      scene.add(sky);
-    })
+      log("changing sky texture to: " + sky_texture);
+      var newSky = textured(shell(50, 8, 4, Math.PI * 2, Math.PI), sky_texture);
+      scene.remove(sky);
+      scene.add(newSky);
+    });
 
     // prim1.operatingSystemSelect.addEventListener("change", function() {
     //   prim2.setOperatingSystem(prim1.getOperatingSystem());
@@ -412,6 +396,8 @@ function editor3d() {
     setupKeyOption(ctrls.rightKey, "D", 68);
     setupKeyOption(ctrls.forwardKey, "W", 87);
     setupKeyOption(ctrls.backKey, "S", 83);
+    setupKeyOption(ctrls.addTextBoxKey, "T", 84);
+
     if (vrDisplay) {
       ctrls.goRegular.style.display = "none";
       ctrls.nightly.display = "none";
@@ -448,7 +434,7 @@ function editor3d() {
     }
 
     function log(msg, color) {
-      console.log(msg);
+      console.log(msg + " (this msg also logged to vr console)");
       $.ajax({url: "log?string=" + msg}); //.replace('\n', '%0A')})
       textgeom_log(msg, color || 0xffaa33);
       // if ( currentEditor ) {
@@ -456,6 +442,35 @@ function editor3d() {
       //   currentEditor.drawText( );
       // }
     }
+
+    function textGeomMesh(msg, color, size, height) {
+      size = size || 0.5;
+      height = height || size / 17;
+      var font = 'janda manatee solid';
+      var weight = 'normal';
+      var textgeom = new THREE.TextGeometry(msg, {
+            size: size,
+            height: height,
+            font: font,
+            weight: weight
+          });
+      var material = new THREE.MeshLambertMaterial({
+        color: color || 0xff0000,
+        transparent: false,
+        side: THREE.DoubleSide
+        });
+      var mesh = new THREE.Mesh(textgeom, material);
+      return mesh;
+    }
+
+    var vrLogMaterial = new THREE.MeshLambertMaterial({
+        color: 0x00ff00,
+        transparent: false,
+        side: THREE.DoubleSide
+        });
+
+    // record vr scenes, youtube integration
+
 
     var textgeom_log_buffer = [];
     var textgeom_log_geoms = [];
@@ -504,24 +519,13 @@ function editor3d() {
         keyState[evt.keyCode] = true;
 
         if (evt.keyCode === 84) { //Primrose.Keys.t) {
-          addTextBox({id: "editor a", width: 1, height: 1, text: "log('hi');"});
-
-          // var textbox = new Primrose.TextBox("editor" + editors.length+1, {
-          //    tokenizer: Primrose.Grammars.JavaScript,
-          //    size: new Primrose.Size(w2 * 1024, w2 * 1024),
-          //    fontSize: (vrDisplay ? 40 : 20), // / window.devicePixelRatio,
-          //    file: "log('eat poop " + editors.length + "');",
-          //    theme: Primrose.Themes.Dark
-          //  });
-          //  var flatGeom = quad(w2, h);
-          //  var flatEditor = textured(flatGeom, textbox);
-          //  var flatEditorPicker = textured(flatGeom, textbox.getRenderer().getPickingTexture());
-          //  flatEditor.position.copy(body.position);
-          //  flatEditor.position.z -= 2;
-          //  scene.add(flatEditor);
-          //  pickingScene.add(flatEditorPicker);
-          //  editors.push(textbox);
-          //  editor_geoms.push(flatEditor);
+          var params = {
+            id: "editor a",
+            width: 1,
+            height: 1,
+            text: "log('hi');"
+          };
+          addTextBox(params);
         } else if (evt.keyCode === 77) {
           $("#main").toggle();
         } else if (evt.keyCode === 80) {
@@ -767,8 +771,8 @@ function editor3d() {
       body.rotateY(heading);
       body.rotateX(pitch);
 
-      body_arrow.rotation.copy(body.rotation);
-      body_arrow.rotateX(-Math.PI / 2);
+      //body_arrow.rotation.copy(body.rotation);
+      //body_arrow.rotateX(-Math.PI / 2);
 
       var cos, sin;
       cos = Math.cos(body.rotation.y);
@@ -818,8 +822,8 @@ function editor3d() {
       body.position.x = Math.min(12.5, Math.max(-12.5, body.position.x));
       body.position.z = Math.min(12.5, Math.max(-12.5, body.position.z));
 
-      body_arrow.position.copy(body.position);
-      body_arrow.position.z -= 1.0;
+      //body_arrow.position.copy(body.position);
+      //body_arrow.position.z -= 1.0;
 
       sky.position.copy(body.position);
 

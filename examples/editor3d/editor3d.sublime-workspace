@@ -55,8 +55,40 @@
 			"file": "editor3d.py",
 			"settings":
 			{
-				"buffer_size": 5750,
+				"buffer_size": 5820,
 				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "editor_a.js",
+			"settings":
+			{
+				"buffer_size": 91,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "editor1.py",
+			"settings":
+			{
+				"buffer_size": 100,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "scratch.json",
+			"settings":
+			{
+				"buffer_size": 374,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "scratch.py",
+			"settings":
+			{
+				"buffer_size": 149,
+				"line_ending": "Windows"
 			}
 		},
 		{
@@ -71,31 +103,34 @@
 			"file": "templates/body.html",
 			"settings":
 			{
-				"buffer_size": 3238,
+				"buffer_size": 3385,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "editor3d.sublime-project",
-			"settings":
-			{
-				"buffer_size": 541,
-				"line_ending": "Unix"
-			}
-		},
-		{
+			"contents": "/*\n * Copyright (C) 2015 Sean\n *\n * This program is free software: you can redistribute it and/or modify\n * it under the terms of the GNU General Public License as published by\n * the Free Software Foundation, either version 3 of the License, or\n * (at your option) any later version.\n *\n * This program is distributed in the hope that it will be useful,\n * but WITHOUT ANY WARRANTY; without even the implied warranty of\n * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n * GNU General Public License for more details.\n *\n * You should have received a copy of the GNU General Public License\n * along with this program.  If not, see <http://www.gnu.org/licenses/>.\n */\n\n/*global THREE, qp, Primrose, Assert */\n\n// http://stackoverflow.com/a/3855394/1911963\n(function($) {\n    $.QueryString = (function(a) {\n        if (a == \"\") return {};\n        var b = {};\n        for (var i = 0; i < a.length; ++i)\n        {\n            var p=a[i].split('=');\n            if (p.length != 2) continue;\n            b[p[0]] = decodeURIComponent(p[1].replace(/\\+/g, \" \"));\n        }\n        return b;\n    })(window.location.search.substr(1).split('&'))\n})(jQuery);\n\n\n// http://stackoverflow.com/a/21747848/1911963\nfunction getData(key) {\n  try {\n    return JSON.parse($('script[type=\"text/json\"]#' + key).text());\n  } catch (err) { // if we have not valid json or dont have it\n    return null;\n  } \n}\n\n\nvar scene = new THREE.Scene();\nvar pickingScene = new THREE.Scene();\nvar editors = [];\nvar editor_geoms = [];\nvar ctrls;\n\nfunction editor3d() {\n  \"use strict\";\n  var modA = isOSX ? \"metaKey\" : \"ctrlKey\",\n      modB = isOSX ? \"altKey\" : \"shiftKey\",\n      cmdPre = isOSX ? \"CMD+OPT\" : \"CTRL+SHIFT\",\n      vrDisplay,\n      vrSensor,\n      vrEffect,\n      renderer,\n      gamepad,\n      gotGP = false,\n      pitch = 0;\n\n  ctrls = findEverything();\n\n  function clearKeyOption(evt) {\n    this.value = \"\";\n    this.dataset.keycode = \"\";\n  }\n\n  function setKeyOption(evt) {\n    this.dataset.keycode = evt.keyCode;\n    this.value = this.value || Primrose.Keys[evt.keyCode];\n    this.value = this.value.toLowerCase()\n      .replace(\"arrow\", \" arrow\");\n    this.blur();\n  }\n\n  function setupKeyOption(elem, char, code) {\n    elem.value = char.toLowerCase();\n    elem.dataset.keycode = code;\n    elem.addEventListener(\"keydown\", clearKeyOption);\n    elem.addEventListener(\"keyup\", setKeyOption);\n  }\n\n  function goFullscreen() {\n    var elem = ctrls.output;\n    if (vrDisplay) {\n      if (!vrEffect) {\n        vrEffect = new THREE.VREffect(renderer, vrDisplay);\n      }\n      if (elem.webkitRequestFullscreen) {\n        elem.webkitRequestFullscreen({\n          vrDisplay: vrDisplay\n        });\n      } else if (elem.mozRequestFullScreen) {\n        elem.mozRequestFullScreen({\n          vrDisplay: vrDisplay\n        });\n      }\n      pitch = 0;\n    } else {\n      if (elem.requestFullscreen) {\n        elem.requestFullscreen();\n      } else if (elem.webkitRequestFullscreen) {\n        elem.webkitRequestFullscreen(window.Element.ALLOW_KEYBOARD_INPUT);\n      } else if (elem.mozRequestFullScreen) {\n        elem.mozRequestFullScreen();\n      } else if (elem.msRequestFullscreen) {\n        elem.msRequestFullscreen();\n      }\n    }\n\n    if (elem.requestPointerLock) {\n      elem.requestPointerLock();\n    } else if (elem.webkitRequestPointerLock) {\n      elem.webkitRequestPointerLock();\n    } else if (elem.mozRequestPointerLock) {\n      elem.mozRequestPointerLock();\n    }\n  }\n\n  function gotVRDevices(devices) {\n    for (var i = 0; i < devices.length; ++i) {\n      var device = devices[i];\n      if (device instanceof window.HMDVRDevice) {\n        vrDisplay = device;\n      } else if (device instanceof window.PositionSensorVRDevice) {\n        vrSensor = device;\n        window.vrSensor = vrSensor;\n      }\n      if (vrSensor && vrDisplay) {\n        break;\n      }\n    }\n    PrimroseDemo();\n    vrMenuCreate();\n  }\n\n  var vrMenuMaterial = new THREE.MeshBasicMaterial({\n          color: 0xffff00,\n          useScreenCoordinates: false,\n          shading: THREE.FlatShading\n      });\n\n  function vrMenuCreate() {\n    // TODO: cool pixel shader\n    var meshes = [];\n    var selects = [ctrls.floorTexture, ctrls.skyTexture];\n    //var options = ctrls.skyTexture.children;\n    for (var i = 0; i < Math.min(4, selects.length); ++i) {\n      var geom = new THREE.TextGeometry(selects[i].value, { //options[i].value, {\n            size: 0.5,\n            height: 0.05,\n            font: 'janda manatee solid',\n            weight: 'normal'\n          });\n      //log(\"menu option \" + options[i].value + \" created\");\n      var mesh = new THREE.Mesh(geom, vrMenuMaterial);\n      mesh.position.copy(vrSensor.getState().position); //x = vrSensor.getState().positioncopy(vrSensor.position);\n      mesh.position.y += 1 + i;\n      mesh.position.z -= 1;\n      meshes.push(mesh);\n      scene.add(mesh);\n    }\n  }\n\n  // function gotGamepads(gamepads) {\n  //   for (var i = 0; i < gamepads.length; i++) {\n  //     if (gamepads[i]) {\n  //       gamepad = gamepads[i];\n  //       if (gamepad.id.substring(0, 4) === \"Xbox\") {\n  //         log(\"Gamepad connected at index %d\", gamepad.index);\n  //         gotGP = true;\n  //         break;\n  //       }\n  //     }\n  //   }\n  // }\n\n  function PrimroseDemo(err) {\n    if (err) {\n      console.error(err);\n    }\n\n    var lt = 0,\n      dragging = false,\n      lastMouseX,\n      lastMouseY,\n      lastTouchX,\n      lastTouchY,\n      touchCount = 0,\n      pointerX,\n      pointerY,\n      currentObject,\n      currentEditor,\n      touchDrive = 0,\n      touchStrafe = 0,\n      SPEED = 0.0015,\n      heading = 0,\n      keyState = {},\n      w1 = 2,\n      h = 2,\n      w2 = 2,\n      back = new THREE.WebGLRenderTarget(ctrls.output.width,\n        ctrls.output.height, {\n          wrapS: THREE.ClampToEdgeWrapping,\n          wrapT: THREE.ClampToEdgeWrapping,\n          magFilter: THREE.LinearFilter,\n          minFilter: THREE.LinearFilter,\n          format: THREE.RGBAFormat,\n          type: THREE.UnsignedByteType,\n          stencilBuffer: false\n        }),\n      fakeCamera = new THREE.PerspectiveCamera(50, ctrls.output.width /\n        ctrls.output.height, 0.001, 1000),\n      mouse = new THREE.Vector3(0, 0, 0),\n      raycaster = new THREE.Raycaster(new THREE.Vector3(),\n        new THREE.Vector3(), 0, 50),\n      pointer = textured(sphere(0.02, 4, 2), 0xff0000);\n    back.generateMipMaps = false;\n    renderer = new THREE.WebGLRenderer({\n      canvas: ctrls.output,\n      alpha: true,\n      antialias: true\n    });\n\n    var body = new THREE.Object3D();\n    var bodyArrow;\n\n    var camera = new THREE.PerspectiveCamera(50, ctrls.output.width /\n      ctrls.output.height, 0.1, 1000);\n\n    // TODO: investigate exclamation points??\n\n    var configParam = $.QueryString[\"config\"];\n    console.log(\"url config: \" + configParam);\n    function addTextBox(editor) {\n      var textbox = new Primrose.TextBox(editor.id, {\n        tokenizer: Primrose.Grammars.JavaScript,\n        size: new Primrose.Size(1024*editor.width, 1024*editor.height),\n        fontSize: (vrDisplay ? 40 : 20), // / window.devicePixelRatio,\n        file: editor.text,\n        theme: Primrose.Themes.Dark\n      });\n      var flatGeom = quad(editor.width, editor.height);\n      var flatEditor = textured(flatGeom, textbox);\n      var flatEditorPicker = textured(flatGeom, textbox.getRenderer().getPickingTexture());\n      flatEditor.position.copy(body.position);\n      flatEditor.position.z -= 2;\n      if (editor.position) {\n        flatEditor.position.x += editor.position[0];\n        flatEditor.position.y += editor.position[1];\n        flatEditor.position.z += editor.position[2];\n      }\n      scene.add(flatEditor);\n      pickingScene.add(flatEditorPicker);\n      editors.push(textbox);\n      editor_geoms.push(flatEditor);\n      if (editor.filename) {\n        $.ajax({\n          url: \"/read?filename=\" + editor.filename,\n          success: function (data) {\n                textbox.overwriteText(data.value);\n                textbox.drawText();\n                log(\"loaded \" + data.args.filename);}});\n      }\n    }\n\n    for (var i = 0; i < ctrls.textBoxContainer.children.length; ++i) {\n      var editorConfig = getData(ctrls.textBoxContainer.children[i].id);\n      console.log(editorConfig);\n      addTextBox(editorConfig);\n    }\n\n    var sky_texture = $(\"#skyTexture\").val();\n    var sky = textured(shell(50, 8, 4, Math.PI * 2, Math.PI), sky_texture);\n    scene.add(sky);\n\n    // naming cpmnvetmatonm??\n    var floorTexture = $(\"#floorTexture\").val(); // $.QueryString[\"floor_texture\"] || $(\"#floorTexture\").val();\n    var fs = 1,\n        ft = 1;\n    if (floorTexture === \"deck.png\")\n      fs = ft = 25;\n    var floorSize = $.QueryString[\"floor_size\"] || [25, 25]; //$(\"#floorSize\").val();\n    console.log(\"setting floor size to: \" + floorSize);\n    var floorPos = $.QueryString[\"floor_position\"] || [0, -3, 0];\n    console.log(\"setting floor position to: \" + floorPos);\n    var floor = textured(box(floorSize[0], 1, floorSize[1]), floorTexture, fs, ft);\n    floor.position.set(floorPos[0], floorPos[1], floorPos[2]); //-3, 0);\n    //floor.position.copy(floorPos); //set(0, -3, 0);\n    scene.add(floor);\n\n    var gl = renderer.getContext();\n\n    body.position.set(0, 0, w1);\n    body.add(camera);\n\n    var directionalLight = new THREE.DirectionalLight(0xeeff11, 0.9);\n    directionalLight.position.set(0.2, 1, 0);\n    scene.add(directionalLight);\n\n    var pointLight = new THREE.PointLight(0x44ffff, 0.8);\n    pointLight.position.y = 5;\n    scene.add(pointLight);\n\n    scene.add(fakeCamera);\n    scene.add(body);\n    scene.add(pointer);\n\n    //body_arrow = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 0), body.position, 1, 0xffff00);\n    //scene.add(body_arrow);\n\n    //var camera_helper = new THREE.CameraHelper(fakeCamera);\n    //scene.add(camera_helper);\n\n    // window.addEventListener(\"gamepadconnected\", function(e) {      \n    //   gotGamepads(navigator.getGamepads());\n    //   });\n\n    window.addEventListener(\"resize\", refreshSize);\n    window.addEventListener(\"keydown\", keyDown);\n    window.addEventListener(\"keyup\", keyUp);\n    window.addEventListener(\"wheel\", mouseWheel);\n    window.addEventListener(\"paste\", paste);\n\n    ctrls.output.addEventListener(\"mousedown\", mouseDown);\n    ctrls.output.addEventListener(\"mousemove\", mouseMove);\n    ctrls.output.addEventListener(\"mouseup\", mouseUp);\n    ctrls.output.addEventListener(\"touchstart\", touchStart);\n    ctrls.output.addEventListener(\"touchmove\", touchMove);\n    ctrls.output.addEventListener(\"touchend\", touchEnd);\n\n    // ctrls.controls.appendChild(prim1.operatingSystemSelect);\n    // ctrls.controls.appendChild(prim1.keyboardSelect);\n    // ctrls.controls.appendChild(prim1.themeSelect);\n\n    ctrls.toggleLineNumbers.addEventListener(\"change\", function() {\n      for (var i = 0; i < editors.length; ++i) {\n        editors[i].setShowLineNumbers(ctrls.toggleLineNumbers.checked);\n      }\n    });\n\n    ctrls.toggleScrollBars.addEventListener(\"change\", function() {\n      for (var i = 0; i < editors.length; ++i) {\n        editors[i].setShowScrollBars(ctrls.toggleScrollBars.checked);\n      }\n    });\n\n    ctrls.floorTexture.addEventListener(\"change\", function() {\n      floorTexture = $(\"#floorTexture\").val();\n      log(\"changing floor texture to: \" + floorTexture);\n      fs = ft = 1;\n      if (floorTexture === 'deck.png')\n        fs = ft = 25;\n      var newFloor = textured(box(floorSize[0], 1, floorSize[1]), floorTexture, fs, ft);\n      scene.remove(floor); // TODO: probably a better way to change a texture...\n      newFloor.position.set(floorPos[0], floorPos[1], floorPos[2]); //set(0, -3, 0);\n      scene.add(floor);\n    });\n\n    ctrls.skyTexture.addEventListener(\"change\", function() {\n      sky_texture = $(\"#skyTexture\").val();\n      log(\"changing sky texture to: \" + sky_texture);\n      var newSky = textured(shell(50, 8, 4, Math.PI * 2, Math.PI), sky_texture);\n      scene.remove(sky);\n      scene.add(newSky);\n    });\n\n    // prim1.operatingSystemSelect.addEventListener(\"change\", function() {\n    //   prim2.setOperatingSystem(prim1.getOperatingSystem());\n    // });\n\n    // prim1.keyboardSelect.addEventListener(\"change\", function() {\n    //   prim2.setCodePage(prim1.getCodePage());\n    // });\n\n    // prim1.themeSelect.addEventListener(\"change\", function() {\n    //   prim2.setTheme(prim1.getTheme());\n    // });\n\n    var cmdLabels = document.querySelectorAll(\".cmdLabel\");\n    for (var i = 0; i < cmdLabels.length; ++i) {\n      cmdLabels[i].innerHTML = cmdPre;\n    }\n\n    setupKeyOption(ctrls.leftKey, \"A\", 65);\n    setupKeyOption(ctrls.rightKey, \"D\", 68);\n    setupKeyOption(ctrls.forwardKey, \"W\", 87);\n    setupKeyOption(ctrls.backKey, \"S\", 83);\n    setupKeyOption(ctrls.addTextBoxKey, \"T\", 84);\n\n    if (vrDisplay) {\n      ctrls.goRegular.style.display = \"none\";\n      ctrls.nightly.display = \"none\";\n      ctrls.goVR.addEventListener(\"click\", goFullscreen);\n    } else {\n      ctrls.goVR.style.display = \"none\";\n      ctrls.goRegular.addEventListener(\"click\", goFullscreen);\n    }\n\n    refreshSize();\n    requestAnimationFrame(render);\n\n    function refreshSize() {\n      var styleWidth = ctrls.outputContainer.clientWidth,\n        styleHeight = ctrls.outputContainer.clientHeight,\n        ratio = window.devicePixelRatio || 1,\n        canvasWidth = styleWidth * ratio,\n        canvasHeight = styleHeight * ratio;\n      if (vrEffect) {\n        canvasWidth = vrEffect.left.renderRect.width +\n          vrEffect.right.renderRect.width;\n        canvasHeight = Math.max(vrEffect.left.renderRect.height,\n          vrEffect.right.renderRect.height);\n      }\n      renderer.domElement.style.width = px(styleWidth);\n      renderer.domElement.style.height = px(styleHeight);\n      renderer.domElement.width = canvasWidth;\n      renderer.domElement.height = canvasHeight;\n      renderer.setViewport(0, 0, canvasWidth, canvasHeight);\n      back.setSize(canvasWidth, canvasHeight);\n      fakeCamera.aspect = camera.aspect = canvasWidth / canvasHeight;\n      camera.updateProjectionMatrix();\n      fakeCamera.updateProjectionMatrix();\n    }\n\n    function log(msg, color) {\n      console.log(msg + \" (this msg also logged to vr console)\");\n      $.ajax({url: \"log?string=\" + msg}); //.replace('\\n', '%0A')})\n      textgeom_log(msg, color || 0xffaa33);\n      // if ( currentEditor ) {\n      //   currentEditor.overwriteText( msg );\n      //   currentEditor.drawText( );\n      // }\n    }\n\n    function textGeomMesh(msg, color, size, height) {\n      size = size || 0.5;\n      height = height || size / 17;\n      var font = 'janda manatee solid';\n      var weight = 'normal';\n      var textgeom = new THREE.TextGeometry(msg, {\n            size: size,\n            height: height,\n            font: font,\n            weight: weight\n          });\n      var material = new THREE.MeshLambertMaterial({\n        color: color || 0xff0000,\n        transparent: false,\n        side: THREE.DoubleSide\n        });\n      var mesh = new THREE.Mesh(textgeom, material);\n      return mesh;\n    }\n\n    var vrLogMaterial = new THREE.MeshLambertMaterial({\n        color: 0x00ff00,\n        transparent: false,\n        side: THREE.DoubleSide\n        });\n\n    // record vr scenes, youtube integration\n\n\n    var textgeom_log_buffer = [];\n    var textgeom_log_geoms = [];\n    var textgeom_log_meshes = [];\n    var buffsize = 10;\n    function textgeom_log(msg, color) {\n      // TODO: one geom per *unique* line\n      textgeom_log_buffer.push(msg);\n      var size = 0.5;\n      var height = 0.5 / 20;\n      var textgeom = new THREE.TextGeometry(msg, {\n            size: size,\n            height: height,\n            font: 'janda manatee solid',\n            weight: 'normal'\n          });\n      textgeom_log_geoms.push(textgeom);\n      var mesh = new THREE.Mesh(textgeom, vrLogMaterial);\n      scene.add(mesh);\n      textgeom_log_meshes.push(mesh);\n\n      if (textgeom_log_meshes.length > buffsize) {\n        scene.remove(textgeom_log_meshes.shift());\n      }\n\n      for (var i = 0; i < textgeom_log_meshes.length; ++i) {\n        mesh = textgeom_log_meshes[i];\n        mesh.position.x = body.position.x - 10.0;\n        mesh.position.z = body.position.z - 10.0;\n        mesh.position.y = 2 + (textgeom_log_meshes.length - i - 1) * 1.75 * size;\n      }\n    }\n\n    function keyDown(evt) {\n      var exp;\n      if (evt.keyCode === Primrose.Keys.ESCAPE) {\n        vrEffect = null;\n        refreshSize();\n        for (var i = 0; i < editors.length; ++i) {\n          editors[i].forceUpdate();\n        }\n      }\n      if (currentEditor && currentEditor.isFocused()) {\n        currentEditor.editText(evt);\n      } else {\n        keyState[evt.keyCode] = true;\n\n        if (evt.keyCode === 84) { //Primrose.Keys.t) {\n          var params = {\n            id: \"editor a\",\n            width: 1,\n            height: 1,\n            text: \"log('hi');\"\n          };\n          addTextBox(params);\n        } else if (evt.keyCode === 77) {\n          $(\"#main\").toggle();\n        } else if (evt.keyCode === 80) {\n          //makeHMDrect();\n        }\n      }\n      if (evt[modA] && evt[modB]) {\n        if (evt.keyCode === 70) {\n          goFullscreen();\n          evt.preventDefault();\n        } else if (currentEditor) {\n          if ((isOSX && evt.keyCode === 69) || (!isOSX &&\n              evt.keyCode ===\n              32)) {\n            try {\n              eval(currentEditor.getLines().join(''));\n            } catch (exp) {\n              log(exp.message);\n            }\n            evt.preventDefault();\n          } else if (evt.keyCode === 38) {\n            currentEditor.increaseFontSize();\n            evt.preventDefault();\n          } else if (evt.keyCode === 40) {\n            currentEditor.decreaseFontSize();\n            evt.preventDefault();\n          } else if (evt.keyCode === 80) {\n            $.ajax({url: '/python_eval?pystr=' + currentEditor.getLines().join('%0A'),\n                    success: function(data) {\n                      log(data.value)\n                    }\n                    });\n          }\n        }\n      }\n    }\n\n    function keyUp(evt) {\n      keyState[evt.keyCode] = false;\n    }\n\n    function setPointer(x, y) {\n      pointerX = x;\n      pointerY = ctrls.output.height - y;\n      mouse.set(2 * (x / ctrls.output.width) - 1, -2 * (y /\n        ctrls.output.height) + 1);\n      fakeCamera.position.copy(body.position);\n      fakeCamera.rotation.copy(body.rotation);\n      raycaster.setFromCamera(mouse, fakeCamera);\n      currentObject = null;\n      currentEditor = null;\n      var objects = raycaster.intersectObject(scene, true);\n      var firstObj = objects.length > 0 && objects[0].object;\n      if (firstObj === sky || firstObj === floor) {\n        pointer.position.copy(raycaster.ray.direction);\n        pointer.position.multiplyScalar(3);\n        pointer.position.add(raycaster.ray.origin);\n      } else {\n        for (var i = 0; i < objects.length; ++i) {\n          var obj = objects[i];\n          if (obj.object !== pointer) {\n            try {\n              pointer.position.set(0, 0, 0);\n              pointer.lookAt(obj.face.normal);\n              pointer.position.copy(obj.point);\n              currentObject = obj.object;\n              for (var j = 0; j < editor_geoms.length; ++j) {\n                if (currentObject === editor_geoms[j]) {\n                  currentEditor = editors[j];\n                  break;\n                }\n              }\n              break;\n            } catch (exp) {\n            }\n          }\n        }\n      }\n    }\n\n    function paste(evt) {\n      if (currentEditor) {\n        currentEditor.readClipboard(evt);\n      }\n    }\n\n    function mouseWheel(evt) {\n      if (currentEditor) {\n        currentEditor.readWheel(evt);\n      }\n    }\n\n    function mouseDown(evt) {\n      if (evt.target === ctrls.output) {\n        dragging = true;\n        if (!isPointerLocked()) {\n          lastMouseX = evt.clientX;\n          lastMouseY = evt.clientY;\n          setPointer(lastMouseX, lastMouseY);\n        }\n\n        if (currentEditor) {\n          currentEditor.focus();\n          if (!window.onbeforeunload) {\n            // ugh, this is really ugly.\n            window.onbeforeunload = function() {\n              return \"Are you sure you want to leave?\";\n            };\n          }\n          pick(\"start\");\n        } else {\n          for (var i = 0; i < editors.length; ++i) {\n            editors[i].blur();\n          }\n        }\n      } else {\n        for (var i = 0; i < editors.length; ++i) {\n          editors[i].blur();\n        }\n        currentEditor = null;\n      }\n    }\n\n    function mouseMove(evt) {\n      if (isPointerLocked()) {\n        var dx = evt.movementX,\n          dy = evt.movementY;\n        if (dx === undefined) {\n          dx = evt.mozMovementX;\n          dy = evt.mozMovementY;\n        }\n\n        if (dx !== undefined) {\n          if (evt.shiftKey) {\n            heading -= dx * 0.001;\n            // don't let mouse change pitch in VR:\n            // pitch += dy * 0.001;\n          }\n          if (lastMouseX === undefined) {\n            lastMouseX = dx;\n            lastMouseY = dy;\n          } else {\n            lastMouseX += dx;\n            lastMouseY += dy;\n          }\n        }\n      } else {\n        var x = evt.clientX,\n          y = evt.clientY;\n        if (lastMouseX !== undefined && evt.shiftKey) {\n          heading -= (x - lastMouseX) * 0.001;\n          pitch += (y - lastMouseY) * 0.001;\n        }\n        lastMouseX = x;\n        lastMouseY = y;\n      }\n      if (lastMouseX !== undefined) {\n        setPointer(lastMouseX, lastMouseY);\n      }\n    }\n\n    function mouseUp(evt) {\n      dragging = false;\n      if (currentEditor && currentEditor.isFocused()) {\n        currentEditor.endPointer();\n      }\n    }\n\n    function touchStart(evt) {\n      lastTouchX = 0;\n      lastTouchY = 0;\n      for (var i = 0; i < evt.touches.length; ++i) {\n        lastTouchX += evt.touches[i].clientX;\n        lastTouchY += evt.touches[i].clientY;\n      }\n      lastTouchX /= evt.touches.length;\n      lastTouchY /= evt.touches.length;\n      setPointer(lastTouchX, lastTouchY);\n      pick(\"start\");\n      touchCount = 0;\n      if (evt.touches.length <= 2) {\n        touchCount = evt.touches.length;\n      }\n    }\n\n    function touchMove(evt) {\n      var x = 0,\n        y = 0;\n      for (var i = 0; i < evt.touches.length; ++i) {\n        x += evt.touches[i].clientX;\n        y += evt.touches[i].clientY;\n      }\n      x /= evt.touches.length;\n      y /= evt.touches.length;\n\n      if (evt.shiftKey) {\n        if (touchCount === 1) {\n          heading += (x - lastTouchX) * 0.005;\n          pitch += (y - lastTouchY) * 0.005;\n        } else if (lastTouchX !== null && lastTouchY !== null) {\n          touchStrafe = (x - lastTouchX) / 2;\n          touchDrive = (y - lastTouchY) / 2;\n        }\n      }\n      lastTouchX = x;\n      lastTouchY = y;\n      setPointer(lastTouchX, lastTouchY);\n      evt.preventDefault();\n    }\n\n    function touchEnd(evt) {\n      if (evt.touches.length < 2) {\n        touchStrafe = 0;\n      }\n\n      if (evt.touches.length === 0) {\n        touchCount = 0;\n        touchDrive = 0;\n        if (currentEditor && currentEditor.isFocused()) {\n          currentEditor.endPointer();\n        }\n      }\n\n      lastTouchX = null;\n      lastTouchY = null;\n    }\n\n\n    function update(dt) {\n      // forward moves towards where you are looking in VR mode:\n      if (vrSensor) {\n        var state = vrSensor.getImmediateState ? vrSensor.getImmediateState() : vrSensor.getState();\n        if (state.position) {\n          camera.position.copy(state.position);\n        }\n        if (state.orientation) {\n          camera.quaternion.copy(state.orientation);\n          body.quaternion.copy(state.orientation);\n        }\n      }\n\n      body.rotation.set(0, 0, 0, 0);\n      body.rotateY(heading);\n      body.rotateX(pitch);\n\n      //body_arrow.rotation.copy(body.rotation);\n      //body_arrow.rotateX(-Math.PI / 2);\n\n      var cos, sin;\n      cos = Math.cos(body.rotation.y);\n      sin = Math.sin(body.rotation.y);\n\n      if (gotGP) {\n        var DEAD_THRESHOLD = 1 * 0.0666;\n\n        // var lr = gamepad.axes[2];\n        // if (lr > DEAD_THRESHOLD || lr < -DEAD_THRESHOLD) {\n        //   body.rotateY(0.002 * lr * dt);\n        //   cos = Math.cos(body.rotation.y);\n        //   sin = Math.sin(body.rotation.y);\n        // }\n\n        var ws = gamepad.axes[1];\n        var ad = gamepad.axes[0];\n        var sf = Math.sqrt(ws*ws + ad*ad);\n        if (sf > DEAD_THRESHOLD) {\n          console.log(body.position.z);\n          body.position.z -= dt * SPEED * cos;\n          body.position.x -= dt * SPEED * sin;\n        }\n      }\n\n      if (keyState[ctrls.forwardKey.dataset.keycode]) {\n        body.position.z -= dt * SPEED * cos;\n        body.position.x -= dt * SPEED * sin;\n      } else if (keyState[ctrls.backKey.dataset.keycode]) {\n        body.position.z += dt * SPEED * cos;\n        body.position.x += dt * SPEED * sin;\n      }\n\n      if (keyState[ctrls.leftKey.dataset.keycode]) {\n        body.position.x -= dt * SPEED * cos;\n        body.position.z += dt * SPEED * sin;\n      } else if (keyState[ctrls.rightKey.dataset.keycode]) {\n        body.position.x += dt * SPEED * cos;\n        body.position.z -= dt * SPEED * sin;\n      }\n\n      body.position.z += dt * SPEED * (touchStrafe * sin - touchDrive *\n        cos);\n      body.position.x -= dt * SPEED * (touchStrafe * cos + touchDrive *\n        sin);\n\n      body.position.x = Math.min(12.5, Math.max(-12.5, body.position.x));\n      body.position.z = Math.min(12.5, Math.max(-12.5, body.position.z));\n\n      //body_arrow.position.copy(body.position);\n      //body_arrow.position.z -= 1.0;\n\n      sky.position.copy(body.position);\n\n      if (dragging) {\n        pick(\"move\");\n      }\n    }\n\n    function render(t) {\n      requestAnimationFrame(render);\n\n      if (lt) {\n        update(t - lt);\n      }\n      var r = vrEffect || renderer;\n      r.render(scene, camera);\n      lt = t;\n    }\n\n    function textured(geometry, txt, s, t) {\n      var material;\n      if (typeof(txt) === \"number\") {\n        material = new THREE.MeshBasicMaterial({\n          transparent: true,\n          color: txt,\n          useScreenCoordinates: false,\n          shading: THREE.FlatShading\n        });\n      } else {\n        var texture;\n        if (typeof(txt) === \"string\") {\n          texture = THREE.ImageUtils.loadTexture(txt);\n          texture.anisotropy = renderer.getMaxAnisotropy();\n          texture.minFilter = THREE.LinearFilter;\n          texture.maxFilter = THREE.LinearFilter;\n          material = new THREE.MeshBasicMaterial({\n            color: 0xffffff,\n            map: texture,\n            side: THREE.DoubleSide\n          });\n        }\n        else {\n          if (txt instanceof Primrose.TextBox) {\n            texture = txt.getRenderer()\n              .getTexture(renderer.getMaxAnisotropy());\n            texture.minFilter = THREE.LinearFilter;\n          } else {\n            texture = txt;\n          }\n          material = new THREE.MeshBasicMaterial({\n            color: 0xffffff,\n            map: texture,\n            transparent: false,\n            shading: THREE.FlatShading,\n            side: THREE.DoubleSide\n          });\n        }\n        if (s * t > 1) {\n          texture.wrapS = texture.wrapT = THREE.RepeatWrapping;\n          texture.repeat.set(s, t);\n        }\n      }\n      var obj = new THREE.Mesh(geometry, material);\n      return obj;\n    }\n\n    function quad(w, h) {\n      return new THREE.PlaneBufferGeometry(w, h);\n    }\n\n    function box(w, h, l) {\n      return new THREE.BoxGeometry(w, h, l);\n    }\n\n    function sphere(r, slices, rings) {\n      return new THREE.SphereGeometry(r, slices, rings);\n    }\n\n    function shell(r, slices, rings, phi, theta) {\n      if (phi === undefined) {\n        phi = Math.PI * 0.5;\n      }\n      if (theta === undefined) {\n        theta = Math.PI * 0.5;\n      }\n      var phiStart = Math.PI + phi * 0.5;\n      var thetaStart = (Math.PI - theta) * 0.5;\n      var geom = new THREE.InsideSphereGeometry(r, slices, rings, phiStart,\n        phi,\n        thetaStart, theta, true);\n      return geom;\n    }\n\n    function pick(op) {\n      if (currentEditor && currentEditor.isFocused()) {\n        var r = vrEffect ? vrEffect : renderer;\n        scene.remove(body);\n        pickingScene.add(body);\n        r.render(pickingScene, camera, back, true);\n        pickingScene.remove(body);\n        scene.add(body);\n        currentEditor[op + \"Picking\"](gl, pointerX, pointerY);\n      }\n    }\n  }\n\n  $(\"#main\").hide();\n\n  // if (navigator.getGamepads) {\n  //   gotGamepads(navigator.getGamepads());\n  // }\n\n  if (navigator.getVRDevices) {\n    navigator.getVRDevices()\n      .then(gotVRDevices)\n      .catch(PrimroseDemo);\n  } else if (navigator.mozGetVRDevices) {\n    navigator.mozGetVRDevices(gotVRDevices);\n  } else {\n    PrimroseDemo();\n  }\n}\n",
 			"file": "editor3d_flask.js",
+			"file_size": 30551,
+			"file_write_time": 130777181332227410,
 			"settings":
 			{
-				"buffer_size": 29153,
+				"buffer_size": 28847,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "data/default_scene.json",
+			"file": ".gitignore",
 			"settings":
 			{
-				"buffer_size": 308,
+				"buffer_size": 42,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/C/Users/jzitelli/Documents/GitHub/Primrose/.gitignore",
+			"settings":
+			{
+				"buffer_size": 1473,
 				"line_ending": "Windows"
 			}
 		},
@@ -103,7 +138,34 @@
 			"file": "schema/scene_schema.json",
 			"settings":
 			{
-				"buffer_size": 702,
+				"buffer_size": 812,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "// put javascript in me exclamation point exclamation point exclamation point\n\n// problems with that or comments???\n\n    // var prim1 = new Primrose.TextBox(\"editor1\", {\n    //   tokenizer: Primrose.Grammars.JavaScript,\n    //   size: new Primrose.Size(w1 * 1024, w1 * 1024),\n    //   fontSize: (vrDisplay ? 40 : 20), // / window.devicePixelRatio,\n    //   file: initial_contents,\n    //   theme: Primrose.Themes.Dark\n    // });\n    // $.ajax({\n    //     url: \"/read?filename=editor_a.py\",\n    //     success: function (data) {\n    //           prim1.overwriteText(data.value);\n    //           prim1.drawText();\n    //           log(\"loaded \" + data.args.filename);\n    //     }\n    // });\n    // editors.push(prim1);\n\n    // var shellGeom = shell(w1, 5, 10),\n    //   shellEditor = textured(shellGeom, prim1),\n    //   shellEditorPicker = textured(shellGeom, prim1.getRenderer()\n    //     .getPickingTexture()),\n    //   flatGeom = quad(w2, h),\n    //   flatEditor = textured(flatGeom, prim2),\n    //   flatEditorPicker = textured(flatGeom, prim2.getRenderer()\n    //     .getPickingTexture());\n    // flatEditor.position.x = flatEditorPicker.position.x = 4;\n\n    // scene.add(shellEditor);\n    // scene.add(flatEditor);\n\n    // pickingScene.add(shellEditorPicker);\n    // pickingScene.add(flatEditorPicker);\n\n    // editor_geoms.push(shellEditor);\n    // editor_geoms.push(flatEditor);\n",
+			"file": "scratch.js",
+			"file_size": 121,
+			"file_write_time": 130777117795613324,
+			"settings":
+			{
+				"buffer_size": 1391,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "data/default_scene.json",
+			"settings":
+			{
+				"buffer_size": 382,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "README.md",
+			"settings":
+			{
+				"buffer_size": 150,
 				"line_ending": "Windows"
 			}
 		}
@@ -172,15 +234,15 @@
 		"/C/Users/jzitelli/Documents/GitHub/Primrose",
 		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples",
 		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d",
-		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/schema",
-		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/templates",
-		"/C/Users/jzitelli/Documents/GitHub/Primrose/lib",
-		"/C/Users/jzitelli/Documents/GitHub/Primrose/src/code_pages",
-		"/C/Users/jzitelli/Documents/GitHub/Primrose/src/themes"
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/lib"
 	],
 	"file_history":
 	[
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/scratch.json",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/scratch.js",
 		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/editor3d.js",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/editor3d.sublime-project",
+		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/README.md",
 		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/test.py",
 		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/.gitignore",
 		"/C/Users/jzitelli/Documents/GitHub/Primrose/examples/editor3d/editor3d_flask.js",
@@ -294,6 +356,20 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"vrm",
+			"5",
+			"body_",
+			"var floorPos",
+			"floorSize",
+			"floorP",
+			"floor_t",
+			"floorP",
+			"vrlogma",
+			"console.log",
+			"querys",
+			"keydow",
+			"setupK",
+			"setKey",
 			"children",
 			"gotgamep",
 			"sky",
@@ -407,21 +483,7 @@
 			"box",
 			"textured",
 			"eval",
-			"scene.add",
-			"}\n",
-			"light$",
-			"light",
-			"scene.add",
-			"light",
-			"textge",
-			"log",
-			"normal",
-			"log",
-			"normal",
-			"scene",
-			"minfilter",
-			"minfil",
-			"minfilter"
+			"scene.add"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -447,7 +509,7 @@
 	"groups":
 	[
 		{
-			"selected": 6,
+			"selected": 3,
 			"sheets":
 			[
 				{
@@ -477,7 +539,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 8,
+					"stack_index": 16,
 					"type": "text"
 				},
 				{
@@ -505,7 +567,7 @@
 						"translation.y": 20.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
+					"stack_index": 15,
 					"type": "text"
 				},
 				{
@@ -514,15 +576,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 5750,
+						"buffer_size": 5820,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3183,
-								3183
+								3897,
+								3897
 							]
 						],
 						"settings":
@@ -532,14 +594,127 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1122.0,
+						"translation.y": 4182.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 9,
 					"type": "text"
 				},
 				{
 					"buffer": 3,
+					"file": "editor_a.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 91,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								91,
+								91
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "editor1.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 100,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								100,
+								100
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "scratch.json",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 374,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								374,
+								374
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JSON.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 10,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "scratch.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 149,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								149,
+								149
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 12,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
 					"file": "test.py",
 					"semi_transient": false,
 					"settings":
@@ -561,28 +736,28 @@
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": -0.0,
-						"translation.y": 924.0,
+						"translation.x": 0.0,
+						"translation.y": 424.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 6,
+					"stack_index": 14,
 					"type": "text"
 				},
 				{
-					"buffer": 4,
+					"buffer": 8,
 					"file": "templates/body.html",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 3238,
+						"buffer_size": 3385,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								208,
-								208
+								2136,
+								2136
 							]
 						],
 						"settings":
@@ -592,56 +767,27 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 2751.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 13,
 					"type": "text"
 				},
 				{
-					"buffer": 5,
-					"file": "editor3d.sublime-project",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 541,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								301,
-								301
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JSON.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 7,
-					"type": "text"
-				},
-				{
-					"buffer": 6,
+					"buffer": 9,
 					"file": "editor3d_flask.js",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 29153,
+						"buffer_size": 28847,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								7643,
-								7643
+								3983,
+								3983
 							]
 						],
 						"settings":
@@ -651,33 +797,176 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 4126.0,
+						"translation.y": 2594.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 5,
 					"type": "text"
-				}
-			]
-		},
-		{
-			"selected": 0,
-			"sheets":
-			[
+				},
 				{
-					"buffer": 7,
-					"file": "data/default_scene.json",
+					"buffer": 10,
+					"file": ".gitignore",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 308,
+						"buffer_size": 42,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								230,
-								230
+								42,
+								42
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "/C/Users/jzitelli/Documents/GitHub/Primrose/.gitignore",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1473,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								257,
+								257
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 12,
+					"file": "schema/scene_schema.json",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 812,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								812,
+								812
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JSON.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 985.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "editor3d_flask.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 28847,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								16519,
+								16521
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 9834.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 13,
+					"file": "scratch.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1391,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1391,
+								1391
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 14,
+					"file": "data/default_scene.json",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 382,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								57,
+								57
 							]
 						],
 						"settings":
@@ -689,36 +978,35 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 4,
 					"type": "text"
 				},
 				{
-					"buffer": 8,
-					"file": "schema/scene_schema.json",
+					"buffer": 15,
+					"file": "README.md",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 702,
+						"buffer_size": 150,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								237,
-								230
+								70,
+								70
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/JavaScript/JSON.tmLanguage",
-							"translate_tabs_to_spaces": false
+							"syntax": "Packages/Markdown/Markdown.tmLanguage"
 						},
-						"translation.x": -0.0,
+						"translation.x": 0.0,
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 7,
 					"type": "text"
 				}
 			]
@@ -778,7 +1066,7 @@
 	"project": "editor3d.sublime-project",
 	"replace":
 	{
-		"height": 56.0
+		"height": 70.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -816,7 +1104,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 187.0,
+	"side_bar_width": 261.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

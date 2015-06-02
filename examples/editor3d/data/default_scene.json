@@ -1,17 +1,20 @@
 {
 	"floor_texture": "deck.png",
-	"sky_texture": "images/beach3.jpg",
+	"floor_size": [25, 25],
+	"sky_texture": "images/axis_1_b.png",
 	"editors": [{
 		"id": "editor0",
 		"text": "log('hello world!');",
-		"width": 1,
-		"height": 1,
-		"position": [0, 0, 0]
+		"width": 2.25,
+		"height": 1.5,
+		"position": [0, 0, 0.5],
+		"filename": "editor0.js"
 	}, {
 		"id": "editor1",
-		"text": "print('hello world!')",
+		"text": "",
 		"width": 2,
-		"height": 1,
-		"position": [2, 0, 0]
+		"height": 1.3,
+		"position": [3, 0, -1.5],
+		"filename": "editor1.py"
 	}]
 }

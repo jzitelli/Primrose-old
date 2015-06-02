@@ -5,6 +5,7 @@ lib/janda_manatee_solid_regular.typeface.js
 dist/jplayer/jquery.jplayer.js
 dist/jplayer/jquery.jplayer.min.js
 dist/jplayer/jquery.jplayer.swf
+lib/facetype.js
 
 # Logs
 logs

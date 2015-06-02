@@ -16,6 +16,10 @@ PRIMROSE_ROOT = os.getenv("PRIMROSE_ROOT",
                                                        os.path.pardir,
                                                        os.path.pardir)))
 
+
+app = Flask(__name__, static_url_path='', static_folder=STATIC_FOLDER)
+
+
 TEMPLATE_STRING = r"""<!DOCTYPE html>
 <html>
 <!--
@@ -31,31 +35,27 @@ TEMPLATE_STRING = r"""<!DOCTYPE html>
 %s
 </html>
 """
-
 with open(os.path.join("templates", "head.html"), 'r') as f:
     HEAD = f.read()
 with open(os.path.join("templates", "body.html"), 'r') as f:
     BODY = f.read()
+
 with open(os.path.join("schema", "scene_schema.json"), 'r') as f:
     SCENE_SCHEMA = json.loads(f.read())
-with open(os.path.join("data", "default_scene.json"), 'r') as f:
-    DEFAULT_CONFIG = json.loads(f.read())
 
-app = Flask(__name__, static_url_path='', static_folder=STATIC_FOLDER)
-
-
-@app.route("/")
+@app.route("/index")
 def editor3d():
     return render_template("index.html")
-
 
 @app.route("/tour")
 def editor3d_tour():
     return render_template("tour.html")
 
-
-@app.route("/config")
+@app.route("/")
 def configured_scene():
+    with open(os.path.join("data", "default_scene.json"), 'r') as f:
+        DEFAULT_CONFIG = json.loads(f.read())
+    jsonschema.validate(DEFAULT_CONFIG, SCENE_SCHEMA)
     try:
         config = json.loads(request.args['config'])
     except KeyError as err:
@@ -117,6 +117,11 @@ def debug_log():
     return jsonify(args=request.args)
 
 
+# function which will output to javascript console
+# capture stdout during execution
+# is there javascript exec/eval equivalent?
+#def prlog()
+
 @app.route("/python_eval")
 def python_eval():
     pystr = request.args['pystr']
@@ -130,7 +135,7 @@ def python_eval():
         exec(pystr, globals(), execlocals)
         value = execlocals['value']
     except Exception as err:
-        value = str(err)
+        value = "an exception occurred: %s" % str(err)
     return jsonify(value=value, args=request.args)
 
 
