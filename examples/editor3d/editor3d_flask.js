@@ -47,6 +47,7 @@ var pickingScene = new THREE.Scene();
 var editors = [];
 var editor_geoms = [];
 var ctrls;
+var sceneConfig;
 
 function editor3d() {
   "use strict";
@@ -144,7 +145,7 @@ function editor3d() {
   var vrMenuMesh;
   function vrMenuCreate() {
     // TODO: cool pixel shader
-    var meshes = new THREE.Group();
+    vrMenuMesh = new THREE.Group();
     var selects = [ctrls.floorTexture, ctrls.skyTexture];
     for (var i = 0; i < Math.min(4, selects.length); ++i) {
       var geom = new THREE.TextGeometry(selects[i].value, { //options[i].value, {
@@ -157,14 +158,21 @@ function editor3d() {
       mesh.position.copy(vrSensor.getState().position);
       mesh.position.y += 1 + i;
       mesh.position.z -= 1;
-      meshes.add(mesh);
+      vrMenuMesh.add(mesh);
     }
-    scene.add(mesh);
   }
 
-  function vrMenuShow() {
-
+  var showMenu = false;
+  function vrMenuToggle() {
+    if (showMenu) {
+      scene.remove(vrMenuMesh);
+      showMenu = false;
+    } else {
+      scene.add(vrMenuMesh);
+      showMenu = true;
+    }
   }
+
   // fps measure / profiler / optimizer
   // save current scene (e)
   // HMD pointer mode (p)
@@ -227,34 +235,76 @@ function editor3d() {
     // TODO: investigate exclamation points??
 
     var configParam = $.QueryString["config"];
-    console.log("url config: " + configParam);
-    function addTextBox(editor) {
-      var textbox = new Primrose.TextBox(editor.id, {
-        tokenizer: Primrose.Grammars.JavaScript,
-        size: new Primrose.Size(1024*editor.width, 1024*editor.height),
-        fontSize: (vrDisplay ? 40 : 20), // / window.devicePixelRatio,
-        file: editor.text,
-        theme: Primrose.Themes.Dark
-      });
-      var flatGeom = quad(editor.width, editor.height);
-      var flatEditor = textured(flatGeom, textbox);
-      var flatEditorPicker = textured(flatGeom, textbox.getRenderer().getPickingTexture());
-      flatEditor.position.copy(body.position);
-      flatEditor.position.z -= 2;
-      if (editor.position) {
-        flatEditor.position.set(editor.position[0], editor.position[1], editor.position[2]);
+    console.log("url scene config: " + configParam);
+
+    sceneConfig = getData(ctrls.sceneConfig.id);
+    console.log("DOM scene config: " + sceneConfig);
+    // TODO: fix
+    var vrLog = $.QueryString["vr_log"] || sceneConfig.vr_log; //$("#vrLog").val();
+    function log(msg, color) {
+      console.log(msg + " (this msg also logged to vr console)");
+      $.ajax({url: "log?string=" + msg}); //.replace('\n', '%0A')})
+      if (vrLog) {
+        textgeom_log(msg, color || 0xffaa33);
       }
-      scene.add(flatEditor);
-      pickingScene.add(flatEditorPicker);
-      editors.push(textbox);
-      editor_geoms.push(flatEditor);
-      if (editor.filename) {
-        $.ajax({
-          url: "/read?filename=" + editor.filename,
-          success: function (data) {
-                textbox.overwriteText(data.value);
-                textbox.drawText();
-                log("loaded " + data.args.filename);}});
+      // if ( currentEditor ) {
+      //   currentEditor.overwriteText( msg );
+      //   currentEditor.drawText( );
+      // }
+    }
+    function textGeomMesh(msg, color, size, height) {
+      size = size || 0.5;
+      height = height || size / 17;
+      var font = 'janda manatee solid';
+      var weight = 'normal';
+      var textgeom = new THREE.TextGeometry(msg, {
+            size: size,
+            height: height,
+            font: font,
+            weight: weight
+          });
+      var material = new THREE.MeshLambertMaterial({
+        color: color || 0xff0000,
+        transparent: false,
+        side: THREE.DoubleSide
+        });
+      var mesh = new THREE.Mesh(textgeom, material);
+      return mesh;
+    }
+    var vrLogMaterial = new THREE.MeshLambertMaterial({
+        color: 0x00ff00,
+        transparent: false,
+        side: THREE.DoubleSide
+        });
+    var textgeom_log_buffer = [];
+    var textgeom_log_geoms = [];
+    var textgeom_log_meshes = [];
+    var buffsize = 10;
+    function textgeom_log(msg, color) {
+      // TODO: one geom per *unique* line
+      textgeom_log_buffer.push(msg);
+      var size = 0.5;
+      var height = 0.5 / 20;
+      var textgeom = new THREE.TextGeometry(msg, {
+            size: size,
+            height: height,
+            font: 'janda manatee solid',
+            weight: 'normal'
+          });
+      textgeom_log_geoms.push(textgeom);
+      var material = new THREE.MeshLambertMaterial({color: color || 0xffffff,
+        side: THREE.DoubleSide});
+      var mesh = new THREE.Mesh(textgeom, material);
+      scene.add(mesh);
+      textgeom_log_meshes.push(mesh);
+      if (textgeom_log_meshes.length > buffsize) {
+        scene.remove(textgeom_log_meshes.shift());
+      }
+      for (var i = 0; i < textgeom_log_meshes.length; ++i) {
+        mesh = textgeom_log_meshes[i];
+        mesh.position.x = body.position.x - 10.0;
+        mesh.position.z = body.position.z - 10.0;
+        mesh.position.y = 2 + (textgeom_log_meshes.length - i - 1) * 1.75 * size;
       }
     }
 
@@ -264,6 +314,7 @@ function editor3d() {
       addTextBox(editorConfig);
     }
 
+    var rev = 0;
     var sky_texture = $("#skyTexture").val();
     var sky = textured(shell(50, 8, 4, Math.PI * 2, Math.PI), sky_texture);
     scene.add(sky);
@@ -274,10 +325,10 @@ function editor3d() {
         ft = 1;
     if (floorTexture === "deck.png")
       fs = ft = 25;
-    var floorSize = $.QueryString["floor_size"] || [25, 25]; //$("#floorSize").val();
-    console.log("setting floor size to: " + floorSize);
+    var floorSize = $.QueryString["floor_size"] || $("#floorSize").val()  || [25, 25];
+    log("setting floor size to: " + floorSize);
     var floorPos = $.QueryString["floor_position"] || [0, -3, 0];
-    console.log("setting floor position to: " + floorPos);
+    log("setting floor position to: " + floorPos);
     var floor = textured(box(floorSize[0], 1, floorSize[1]), floorTexture, fs, ft);
     floor.position.set(floorPos[0], floorPos[1], floorPos[2]); //-3, 0);
     //floor.position.copy(floorPos); //set(0, -3, 0);
@@ -289,22 +340,52 @@ function editor3d() {
     body.add(camera);
 
     var directionalLight = new THREE.DirectionalLight(0xeeff11, 0.9);
-    directionalLight.position.set(0.2, 1, 0);
+    directionalLight.position.set(0.2, 1, -3);
     scene.add(directionalLight);
 
     var pointLight = new THREE.PointLight(0x44ffff, 0.8);
-    pointLight.position.y = 5;
+    pointLight.position.y = 2;
+    pointLight.position.z = 3;
     scene.add(pointLight);
 
     scene.add(fakeCamera);
     scene.add(body);
     scene.add(pointer);
 
-    //body_arrow = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 0), body.position, 1, 0xffff00);
-    //scene.add(body_arrow);
+    var body_arrow = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 0), body.position, 1, 0xffff00);
+    var axisHelper = new THREE.AxisHelper(1);
+    var helpVisible = false;
+    function toggleHelp() {
+      if (helpVisible) {
+        scene.remove(body_arrow);
+        scene.remove(axisHelper);
+        helpVisible = false
+      } else {
+        scene.add(body_arrow);
+        scene.add(axisHelper);
+        helpVisible = true;
+      }
+    }
 
     //var camera_helper = new THREE.CameraHelper(fakeCamera);
     //scene.add(camera_helper);
+
+    // end PrimroseDemo scoped vars
+
+    function saveScene(name) {
+      var data = {name: name, rev: rev, sceneConfig: sceneConfig};
+      $.post("/save", data).
+      done(
+        function (data) {
+          console.log("saved " + name + " (version " + rev + ") to " + data.filename);
+          rev += 1;
+        }).
+      fail(
+        function () {
+          console.log("problem saving");
+      });
+      // save other things...
+    }
 
     window.addEventListener("resize", refreshSize);
     window.addEventListener("keydown", keyDown);
@@ -418,72 +499,34 @@ function editor3d() {
       fakeCamera.updateProjectionMatrix();
     }
 
-    function log(msg, color) {
-      console.log(msg + " (this msg also logged to vr console)");
-      $.ajax({url: "log?string=" + msg}); //.replace('\n', '%0A')})
-      textgeom_log(msg, color || 0xffaa33);
-      // if ( currentEditor ) {
-      //   currentEditor.overwriteText( msg );
-      //   currentEditor.drawText( );
-      // }
-    }
 
-    function textGeomMesh(msg, color, size, height) {
-      size = size || 0.5;
-      height = height || size / 17;
-      var font = 'janda manatee solid';
-      var weight = 'normal';
-      var textgeom = new THREE.TextGeometry(msg, {
-            size: size,
-            height: height,
-            font: font,
-            weight: weight
-          });
-      var material = new THREE.MeshLambertMaterial({
-        color: color || 0xff0000,
-        transparent: false,
-        side: THREE.DoubleSide
-        });
-      var mesh = new THREE.Mesh(textgeom, material);
-      return mesh;
-    }
-
-    var vrLogMaterial = new THREE.MeshLambertMaterial({
-        color: 0x00ff00,
-        transparent: false,
-        side: THREE.DoubleSide
-        });
-
-    // record vr scenes, youtube integration
-
-
-    var textgeom_log_buffer = [];
-    var textgeom_log_geoms = [];
-    var textgeom_log_meshes = [];
-    var buffsize = 10;
-    function textgeom_log(msg, color) {
-      // TODO: one geom per *unique* line
-      textgeom_log_buffer.push(msg);
-      var size = 0.5;
-      var height = 0.5 / 20;
-      var textgeom = new THREE.TextGeometry(msg, {
-            size: size,
-            height: height,
-            font: 'janda manatee solid',
-            weight: 'normal'
-          });
-      textgeom_log_geoms.push(textgeom);
-      var mesh = new THREE.Mesh(textgeom, vrLogMaterial);
-      scene.add(mesh);
-      textgeom_log_meshes.push(mesh);
-      if (textgeom_log_meshes.length > buffsize) {
-        scene.remove(textgeom_log_meshes.shift());
+    function addTextBox(editor) {
+      var textbox = new Primrose.TextBox(editor.id, {
+        tokenizer: Primrose.Grammars.JavaScript,
+        size: new Primrose.Size(1024*editor.width, 1024*editor.height),
+        fontSize: (vrDisplay ? 40 : 20), // / window.devicePixelRatio,
+        file: editor.text,
+        theme: Primrose.Themes.Dark
+      });
+      var flatGeom = quad(editor.width, editor.height);
+      var flatEditor = textured(flatGeom, textbox);
+      var flatEditorPicker = textured(flatGeom, textbox.getRenderer().getPickingTexture());
+      flatEditor.position.copy(body.position);
+      flatEditor.position.z -= 2;
+      if (editor.position) {
+        flatEditor.position.set(editor.position[0], editor.position[1], editor.position[2]);
       }
-      for (var i = 0; i < textgeom_log_meshes.length; ++i) {
-        mesh = textgeom_log_meshes[i];
-        mesh.position.x = body.position.x - 10.0;
-        mesh.position.z = body.position.z - 10.0;
-        mesh.position.y = 2 + (textgeom_log_meshes.length - i - 1) * 1.75 * size;
+      scene.add(flatEditor);
+      pickingScene.add(flatEditorPicker);
+      editors.push(textbox);
+      editor_geoms.push(flatEditor);
+      if (editor.filename) {
+        $.ajax({
+          url: "/read?filename=" + editor.filename,
+          success: function (data) {
+                textbox.overwriteText(data.value);
+                textbox.drawText();
+                log("loaded " + data.args.filename);}});
       }
     }
 
@@ -500,28 +543,35 @@ function editor3d() {
         currentEditor.editText(evt);
       } else {
         keyState[evt.keyCode] = true;
+
         // n
         if (evt.keyCode === 78) {
           var params = {
-            id: "editor a",
-            width: 1,
-            height: 1,
+            id: "newEditor" + (editors.length + 1),
+            width: 1.2,
+            height: 1.0,
             text: "log('hi');"
           };
           addTextBox(params);
+
         // m
         } else if (evt.keyCode === 77) {
           $("#main").toggle();
+          vrMenuToggle();
+
         // v
         } else if (evt.keyCode === 86) {
-          saveScene();
+          saveScene("testsavescene");
+
         // h
         } else if (evt.keyCode === 72) {
-          $("#main").toggle();
+          toggleHelp();
+
         // c
         } else if (evt.keyCode === 67) {
           //captureHMDState();
         }
+
       }
       if (evt[modA] && evt[modB]) {
         if (evt.keyCode === 70) { // f
@@ -536,21 +586,17 @@ function editor3d() {
               eval(currentEditor.getLines().join(''));
             } catch (exp) {
               log(exp.message);
-              // $.ajax({url: '/python_eval?pystr=' + currentEditor.getLines().join('%0A'),
-              //         success: function(data) {
-              //           log(data.out);
-              //           log("");
-              //           log("returned:");
-              //           log(data.value);
-              //       }})
-
+              log("");
               log("trying python exec...");
               $.ajax({url: '/python_eval?pystr=' + currentEditor.getLines().join('%0A')})
               .done(function(data) {
-                        log(data.out);
+                        var lines = data.out.split('\n');
+                        for (var i = 0; i < lines.length; ++i) {
+                          log(lines[i]);
+                        }
                         log("");
-                        log("returned:");
-                        log(data.value);
+                        log("python returned:", 0x8822EE);
+                        log(data.value, 0x8822EE);
                     })
               .fail(function (jqXHR, textStatus) {
                   log(textStatus);

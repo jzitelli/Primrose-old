@@ -2,8 +2,15 @@
   <div id="outputContainer">
     <canvas id="output"></canvas>
     <div id="textBoxContainer">
-    {{ editors if editors else ''}}
+    {{ editors if editors else '' }}
     </div>
+
+<!-- 
+
+ -->
+     {{ scene_config if scene_config else '' }}
+
+
   </div>
 
   <article id="main">
@@ -68,7 +75,7 @@
               </select><br>
               <label for="skyTexture">Sky texture:</label>
               <select id="skyTexture">
-              {{ sky_textures if sky_textures else '<option selected="selected" value="images/beach3.jpg">beach3.jpg</option>' }}
+              {{ sky_textures if sky_textures else '<option selected="selected" value="bg2.jpg">beach3.jpg</option>' }}
               </select>
           </td>
           <td>

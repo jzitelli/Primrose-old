@@ -45,36 +45,42 @@ with open(os.path.join("templates", "body.html"), 'r') as f:
 with open(os.path.join("schema", "scene_schema.json"), 'r') as f:
     SCENE_SCHEMA = json.loads(f.read())
 
+
 @app.route("/index")
 def editor3d():
     return render_template("index.html")
+
 
 @app.route("/tour")
 def editor3d_tour():
     return render_template("tour.html")
 
+
 @app.route("/")
 def configured_scene():
     with open(os.path.join("data", "default_scene.json"), 'r') as f:
         DEFAULT_CONFIG = json.loads(f.read())
-    jsonschema.validate(DEFAULT_CONFIG, SCENE_SCHEMA)
     try:
-        config = json.loads(request.args['config'])
+        config = request.args['config']
     except KeyError as err:
-        config = DEFAULT_CONFIG.copy()
-        #config['editors'][0]['text'] = "'config' was not in args"
+        config = json.dumps(DEFAULT_CONFIG)
+    try:
+        config = json.loads(config)
     except Exception as err:
         config = DEFAULT_CONFIG.copy()
         config['editors'][0]['text'] = "an exception occurred:\n%s" % str(err)
+    scene_config = Markup(
+        '<script id="sceneConfig" type="text/json">%s</script>' % json.dumps(config))
     # create editor and other control DOM elements:
     editors = '\n'.join([Markup('<script id="%sConfig" type="text/json">%s</script>'
                                 % (editor['id'], json.dumps(editor)))
                          for editor in config['editors']])
     image_dir = "images"
-    floor_default = "deck.png"
-    sky_default = os.path.join(image_dir, "beach3.jpg")
-    textures = [f for f in os.listdir(image_dir) if os.path.splitext(f)[1] in ('.png', '.jpg')]
-    floor_textures = '\n'.join([Markup('<option selected="selected" value="deck.png">deck.png</option>')] +
+    floor_default = os.path.join(image_dir, "bg9.jpg")
+    sky_default = os.path.join(image_dir, "beach2.jpg")
+    textures = [f for f in os.listdir(
+        image_dir) if os.path.splitext(f)[1] in ('.png', '.jpg')]
+    floor_textures = '\n'.join([Markup('<option selected="selected" value="%s">%s</option>' % (floor_default, os.path.basename(floor_default)))] +
                                [Markup('<option value="%s">%s</option>' % (os.path.join(image_dir, texture), os.path.basename(texture)))
                                 for texture in textures])
     sky_textures = '\n'.join([Markup('<option selected="selected" value="%s">%s</option>' % (sky_default, os.path.basename(sky_default)))] +
@@ -83,6 +89,7 @@ def configured_scene():
     response = render_template_string(TEMPLATE_STRING % (HEAD, BODY),
                                       js="editor3d_flask.js",
                                       editors=editors,
+                                      scene_config=scene_config,
                                       floor_textures=floor_textures,
                                       sky_textures=sky_textures)
     _logger.debug(response)
@@ -113,16 +120,25 @@ def read_file():
     return jsonify(args=request.args, value=value)
 
 
+@app.route("/save", methods = ['POST'])
+def save_scene():
+    def newfile(name):
+        suf = ".json"; n = 0
+        while os.path.exists(name + suf):
+            suf = "__%d.json" % n; n += 1
+        return name + suf
+    filename = newfile(request.form['name'])
+    with open(filename, 'w') as f:
+        f.write(json.dumps(request.form))
+    _logger.debug(str(json.loads(json.dumps(request.form))))
+    return jsonify(filename=filename, args=request.args)
+
+
 @app.route("/log")
 def debug_log():
     _logger.debug(request.args['string'])
     return jsonify(args=request.args)
 
-
-# function which will output to javascript console
-# capture stdout during execution
-# is there javascript exec/eval equivalent?
-#def prlog()
 
 @app.route("/python_eval")
 def python_eval():
@@ -145,10 +161,10 @@ def python_eval():
     except Exception as err:
         value = "an exception occurred: %s" % str(err)
     finally:
-        out = sys.stdout.getvalue() # release output
+        out = sys.stdout.getvalue()  # release output
         # ####
-        sys.stdout.close()  # close the stream 
-        sys.stdout = backup # restore original stdout
+        sys.stdout.close()  # close the stream
+        sys.stdout = backup  # restore original stdout
     return jsonify(value=value, args=request.args, out=out)
 
 

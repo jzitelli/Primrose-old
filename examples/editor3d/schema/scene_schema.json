@@ -22,7 +22,15 @@
 					"type": "array",
 					"items": {
 						"type": "number"
-					}
+					},
+					"minItems": 1
+				},
+				"rotation": {
+					"type": "array",
+					"items": {
+						"type": "number"
+					},
+					"minItems": 1
 				},
 				"filename": {"type": "string"}
 			},
@@ -43,6 +51,10 @@
 			}
 		},
 		"floor_size": {
+			"type": "array",
+			"items": {"type": "number"}
+		},
+		"floor_position": {
 			"type": "array",
 			"items": {"type": "number"}
 		}

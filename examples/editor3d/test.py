@@ -38,16 +38,16 @@ class FlaskTest(TestCase):
         editor3d.app.config['TESTING'] = True
         self.app = editor3d.app.test_client()
 
+    def test_configured(self):
+        response = self.app.get('/')
+        self.assertEqual(response.status_code, 200)
+
     def test_index(self):
         response = self.app.get('/index')
         self.assertEqual(response.status_code, 200)
 
     def test_tour(self):
         response = self.app.get('/tour')
-        self.assertEqual(response.status_code, 200)
-
-    def test_configured(self):
-        response = self.app.get('/')
         self.assertEqual(response.status_code, 200)
 
     def test_git_url(self):
@@ -61,6 +61,11 @@ class FlaskTest(TestCase):
         response = self.app.get('/read?filename=%s' % filename)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(json.loads(response.data)['value'], value)
+
+    def test_save(self):
+        name = "test_save"
+        # self.app.post('/save', form)
+        # self.assertEqual(response.status_code, 200)
 
     def test_log(self):
         print 'server should be logging "logtest"...'

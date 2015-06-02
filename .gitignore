@@ -87,3 +87,4 @@ $RECYCLE.BIN/
 *.py~
 *.pyc
 examples/editor3d/keycodes.txt
+lib/stats.js
