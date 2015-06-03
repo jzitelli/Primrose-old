@@ -88,3 +88,5 @@ $RECYCLE.BIN/
 *.pyc
 examples/editor3d/keycodes.txt
 lib/stats.js
+examples/editor3d/editor3d.sublime-workspace
+examples/editor3d/editor3d.sublime-workspace

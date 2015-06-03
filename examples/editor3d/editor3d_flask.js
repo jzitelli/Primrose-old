@@ -870,7 +870,20 @@ function editor3d() {
       }
     }
 
+    // see https://github.com/mrdoob/stats.js
+    var stats = new Stats();
+    stats.setMode(0); // 0: fps, 1: ms
+
+    // align top-left
+    stats.domElement.style.position = 'absolute';
+    stats.domElement.style.left = '0px';
+    stats.domElement.style.top = '0px';
+
+    //document.body.appendChild( stats.domElement );
+
     function render(t) {
+      //stats.begin();
+
       requestAnimationFrame(render);
 
       if (lt) {
@@ -879,6 +892,10 @@ function editor3d() {
       var r = vrEffect || renderer;
       r.render(scene, camera);
       lt = t;
+
+      //stats.end();
+
+      //requestAnimationFrame(render);
     }
 
     function textured(geometry, txt, s, t) {
