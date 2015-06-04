@@ -1,16 +1,8 @@
 <body onload="{{ onload if onload else 'editor3d()' }}">
+{{ scene_config if scene_config else '' }}
+
   <div id="outputContainer">
     <canvas id="output"></canvas>
-    <div id="textBoxContainer">
-    {{ editors if editors else '' }}
-    </div>
-
-<!-- 
-
- -->
-     {{ scene_config if scene_config else '' }}
-
-
   </div>
 
   <article id="main">
@@ -62,6 +54,8 @@
             <input type="text" id="menuKey" size="5"><label for="menuKey"> - show menu</label>
             <br>
             <input type="text" id="saveKey" size="5"><label for="saveKey"> - save scene</label>
+            <br>
+            <input type="text" id="loadKey" size="5"><label for="loadKey"> - revert to last save</label>
             <br>
             <input type="text" id="helpKey" size="5"><label for="helpKey"> - show help</label>
           </td>

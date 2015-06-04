@@ -16,6 +16,7 @@
  */
 
 /*global THREE, qp, Primrose, Assert */
+var isOSX = false;
 
 // http://stackoverflow.com/a/3855394/1911963
 (function($) {
@@ -42,12 +43,30 @@ function getData(key) {
   } 
 }
 
+function findEverything ( elem, obj ) {
+  elem = elem || document;
+  obj = obj || { };
+  var arr = elem.querySelectorAll( "*" );
+  for ( var i = 0; i < arr.length; ++i ) {
+    var e = arr[i];
+    if ( e.id && e.id.length > 0 ) {
+      obj[e.id] = e;
+      if ( e.parentElement ) {
+        e.parentElement[e.id] = e;
+      }
+    }
+  }
+  return obj;
+}
+
 var scene = new THREE.Scene();
 var pickingScene = new THREE.Scene();
 var editors = [];
 var editor_geoms = [];
 var ctrls;
 var sceneConfig;
+
+//ctrls = findEverything();
 
 function editor3d() {
   "use strict";
@@ -59,8 +78,6 @@ function editor3d() {
       vrEffect,
       renderer,
       pitch = 0;
-
-  ctrls = findEverything();
 
   function clearKeyOption(evt) {
     this.value = "";

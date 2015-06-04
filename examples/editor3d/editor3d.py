@@ -17,10 +17,7 @@ PRIMROSE_ROOT = os.getenv("PRIMROSE_ROOT",
                           os.path.abspath(os.path.join(STATIC_FOLDER,
                                                        os.path.pardir,
                                                        os.path.pardir)))
-
-
-app = Flask(__name__, static_url_path='', static_folder=STATIC_FOLDER)
-
+SAVE_FOLDER = "saved"
 
 TEMPLATE_STRING = r"""<!DOCTYPE html>
 <html>
@@ -46,6 +43,8 @@ with open(os.path.join("schema", "scene_schema.json"), 'r') as f:
     SCENE_SCHEMA = json.loads(f.read())
 
 
+app = Flask(__name__, static_url_path='', static_folder=STATIC_FOLDER)
+
 @app.route("/index")
 def editor3d():
     return render_template("index.html")
@@ -54,6 +53,27 @@ def editor3d():
 @app.route("/tour")
 def editor3d_tour():
     return render_template("tour.html")
+
+
+def render_scene_template_string(scene_config):
+    scene_config = Markup(
+        '<script id="sceneConfig" type="text/json">%s</script>' % json.dumps(scene_config))
+    image_dir = "images"
+    floor_default = os.path.join(image_dir, "bg9.jpg")
+    sky_default = os.path.join(image_dir, "beach2.jpg")
+    textures = [f for f in os.listdir(
+        image_dir) if os.path.splitext(f)[1] in ('.png', '.jpg')]
+    floor_textures = '\n'.join([Markup('<option selected="selected" value="%s">%s</option>' % (floor_default, os.path.basename(floor_default)))] +
+                               [Markup('<option value="%s">%s</option>' % (os.path.join(image_dir, texture), os.path.basename(texture)))
+                                for texture in textures])
+    sky_textures = '\n'.join([Markup('<option selected="selected" value="%s">%s</option>' % (sky_default, os.path.basename(sky_default)))] +
+                             [Markup('<option value="%s">%s</option>' % (os.path.join(image_dir, texture), os.path.basename(texture)))
+                              for texture in textures])
+    return render_template_string(TEMPLATE_STRING % (HEAD, BODY),
+                                      js="editor3d.js",
+                                      scene_config=scene_config,
+                                      floor_textures=floor_textures,
+                                      sky_textures=sky_textures)
 
 
 @app.route("/")
@@ -69,29 +89,7 @@ def configured_scene():
     except Exception as err:
         config = DEFAULT_CONFIG.copy()
         config['editors'][0]['text'] = "an exception occurred:\n%s" % str(err)
-    scene_config = Markup(
-        '<script id="sceneConfig" type="text/json">%s</script>' % json.dumps(config))
-    # create editor and other control DOM elements:
-    editors = '\n'.join([Markup('<script id="%sConfig" type="text/json">%s</script>'
-                                % (editor['id'], json.dumps(editor)))
-                         for editor in config['editors']])
-    image_dir = "images"
-    floor_default = os.path.join(image_dir, "bg9.jpg")
-    sky_default = os.path.join(image_dir, "beach2.jpg")
-    textures = [f for f in os.listdir(
-        image_dir) if os.path.splitext(f)[1] in ('.png', '.jpg')]
-    floor_textures = '\n'.join([Markup('<option selected="selected" value="%s">%s</option>' % (floor_default, os.path.basename(floor_default)))] +
-                               [Markup('<option value="%s">%s</option>' % (os.path.join(image_dir, texture), os.path.basename(texture)))
-                                for texture in textures])
-    sky_textures = '\n'.join([Markup('<option selected="selected" value="%s">%s</option>' % (sky_default, os.path.basename(sky_default)))] +
-                             [Markup('<option value="%s">%s</option>' % (os.path.join(image_dir, texture), os.path.basename(texture)))
-                              for texture in textures])
-    response = render_template_string(TEMPLATE_STRING % (HEAD, BODY),
-                                      js="editor3d_flask.js",
-                                      editors=editors,
-                                      scene_config=scene_config,
-                                      floor_textures=floor_textures,
-                                      sky_textures=sky_textures)
+    response = render_scene_template_string(config)
     _logger.debug(response)
     return response
 
@@ -123,6 +121,7 @@ def read_file():
 @app.route("/save", methods = ['POST'])
 def save_scene():
     def newfile(name):
+        name = os.path.join(SAVE_FOLDER, name)
         suf = ".json"; n = 0
         while os.path.exists(name + suf):
             suf = "__%d.json" % n; n += 1
@@ -132,6 +131,16 @@ def save_scene():
         f.write(json.dumps(request.form))
     _logger.debug(str(json.loads(json.dumps(request.form))))
     return jsonify(filename=filename, args=request.args)
+
+
+@app.route("/load")
+def load_scene():
+    filename = request.args['filename']
+    with open(filename, 'r') as f:
+        config = json.loads(f.read())
+    _logger.debug("loading:\n%s" % str(config))
+    return jsonify(filename, sceneConfig)
+    #return render_scene_template_string(config)
 
 
 @app.route("/log")
@@ -179,8 +188,6 @@ def shutdown():
     _logger.debug("shutting down...")
     shutdown_server()
     return 'server shutting down...'
-
-
 def shutdown_server():
     func = request.environ.get('werkzeug.server.shutdown')
     if func is None:
@@ -194,14 +201,14 @@ def main():
         path = os.path.join(STATIC_FOLDER, dir_)
         try:
             shutil.rmtree(path)
-        except IOError:
+        except IOError as err:
             print("couldn't clean directory %s, i don't care" % path)
-        except WindowsError:
-            print("stupid WindowsError, i don't care!!")
+        except WindowsError as err:
+            print("stupid WindowsError, i don't care!!\n\s" % str(err))
         try:
             shutil.copytree(src_dir, path)
-        except WindowsError:
-            print("stupid WindowsError, i don't care!!")
+        except WindowsError as err:
+            print("stupid WindowsError, i don't care!!\n\s" % str(err))
     app.run()
 
 
