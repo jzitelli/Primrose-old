@@ -45,8 +45,10 @@ with open(os.path.join("schema", "scene_schema.json"), 'r') as f:
 
 app = Flask(__name__, static_url_path='', static_folder=STATIC_FOLDER)
 
+
 @app.route("/index")
-def editor3d():
+def editor3d_index():
+    # todo: scene with links, directory listing, repo listing
     return render_template("index.html")
 
 
@@ -70,10 +72,11 @@ def render_scene_template_string(scene_config):
                              [Markup('<option value="%s">%s</option>' % (os.path.join(image_dir, texture), os.path.basename(texture)))
                               for texture in textures])
     return render_template_string(TEMPLATE_STRING % (HEAD, BODY),
-                                      js="editor3d.js",
-                                      scene_config=scene_config,
-                                      floor_textures=floor_textures,
-                                      sky_textures=sky_textures)
+                                  js="editor3d.js",
+                                  onload="editor3d()",
+                                  scene_config=scene_config,
+                                  floor_textures=floor_textures,
+                                  sky_textures=sky_textures)
 
 
 @app.route("/")
@@ -118,13 +121,15 @@ def read_file():
     return jsonify(args=request.args, value=value)
 
 
-@app.route("/save", methods = ['POST'])
+@app.route("/save", methods=['POST'])
 def save_scene():
     def newfile(name):
         name = os.path.join(SAVE_FOLDER, name)
-        suf = ".json"; n = 0
+        suf = ".json"
+        n = 0
         while os.path.exists(name + suf):
-            suf = "__%d.json" % n; n += 1
+            suf = "__%d.json" % n
+            n += 1
         return name + suf
     filename = newfile(request.form['name'])
     with open(filename, 'w') as f:
@@ -140,7 +145,7 @@ def load_scene():
         config = json.loads(f.read())
     _logger.debug("loading:\n%s" % str(config))
     return jsonify(filename, sceneConfig)
-    #return render_scene_template_string(config)
+    # return render_scene_template_string(config)
 
 
 @app.route("/log")
@@ -188,6 +193,8 @@ def shutdown():
     _logger.debug("shutting down...")
     shutdown_server()
     return 'server shutting down...'
+
+
 def shutdown_server():
     func = request.environ.get('werkzeug.server.shutdown')
     if func is None:
@@ -210,7 +217,8 @@ def main():
         except WindowsError as err:
             print("stupid WindowsError, i don't care!!\n\s" % str(err))
     app.run()
-
+    import subprocess
+    #
 
 if __name__ == '__main__':
     logging.basicConfig(
