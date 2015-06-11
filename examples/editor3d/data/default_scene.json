@@ -1,5 +1,6 @@
 {
 	"vr_log": true,
+	"curveSegments": 4,
 	"floor_size": [25, 25],
 	"floor_texture": "deck.png",
 	"sky_texture": "images/axis_1_b.png",
@@ -9,6 +10,7 @@
 		"width": 2.25,
 		"height": 1.5,
 		"position": [0, 0, 0.0],
+		"grammar": "JavaScript",
 		"filename": "editor0.js"
 	}, {
 		"id": "editor1",

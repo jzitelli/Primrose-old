@@ -12,12 +12,8 @@
 				"text": {
 					"type": "string"
 				},
-				"width": {
-					"type": "number"
-				},
-				"height": {
-					"type": "number"
-				},
+				"width": {"type": "number"},
+				"height": {"type": "number"},
 				"position": {
 					"type": "array",
 					"items": {
@@ -32,6 +28,7 @@
 					},
 					"minItems": 1
 				},
+				"grammer": {"type": "string"},
 				"filename": {"type": "string"}
 			},
 			"required": ["id"]

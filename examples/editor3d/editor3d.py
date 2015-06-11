@@ -61,23 +61,25 @@ def render_scene_template_string(scene_config):
     scene_config = Markup(
         '<script id="sceneConfig" type="text/json">%s</script>' % json.dumps(scene_config))
     image_dir = "images"
-    floor_default = os.path.join(image_dir, "bg9.jpg")
-    sky_default = os.path.join(image_dir, "beach2.jpg")
-    textures = [f for f in os.listdir(
+    floor_default = "deck.png"
+    sky_default = "bg2.jpg"
+    textures = [floor_default, sky_default] + [os.path.join(image_dir, os.path.basename(f)) for f in os.listdir(
         image_dir) if os.path.splitext(f)[1] in ('.png', '.jpg')]
-    floor_textures = '\n'.join([Markup('<option selected="selected" value="%s">%s</option>' % (floor_default, os.path.basename(floor_default)))] +
-                               [Markup('<option value="%s">%s</option>' % (os.path.join(image_dir, texture), os.path.basename(texture)))
-                                for texture in textures])
-    sky_textures = '\n'.join([Markup('<option selected="selected" value="%s">%s</option>' % (sky_default, os.path.basename(sky_default)))] +
-                             [Markup('<option value="%s">%s</option>' % (os.path.join(image_dir, texture), os.path.basename(texture)))
-                              for texture in textures])
+    texture_options = [Markup('<option value="%s">%s</option>' % (texture, os.path.basename(texture)))
+                       for texture in textures]
+    floor_options = '\n'.join([Markup('<option selected="selected" value="%s">%s</option>' % (floor_default,
+                                           os.path.basename(floor_default)))] +
+                                texture_options)
+    sky_options = '\n'.join([Markup('<option selected="selected" value="%s">%s</option>' % (sky_default,
+                                          os.path.basename(sky_default)))] +
+                                texture_options)
     return render_template_string(TEMPLATE_STRING % (HEAD, BODY),
                                   js="editor3d.js",
                                   onload="editor3d()",
                                   scene_config=scene_config,
-                                  floor_textures=floor_textures,
-                                  sky_textures=sky_textures)
-
+                                  floor_textures=floor_options,
+                                  sky_textures=sky_options)
+    
 
 @app.route("/")
 def configured_scene():
@@ -211,16 +213,16 @@ def main():
         except IOError as err:
             print("couldn't clean directory %s, i don't care" % path)
         except WindowsError as err:
-            print("stupid WindowsError, i don't care!!\n\s" % str(err))
+            print("stupid WindowsError (shutil.rmtree), i don't care!!\n%s" % str(err))
         try:
-            shutil.copytree(src_dir, path)
+                shutil.copytree(src_dir, path)
         except WindowsError as err:
-            print("stupid WindowsError, i don't care!!\n\s" % str(err))
+            print("stupid WindowsError (shutil.copytree), i don't care!!\n%s" % str(err))
     app.run()
-    import subprocess
-    #
 
 if __name__ == '__main__':
     logging.basicConfig(
         level=logging.DEBUG, format="%(levelname)s %(name)s %(funcName)s %(lineno)d:\n%(message)s\n")
     main()
+    #import subprocess
+    #

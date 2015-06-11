@@ -65,6 +65,7 @@ function setupKeyOption(elem, char, code) {
     elem.addEventListener("keyup", setKeyOption);
 }
 
+
 var scene = new THREE.Scene();
 var pickingScene = new THREE.Scene();
 var editors = [];
@@ -151,7 +152,7 @@ function editor3d() {
     var vrMenuMesh;
     var vrMenuTextParams = {
                 size: 0.5,
-                height: 0.05,
+                height: 0.0,
                 font: 'janda manatee solid',
                 weight: 'normal'
             }
@@ -169,14 +170,11 @@ function editor3d() {
         }
     }
 
-    var showMenu = false;
     function vrMenuToggle() {
-        if (showMenu) {
-            scene.remove(vrMenuMesh);
-            showMenu = false;
+        if (vrMenuMesh.visible) {
+            vrMenuMesh.visible = false;
         } else {
-            scene.add(vrMenuMesh);
-            showMenu = true;
+            vrMenuMesh.visible = true;
         }
     }
 
@@ -184,8 +182,6 @@ function editor3d() {
     // fps (last 200 frames, last 100 frames, last 50 frames, last 25 frames, last 10 frames) 
 
     // fps measure / profiler / optimizer
-    // save current scene (v)
-    // HMD pointer mode (p)
     // menu shortcut label
     // menu shortcut key
 
@@ -199,7 +195,7 @@ function editor3d() {
         var textgeom_log_geoms = [];
         var textgeom_log_meshes = [];
         var buffsize = 10;
-        var vrLogMaterial = new THREE.MeshLambertMaterial({
+        var vrLogMaterial = new THREE.MeshBasicMaterial({
             color: 0x00ff00,
             transparent: false,
             side: THREE.DoubleSide
@@ -219,6 +215,10 @@ function editor3d() {
             }
         }
 
+        function captureHMDState() {
+            log(JSON.stringify(vrSensor.getState()));
+        }
+
         function textgeom_log(msg, color, size, height) {
             // TODO: one geom per *unique* line
             size = size || 0.5;
@@ -227,7 +227,7 @@ function editor3d() {
             var textgeom = textGeom(msg);
             var material = vrLogMaterial;
             if (color) {
-                material = new THREE.MeshLambertMaterial({
+                material = new THREE.MeshBasicMaterial({
                     color: color || 0x00ff00,
                     side: THREE.DoubleSide
                 });
@@ -248,39 +248,41 @@ function editor3d() {
 
         function textGeom(msg, size, height) {
             size = size || 0.5;
-            height = height || size / 17;
+            height = 0.0; //height || size / 17;
             var font = 'janda manatee solid';
             var weight = 'normal';
-            var textgeom = new THREE.TextGeometry(msg, {
+            var options = {
                 size: size,
                 height: height,
                 font: font,
-                weight: weight
-            });
+                weight: weight,
+                curveSegments: curveSegments
+            };
+            var textgeom = new THREE.TextGeometry(msg, options);
             return textgeom;
+            // var textShapes = THREE.FontUtils.generateShapes(msg, options);
+            // return textShapes;
         }
 
         sceneConfig = getData(ctrls.sceneConfig.id);
         console.log("DOM sceneConfig: " + JSON.stringify(sceneConfig));
-        console.log("sceneConfig.floor_size: " + sceneConfig.floor_size);
         var vrLog = sceneConfig.vr_log || $.QueryString["vr_log"];
         console.log("vrLog: " + vrLog);
+
+        var curveSegments = sceneConfig.curveSegments || 4;
 
         function showConfig(editor) {
             log("Primrose version: " + Primrose.VERSION);
             log("sceneConfig = " + JSON.stringify(sceneConfig), 0xff0000, editor);
         }
 
-        var helpVisible = false;
         function toggleHelp() {
-            if (helpVisible) {
-                scene.remove(body_arrow);
-                scene.remove(axisHelper);
-                helpVisible = false;
+            if (axisHelper.visible) {
+                axisHelper.visible = false;
+                body_arrow.visible = false;
             } else {
-                scene.add(body_arrow);
-                scene.add(axisHelper);
-                helpVisible = true;
+                axisHelper.visible = true;
+                body_arrow.visible = true;
             }
         }
 
@@ -334,9 +336,6 @@ function editor3d() {
         var sky = textured(shell(50, 8, 4, Math.PI * 2, Math.PI), sky_texture);
         scene.add(sky);
 
-        var gl = renderer.getContext();
-
-
         // naming cpmnvetmatonm??
         var floorTexture = $("#floorTexture").val(); // $.QueryString["floor_texture"] || $("#floorTexture").val();
         var fs = 1,
@@ -359,10 +358,10 @@ function editor3d() {
         directionalLight.position.set(0.2, 1, -3);
         scene.add(directionalLight);
 
-        var pointLight = new THREE.PointLight(0x44ffff, 0.8);
-        pointLight.position.y = 2;
-        pointLight.position.z = 3;
-        scene.add(pointLight);
+        // var pointLight = new THREE.PointLight(0x44ffff, 0.8);
+        // pointLight.position.y = 2;
+        // pointLight.position.z = 3;
+        // scene.add(pointLight);
 
         scene.add(fakeCamera);
         scene.add(body);
@@ -373,6 +372,8 @@ function editor3d() {
 
         var rev = 0;
         var filename;
+
+        var gl = renderer.getContext();
 
         showConfig();
 
@@ -476,7 +477,7 @@ function editor3d() {
 
         setupKeyOption(ctrls.addTextBoxKey, "N", 78);
         setupKeyOption(ctrls.saveKey, "V", 86);
-        setupKeyOption(ctrls.menuKey, "M", 86);
+        setupKeyOption(ctrls.menuKey, "M", 77);
         setupKeyOption(ctrls.loadKey, "P", 89);
         setupKeyOption(ctrls.helpKey, "H", 72);
         setupKeyOption(ctrls.captureHMDKey, "C", 67);
@@ -532,6 +533,9 @@ function editor3d() {
             flatEditor.position.z -= 2;
             if (editor.position) {
                 flatEditor.position.set(editor.position[0], editor.position[1], editor.position[2]);
+            }
+            if (editor.rotation) {
+                flatEditor.rotation.set(editor.rotation[0], editor.rotation[1], editor.rotation[2]);
             }
             scene.add(flatEditor);
             pickingScene.add(flatEditorPicker);
@@ -598,7 +602,7 @@ function editor3d() {
 
                     // c
                 } else if (evt.keyCode === 67) {
-                    //captureHMDState();
+                    captureHMDState();
                 }
 
             }
@@ -896,8 +900,8 @@ function editor3d() {
         }
 
         // see https://github.com/mrdoob/stats.js
-        // var stats = new Stats();
-        // stats.setMode(0); // 0: fps, 1: ms
+        var stats = new Stats();
+        stats.setMode(0); // 0: fps, 1: ms
         // // align top-left
         // stats.domElement.style.position = 'absolute';
         // stats.domElement.style.left = '0px';
@@ -942,7 +946,7 @@ function editor3d() {
         }
 
         function render(t, rt, fc) {
-            //stats.begin();
+            stats.begin();
 
             requestAnimationFrame(render);
 
@@ -955,7 +959,7 @@ function editor3d() {
             r.render(scene, camera);
             lt = t;
 
-            //stats.end();
+            stats.end();
 
             //requestAnimationFrame(render);
         }
