@@ -95,3 +95,10 @@ examples/editor3d/editor3d.sublime-workspace
 *.sublime-workspace
 examples/editor3d/editor3d.sublime-workspace
 lib/Heather.min.js
+examples/editor3d/scratch
+dist/Primrose.js
+dist/Primrose.min.js
+examples/images/beach.jpg
+lib/VREffect.js
+lib/three.min.js
+lib/three.js

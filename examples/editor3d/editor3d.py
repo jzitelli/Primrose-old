@@ -61,8 +61,8 @@ def render_scene_template_string(scene_config):
     scene_config = Markup(
         '<script id="sceneConfig" type="text/json">%s</script>' % json.dumps(scene_config))
     image_dir = "images"
-    floor_default = "deck.png"
-    sky_default = "bg2.jpg"
+    floor_default = os.path.join(image_dir, "deck.png")
+    sky_default = os.path.join(image_dir, "bg2.jpg")
     textures = [floor_default, sky_default] + [os.path.join(image_dir, os.path.basename(f)) for f in os.listdir(
         image_dir) if os.path.splitext(f)[1] in ('.png', '.jpg')]
     texture_options = [Markup('<option value="%s">%s</option>' % (texture, os.path.basename(texture)))

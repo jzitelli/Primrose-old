@@ -19,6 +19,18 @@
 
 var editor3d_revision = 1;
 
+function quad(w, h) {
+    return new THREE.PlaneBufferGeometry(w, h);
+}
+
+function box(w, h, l) {
+    return new THREE.BoxGeometry(w, h, l);
+}
+
+function sphere(r, slices, rings) {
+    return new THREE.SphereGeometry(r, slices, rings);
+}
+
 // http://stackoverflow.com/a/3855394/1911963
 (function($) {
     $.QueryString = (function(a) {
@@ -411,7 +423,7 @@ function editor3d() {
             for (var i = 0; i < sceneConfig.editors.length; ++i) {
                 var editorConfig = sceneConfig.editors[i];
                 log(JSON.stringify(editorConfig));
-                addTextBox(editorConfig);
+                makeEditor(scene, pickingScene, editorConfig.id, 2, 2,  0, 1, 0,  0, 0, 0,  editorConfig); //addTextBox(editorConfig);
             }
         }
         loadScene();
@@ -520,12 +532,13 @@ function editor3d() {
 
         function addTextBox(editor) {
             var textbox = new Primrose.TextBox(editor.id, {
-                tokenizer: Primrose.Grammars.JavaScript,
-                size: new Primrose.Size(1024 * editor.width, 1024 * editor.height),
-                fontSize: (vrDisplay ? 40 : 20), // / window.devicePixelRatio,
+                tokenizer: Primrose.Text.Grammars.JavaScript,
+                fontSize: (vrDisplay ? 40 : 20),  // / window.devicePixelRatio,
                 file: editor.text,
-                theme: Primrose.Themes.Dark
+                theme: Primrose.Text.Themes.Dark
             });
+// size: new Primrose.Size(1024 * editor.width, 1024 * editor.height),
+                
             var flatGeom = quad(editor.width, editor.height);
             var flatEditor = textured(flatGeom, textbox);
             var flatEditorPicker = textured(flatGeom, textbox.getRenderer().getPickingTexture());
@@ -1010,18 +1023,6 @@ function editor3d() {
             return obj;
         }
 
-        function quad(w, h) {
-            return new THREE.PlaneBufferGeometry(w, h);
-        }
-
-        function box(w, h, l) {
-            return new THREE.BoxGeometry(w, h, l);
-        }
-
-        function sphere(r, slices, rings) {
-            return new THREE.SphereGeometry(r, slices, rings);
-        }
-
         function shell(r, slices, rings, phi, theta) {
             if (phi === undefined) {
                 phi = Math.PI * 0.5;
@@ -1031,7 +1032,7 @@ function editor3d() {
             }
             var phiStart = Math.PI + phi * 0.5;
             var thetaStart = (Math.PI - theta) * 0.5;
-            var geom = new THREE.InsideSphereGeometry(r, slices, rings, phiStart,
+            var geom = new InsideSphereGeometry(r, slices, rings, phiStart,
                 phi,
                 thetaStart, theta, true);
             return geom;
