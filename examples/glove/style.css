@@ -80,6 +80,7 @@ article{
   max-height: 95%;
   width: 50em;
   padding: 3em;
+  overflow-y: scroll;
 }
 
 input, select{
@@ -126,7 +127,7 @@ a:visited{
   color: rgb(255, 204, 110);
 }
 
-#outputContainer, #output{
+#outputContainer, #frontBuffer{
   position: fixed;
   top: 0;
   box-sizing: border-box;

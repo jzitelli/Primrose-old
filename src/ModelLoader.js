@@ -1,65 +1,70 @@
 /* global Primrose, THREE */
 
 Primrose.ModelLoader = ( function () {
-  var COLLADA = new THREE.ColladaLoader();
+  var COLLADA = new THREE.ColladaLoader(),
+      JSON = new THREE.ObjectLoader();
   COLLADA.options.convertUpAxis = true;
+
+  function fixColladaScene ( collada ) {
+    return collada.scene;
+  }
+
+  function fixJSONScene(json){
+    json.traverse(function(obj){
+      if(obj.geometry){
+        obj.geometry.computeBoundingSphere();
+        obj.geometry.computeBoundingBox();
+      }
+    });
+    return json;
+  }
+
+  function buildScene ( success, scene ) {
+    scene.buttons = [ ];
+    scene.traverse( function ( child ) {
+      if ( child.isButton ) {
+        scene.buttons.push(
+            new Primrose.Button( child.parent, child.name ) );
+      }
+      if ( child.name ) {
+        scene[child.name] = child;
+      }
+    } );
+    if ( success ) {
+      success( scene );
+    }
+  }
+
+  var propertyTests = {
+    isButton: function(obj){
+      return (obj.material && obj.material.name.match(/^button\d+$/));
+    },
+    isSolid: function(obj){
+      return !obj.name.match(/^(water|sky)/);
+    }
+  };
+
+  function setProperties ( object ) {
+    object.traverse( function ( obj ) {
+      if ( obj instanceof THREE.Mesh ) {
+        for(var prop in propertyTests){
+          obj[prop] = obj[prop] || propertyTests[prop](obj);
+        }
+      }
+    } );
+  }
 
   function ModelLoader ( src, success ) {
     if ( src ) {
-      ModelLoader.loadCollada( src, function ( scene ) {
+      var done = function ( scene ) {
         this.template = scene;
         if ( success ) {
           success( scene );
         }
-      }.bind( this ) );
+      }.bind( this );
+      ModelLoader.loadObject( src, done );
     }
   }
-
-  ModelLoader.setProperties = function ( object ) {
-    object.traverse( function ( child ) {
-      for ( var i = 0; i < child.children.length; ++i ) {
-        var obj = child.children[i];
-        if ( obj instanceof THREE.Mesh ) {
-          var materials = obj.material.materials;
-          if ( materials ) {
-            for ( var j = 0; j < materials.length; ++j ) {
-              child.isSolid = child.isSolid ||
-                  materials[j].name === "solid";
-              child.isButton = child.isButton ||
-                  materials[j].name === "button";
-            }
-          }
-        }
-      }
-    } );
-  };
-
-  ModelLoader.loadCollada = function ( src, success ) {
-    COLLADA.load( src, function ( collada ) {
-      ModelLoader.setProperties( collada.scene );
-      if ( success ) {
-        success( collada.scene );
-      }
-    } );
-  };
-
-  ModelLoader.loadScene = function ( src, success ) {
-    ModelLoader.loadCollada( src, function ( scene ) {
-      scene.buttons = [ ];
-      scene.traverse( function ( child ) {
-        if ( child.isButton ) {
-          scene.buttons.push( new Primrose.Button( child.parent,
-              child.name ) );
-        }
-        if ( child.name ) {
-          scene[child.name] = child;
-        }
-      } );
-      if ( success ) {
-        success( scene );
-      }
-    } );
-  };
 
   ModelLoader.prototype.clone = function () {
     var obj = this.template.clone();
@@ -76,8 +81,37 @@ Primrose.ModelLoader = ( function () {
       }
     }.bind( this ) );
 
-    ModelLoader.setProperties( obj );
+    setProperties( obj );
     return obj;
+  };
+
+
+  ModelLoader.loadScene = function ( src, success ) {
+    var done = buildScene.bind( window, success );
+    ModelLoader.loadObject( src, done );
+  };
+
+  ModelLoader.loadObject = function ( src, success ) {
+    var done = function ( scene ) {
+      setProperties( scene );
+      if ( success ) {
+        success( scene );
+      }
+    };
+
+    if ( src.endsWith( ".dae" ) ) {
+      console.error( "COLLADA seems to be broken right now" );
+      if ( false ) {
+        COLLADA.load( src, function ( collada ) {
+          done( fixColladaScene( collada ) );
+        } );
+      }
+    }
+    else if ( src.endsWith( ".json" ) ) {
+      JSON.load( src, function (json){
+        done(fixJSONScene(json));
+      });
+    }
   };
 
   return ModelLoader;
