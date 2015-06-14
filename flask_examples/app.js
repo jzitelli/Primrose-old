@@ -1,3 +1,15 @@
+$.urlParam = function(name){
+    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+    if (results==null){
+       return null;
+    }
+    else{
+       return results[1] || 0;
+    }
+}
+
+var backgroundSound = $.urlParam('backgroundSound');
+
 /* global isOSX, Primrose, THREE, isMobile, requestFullScreen */
 
 var DEBUG_VR = false;
@@ -6,8 +18,8 @@ function StartDemo ( ) {
   "use strict";
   var application = new Primrose.VRApplication(
       "terrain demo",
-      "flask_examples/scene.json",
-      "examples/models/button.json", {
+      "flask_examples/models/scene.json",
+      "flask_examples/models/button.json", {
         maxThrow: 0.1,
         minDeflection: 10,
         colorUnpressed: 0x7f0000,
@@ -34,7 +46,6 @@ function StartDemo ( ) {
 
 
   var audio3d = new Primrose.Output.Audio3D();
-
   function playSound(buffer, time) {
     var source = audio3d.context.createBufferSource();
     source.buffer = buffer;
@@ -42,10 +53,18 @@ function StartDemo ( ) {
     source[source.start ? 'start' : 'noteOn'](time);
   }
 
-  audio3d.loadBuffer("examples/audio/menu.ogg", null,
-    function (buffer) {
-      playSound(buffer, 0);
-  });
+  if (backgroundSound) {
+    audio3d.loadBuffer(
+      // TODO:
+      // "flask_examples/sounds/backgroundmusic.ogg",
+      //"examples/audio/game1.ogg",
+      backgroundSound,
+      null,
+      function (buffer) {
+        playSound(buffer, 0);
+      }
+    );
+  }
 
   application.start();
 }
