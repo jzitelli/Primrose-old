@@ -14,7 +14,7 @@ function StartDemo ( ) {
         colorPressed: 0x007f00,
         toggle: true
       },
-      3, 1.3, {
+      3, 1.1, {
         backgroundColor: 0xafbfff
       }
   );
@@ -32,6 +32,20 @@ function StartDemo ( ) {
     t += dt;
   } );
 
-  application.start();
 
+  var audio3d = new Primrose.Output.Audio3D();
+
+  function playSound(buffer, time) {
+    var source = audio3d.context.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audio3d.context.destination);
+    source[source.start ? 'start' : 'noteOn'](time);
+  }
+
+  audio3d.loadBuffer("examples/audio/menu.ogg", null,
+    function (buffer) {
+      playSound(buffer, 0);
+  });
+
+  application.start();
 }

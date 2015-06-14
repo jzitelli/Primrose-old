@@ -187,6 +187,9 @@ Primrose.VRApplication = ( function () {
       alpha: true,
       canvas: this.ctrls.frontBuffer
     } );
+    
+    this.vrEffect = new THREE.VREffect(this.renderer);
+
     this.renderer.setClearColor( this.options.backgroundColor );
     this.buttonFactory = new Primrose.ButtonFactory( buttonModel,
         buttonOptions );
@@ -336,8 +339,12 @@ Primrose.VRApplication = ( function () {
 
     this.renderScene = function ( s, rt, fc ) {
       if ( this.inVR ) {
-        this.renderer.renderStereo( s, this.camera, rt, fc, translations,
-            viewports );
+        if ( this.vrEffect ) {
+          this.vrEffect.render(s, this.camera);
+        } else {
+          this.renderer.renderStereo( s, this.camera, rt, fc, translations,
+              viewports );
+        }
       }
       else {
         this.renderer.render( s, this.camera, rt, fc );
@@ -484,11 +491,18 @@ Primrose.VRApplication = ( function () {
     this.camera.fov = fieldOfView;
     this.camera.aspect = aspectWidth / canvasHeight;
     this.camera.updateProjectionMatrix( );
+
+    if (this.vrEffect) {
+      this.vrEffect.setSize(canvasWidth, canvasHeight);
+    }
   };
 
   VRApplication.prototype.connectGamepad = function ( id ) {
-    if ( !this.gamepad.isGamepadSet() && confirm( fmt(
-        "Would you like to use this gamepad? \"$1\"", id ) ) ) {
+    // if ( !this.gamepad.isGamepadSet() && confirm( fmt(
+    //     "Would you like to use this gamepad? \"$1\"", id ) ) ) {
+    //   this.gamepad.setGamepad( id );
+    // }
+    if ( !this.gamepad.isGamepadSet() ) {
       this.gamepad.setGamepad( id );
     }
   };
