@@ -57,8 +57,8 @@ if (floorLength || floorWidth) {
   floor = textured(
     quad(floorLength, floorWidth),
     floorTexture, false, 1, floorTextureST[0], floorTextureST[1]);
+  floor.rotation.set(Math.PI / 2, 0, 0); //x = Math.PI / 2;
   floor.position.set(floorPosition[0], floorPosition[1], floorPosition[2]);
-  floor.rotation.x = Math.PI / 2;
 }
 
 var gridX = $.QueryString['gridX'] || 0;

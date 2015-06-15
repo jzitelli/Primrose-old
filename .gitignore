@@ -79,3 +79,5 @@ $RECYCLE.BIN/
 *.lnk
 *.py~
 *.pyc
+flask_examples/models/ConfigUtilDeskScene.tga
+flask_examples/models/ConfigUtilDeskScene.xml
