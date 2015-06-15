@@ -20,6 +20,7 @@ Primrose.VRApplication = ( function () {
    `options` - optional values to override defaults
    | `gravity` - the acceleration applied to falling objects (default: 9.8)
    | `backgroundColor` - the color that WebGL clears the background with before
+   | `skyBox` - skybox mesh 
    drawing (default: 0x000000)
    | `drawDistance` - the far plane of the camera (default: 500)
    | `chatTextSize` - the size of a single line of text, in world units
@@ -57,6 +58,8 @@ Primrose.VRApplication = ( function () {
     this.world.addEventListener( "collide", function () {
       console.log( arguments );
     } );
+
+    this.skyBox = this.options.skyBox || null;
 
     //
     // keyboard input
@@ -159,11 +162,14 @@ Primrose.VRApplication = ( function () {
     this.gamepad = new Primrose.Input.Gamepad( "gamepad", [
       { name: "strafe", axes: [ Primrose.Input.Gamepad.LSX ] },
       { name: "drive", axes: [ Primrose.Input.Gamepad.LSY ] },
-      { name: "heading", axes: [ -Primrose.Input.Gamepad.RSX ], integrate: true
+      { name: "heading", axes: [ -Primrose.Input.Gamepad.RSX ],
+        integrate: true, deadzone: 0.3
       },
       { name: "dheading", commands: [ "heading" ], delta: true },
       { name: "pitch", axes: [ Primrose.Input.Gamepad.RSY ], integrate: true }
     ] );
+      // { name: "jump", buttons: [ Primrose.Input.Gamepad. ],
+      //   commandDown: this.jump.bind( this ), dt: 0.5 }
 
     this.gamepad.addEventListener( "gamepadconnected",
         this.connectGamepad.bind( this ), false );
@@ -296,6 +302,10 @@ Primrose.VRApplication = ( function () {
           this.glove.addTip( makeBall.call( this, s ) );
         }
 
+        if (this.skyBox) {
+          this.scene.add(this.skyBox);
+        }
+
         this.fire( "ready" );
         requestAnimationFrame( this.animate );
       }
@@ -338,6 +348,12 @@ Primrose.VRApplication = ( function () {
 
 
     this.renderScene = function ( s, rt, fc ) {
+
+      if (this.skyBox) {
+        skyBox.position.copy(this.camera.position);
+        //skyBox.position.y += 10;
+      }
+
       if ( this.inVR ) {
         if ( this.vrEffect ) {
           this.vrEffect.render(s, this.camera);
@@ -372,7 +388,7 @@ Primrose.VRApplication = ( function () {
     gravity: 9.8, // the acceleration applied to falling objects
     backgroundColor: 0x000000,
     // the color that WebGL clears the background with before drawing
-    drawDistance: 500, // the far plane of the camera
+    drawDistance: 2000, // the far plane of the camera
     chatTextSize: 0.25, // the size of a single line of text, in world units
     dtNetworkUpdate: 0.125 // the amount of time to allow to elapse between sending state to teh server
   };
@@ -541,6 +557,8 @@ Primrose.VRApplication = ( function () {
     drive = this.keyboard.getValue( "driveBack" ) +
         this.keyboard.getValue( "driveForward" ) +
         this.gamepad.getValue( "drive" );
+
+    heading = this.gamepad.getValue("heading");
 
     if ( this.onground ) {
       if ( strafe || drive ) {

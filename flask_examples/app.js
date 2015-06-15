@@ -9,16 +9,21 @@ $.urlParam = function(name){
 }
 
 var backgroundSound = $.urlParam('backgroundSound');
+var sceneModel = $.urlParam('sceneModel') || "flask_examples/models/scene2.json";
 
 /* global isOSX, Primrose, THREE, isMobile, requestFullScreen */
 
 var DEBUG_VR = false;
+var application;
+var skyBox = textured(
+  shell(80, 16, 8, Math.PI * 2, Math.PI/1.6),
+  "flask_examples/images/bg4.jpg", true);
 
 function StartDemo ( ) {
   "use strict";
-  var application = new Primrose.VRApplication(
-      "terrain demo",
-      "flask_examples/models/scene.json",
+  application = new Primrose.VRApplication(
+      "Simple App",
+      sceneModel,
       "flask_examples/models/button.json", {
         maxThrow: 0.1,
         minDeflection: 10,
@@ -26,9 +31,8 @@ function StartDemo ( ) {
         colorPressed: 0x007f00,
         toggle: true
       },
-      3, 1.1, {
-        backgroundColor: 0xafbfff
-      }
+      3, 1.1,
+      {skyBox: skyBox} //{backgroundColor: 0xafbfff}
   );
 
   var btns = [];

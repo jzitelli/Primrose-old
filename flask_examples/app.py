@@ -14,7 +14,7 @@ def simple_app():
     return render_template("index.html", title="Simple App")
 
 def main():
-    app.run()
+    app.run(host='0.0.0.0')
 
 if __name__ == '__main__':
     logging.basicConfig(

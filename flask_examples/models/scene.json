@@ -10,16 +10,6 @@
         "mapping": "UVMapping",
         "wrap": ["RepeatWrapping","RepeatWrapping"]
     },{
-        "uuid": "1A91554C-F5B0-3CC6-B0E3-74CA6A69BC98",
-        "minFilter": "LinearMipMapLinearFilter",
-        "repeat": [1,1],
-        "name": "SkyboxTexture",
-        "magFilter": "LinearFilter",
-        "image": "8290FFED-F185-3F58-9C85-1A1F29776553",
-        "anisotropy": 1,
-        "mapping": "UVMapping",
-        "wrap": ["RepeatWrapping","RepeatWrapping"]
-    },{
         "uuid": "57C8C518-0CD0-3866-88FE-BBB14474EBD7",
         "minFilter": "LinearMipMapLinearFilter",
         "repeat": [1,1],
@@ -208,16 +198,6 @@
             "receiveShadow": false,
             "geometry": "FDA35051-77AC-3FCF-B642-34C990EA7344"
         },{
-            "type": "Mesh",
-            "name": "Skybox",
-            "uuid": "64D5F166-E215-3E3B-8BE7-1F14F93AC22D",
-            "matrix": [-1,0,0,0,0,0,1,0,0,1,0,0,-6.22479,0.65353,6.67216,1],
-            "visible": true,
-            "material": "9D8A2545-F1EB-3251-B63F-BA16B4AD0604",
-            "castShadow": true,
-            "receiveShadow": true,
-            "geometry": "FE46F7EB-A263-3807-8987-EB40ABE18EAA"
-        },{
             "type": "DirectionalLight",
             "name": "Sun",
             "uuid": "43202B29-D51C-3612-9E80-F46A70AD279D",
@@ -225,7 +205,7 @@
             "visible": true,
             "castShadow": false,
             "color": 16777215,
-            "intensity": 0.46
+            "intensity": 0.96
         },{
             "type": "Mesh",
             "name": "Terrain",
@@ -617,10 +597,6 @@
         "url": "flask_examples/models/grass.png",
         "name": "grass.png"
     },{
-        "uuid": "8290FFED-F185-3F58-9C85-1A1F29776553",
-        "url": "flask_examples/models/skybox.png",
-        "name": "skybox.png"
-    },{
         "uuid": "537DAB07-A84F-315B-8F18-6FC57F1187F1",
         "url": "flask_examples/models/brick.PNG",
         "name": "brick.PNG"
@@ -671,16 +647,10 @@
         "name": "Material.001"
     },{
         "uuid": "9D8A2545-F1EB-3251-B63F-BA16B4AD0604",
-        "blending": "NormalBlending",
-        "ambient": 13421772,
-        "vertexColors": false,
-        "depthTest": true,
-        "type": "MeshLambertMaterial",
-        "depthWrite": true,
+        "type": "MeshBasicMaterial",
         "map": "1A91554C-F5B0-3CC6-B0E3-74CA6A69BC98",
-        "color": 13421772,
-        "emissive": 6710886,
-        "name": "Material.002"
+        "name": "Material.002",
+        "side": "DoubleSide"
     },{
         "uuid": "52D21D59-A717-391E-82F2-F87CBF4CE829",
         "blending": "NormalBlending",
