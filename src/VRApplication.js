@@ -64,6 +64,8 @@ Primrose.VRApplication = ( function () {
 
     this.floor = this.options.floor || null;
 
+    this.terrain = this.options.terrain || null;
+
     //
     // keyboard input
     //
@@ -311,6 +313,11 @@ Primrose.VRApplication = ( function () {
 
         if (this.floor) {
           this.scene.add(this.floor);
+        }
+
+        if (this.terrain) {
+          console.log("adding terrain mesh");
+          this.scene.add(this.terrain);
         }
 
         this.fire( "ready" );

@@ -13,6 +13,10 @@ app = Flask(__name__, static_folder=PRIMROSE_ROOT, static_url_path='')
 def simple_app():
     return render_template("index.html", title="Simple App")
 
+@app.route("/terrain")
+def terrain_demo():
+    return render_template("app_terrain.html", title="Terrain Demo")
+
 def main():
     app.run(host='0.0.0.0')
 

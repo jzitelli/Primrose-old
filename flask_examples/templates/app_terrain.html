@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  	<meta charset="utf-8">
+  	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0">
+
+  	<title>{{ title if title else "Terrain Demo" }}</title>
+
+    <script src="{{ url_for('static', filename='lib/three.js') }}"></script>
+    <script src="{{ url_for('static', filename='lib/ColladaLoader.js') }}"></script>
+    <script src="{{ url_for('static', filename='lib/cannon.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='lib/leap-0.6.4.js') }}"></script>
+    <script src="{{ url_for('static', filename='lib/socket.io.min.js') }}"></script>	
+
+    <script src="{{ url_for('static', filename='lib/VREffect.js') }}"></script>  
+
+    <script src="{{ url_for('static', filename='lib/stats.js') }}"></script>  
+
+    <script src="{{ url_for('static', filename='dist/Primrose.js') }}"></script>
+    <script src="{{ url_for('static', filename='src/VRApplication.js') }}"></script>
+
+  	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  	<script>
+  	window.jQuery ||
+  	document.write('<script src="{{ url_for('static', filename='lib/jquery.js') }}">\x3C/script>')
+  	</script>
+
+    <script src="{{ url_for('static', filename='lib/ImprovedNoise.js') }}"></script>  
+
+    <script src="{{ url_for('static', filename='flask_examples/app_terrain.js') }}"></script>
+
+    <link href="{{ url_for('static', filename='flask_examples/style.css') }}" type="text/css" rel="stylesheet">
+
+  </head>
+
+  <body onload="{{ onload if onload else 'StartDemo()' }}">
+    <div id="outputContainer">
+      <canvas id="frontBuffer"></canvas>
+    </div>
+
+    <article id="main">
+
+      <a class="primary button" id="goVR">
+        <div id="fullScreenMsg">Go VR!</div>
+        <small>hit ESC to exit.</small>
+      </a>
+
+      <a class="primary button" id="goRegular">
+        Go full-screen<br>
+        <small>hit ESC to exit.</small>
+      </a>
+
+      <p id="nightly">Use with <a href="http://mozvr.com/downloads/" target="_blank">Firefox Nightly</a> or
+        <a href="http://blog.tojicode.com/2014/07/bringing-vr-to-chrome.html" target="_blank">Chrome WebVR</a>
+        to view in virtual reality! Read more about WebVR at <a href="http://mozvr.com/" target="_blank">MozVR.com</a></p>
+
+      <h2>Instructions:</h2>
+      <ul>
+        <li>Use the keyboard (<kbd>WASD</kbd>) to navigate.</li>
+        <li>Use <kbd>SHIFT+mouse</kbd> to look around.</li>
+        <li><em>Oculus Rift DK2 compatible!</em> Use WebVR-enabled browser (see above).</li>
+        <li><em>Google Cardboard compatible!</em> Use PC for input and smartphone as HMD.</li>
+      </ul>
+    </article>
+
+  </body>
+</html>
