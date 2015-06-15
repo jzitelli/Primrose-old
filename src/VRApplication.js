@@ -60,6 +60,9 @@ Primrose.VRApplication = ( function () {
     } );
 
     this.skyBox = this.options.skyBox || null;
+    this.skyBoxPosition = this.options.skyBoxPosition || [0,0,0];
+
+    this.floor = this.options.floor || null;
 
     //
     // keyboard input
@@ -306,6 +309,10 @@ Primrose.VRApplication = ( function () {
           this.scene.add(this.skyBox);
         }
 
+        if (this.floor) {
+          this.scene.add(this.floor);
+        }
+
         this.fire( "ready" );
         requestAnimationFrame( this.animate );
       }
@@ -350,8 +357,12 @@ Primrose.VRApplication = ( function () {
     this.renderScene = function ( s, rt, fc ) {
 
       if (this.skyBox) {
-        skyBox.position.copy(this.camera.position);
-        //skyBox.position.y += 10;
+        this.skyBox.position.copy(this.camera.position);
+        if (this.skyBoxPosition.length === 3) {
+          this.skyBox.position.x += this.skyBoxPosition[0];
+          this.skyBox.position.y += this.skyBoxPosition[1];
+          this.skyBox.position.z += this.skyBoxPosition[2];
+        }
       }
 
       if ( this.inVR ) {

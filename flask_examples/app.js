@@ -1,27 +1,84 @@
-$.urlParam = function(name){
-    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
-    if (results==null){
-       return null;
-    }
-    else{
-       return results[1] || 0;
-    }
+// see http://stackoverflow.com/a/3855394:
+(function($) {
+    $.QueryString = (function(a) {
+        if (a == "") return {};
+        var b = {};
+        for (var i = 0; i < a.length; ++i)
+        {
+            var p=a[i].split('=');
+            if (p.length != 2) continue;
+            b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
+        }
+        return b;
+    })(window.location.search.substr(1).split('&'))
+})(jQuery);
+
+var qd = {};
+location.search.substr(1).split("&").forEach(function(item) {var k = item.split("=")[0], v = decodeURIComponent(item.split("=")[1]); (k in qd) ? qd[k].push(v) : qd[k] = [v]});
+
+var URL_PARAMS = ["sceneModel", "skyBoxTexture", "backgroundSound",
+                  "floorLength", "floorWidth", "floorPosition",
+                  "gridX", "gridY", "gridZ"];
+
+var sceneModel = $.QueryString['sceneModel']
+  || "flask_examples/models/scene.json";
+
+var skyBoxTexture = $.QueryString['skyBoxTexture']
+  || "flask_examples/images/pana1b.jpg";
+
+var skyBoxPosition = qd['skyBoxPosition'].map(
+  function (item) { return parseFloat(item); }
+) || [0, 0, 0];
+
+
+
+var floorLength    = $.QueryString['floorLength'];
+var floorWidth     = $.QueryString['floorWidth'];
+var floorTexture   = $.QueryString['floorTexture'];
+var floorTextureST = qd['floorTextureST'];
+if (floorTextureST) {
+  floorTextureST = floorTextureST.map(
+    function (item) { return parseFloat(item); }
+  );
+} else if (!floorTexture) {
+  floorTexture = 'examples/models/holodeck.png';
+  floorTextureST = [floorLength, floorWidth];
+} else {
+  floorTextureST = [1, 1];
+}
+var floorPosition = qd['floorPosition'];
+if (floorPosition) {
+  floorPosition = floorPosition.map(
+    function (item) { return parseFloat(item); }
+  );
+}
+var floor;
+if (floorLength || floorWidth) {
+  floor = textured(
+    quad(floorLength, floorWidth),
+    floorTexture, false, 1, floorTextureST[0], floorTextureST[1]);
+  floor.position.set(floorPosition[0], floorPosition[1], floorPosition[2]);
+  floor.rotation.x = Math.PI / 2;
 }
 
-var backgroundSound = $.urlParam('backgroundSound');
-var sceneModel = $.urlParam('sceneModel') || "flask_examples/models/scene2.json";
+var gridX = $.QueryString['gridX'] || 0;
+var gridY = $.QueryString['gridY'] || 0;
+var gridZ = $.QueryString['gridZ'] || 0;
+
+var backgroundSound = $.QueryString['backgroundSound'];
+
+var skyBox = textured(
+  shell(90, 12, 7, Math.PI * 2, Math.PI / 1.666),
+  skyBoxTexture, true);
+
 
 /* global isOSX, Primrose, THREE, isMobile, requestFullScreen */
 
 var DEBUG_VR = false;
-var application;
-var skyBox = textured(
-  shell(80, 16, 8, Math.PI * 2, Math.PI/1.6),
-  "flask_examples/images/bg4.jpg", true);
 
 function StartDemo ( ) {
   "use strict";
-  application = new Primrose.VRApplication(
+  var application = new Primrose.VRApplication(
       "Simple App",
       sceneModel,
       "flask_examples/models/button.json", {
@@ -32,7 +89,10 @@ function StartDemo ( ) {
         toggle: true
       },
       3, 1.1,
-      {skyBox: skyBox} //{backgroundColor: 0xafbfff}
+      {backgroundColor: 0x9fefcf,
+       skyBox: skyBox,
+       skyBoxPosition: skyBoxPosition,
+       floor: floor}
   );
 
   var btns = [];
