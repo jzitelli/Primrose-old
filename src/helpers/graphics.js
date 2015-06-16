@@ -324,11 +324,11 @@ function shell ( r, slices, rings, phi, theta ) {
 function makeEditor ( scene, pickingScene, id, w, h, x, y, z, rx, ry, rz,
     options ) {
   options.size = options.size || new Primrose.Text.Size( 1024 * w, 1024 * h );
-  options.fontSize = options.fontSize || 30;
+  options.fontSize = ( options.fontSize || 60 ); // / window.devicePixelRatio;
   options.theme = options.theme || Primrose.Text.Themes.Dark;
   options.tokenizer = options.tokenizer || Primrose.Text.Grammars.PlainText;
   var t = new Primrose.Text.Controls.TextBox( id, options );
-  var o = textured( quad( w, h ), t, true, 0.75 );
+  var o = textured( quad( w, h ), t, true, 1 );
   var p = textured( quad( w, h ), t.getRenderer( )
       .getPickingTexture( ), true );
   o.position.set( x, y, z );

@@ -553,7 +553,8 @@ Primrose.VRApplication = ( function () {
 
   var heading = 0,
       strafe,
-      drive;
+      drive,
+      floatup;
 
   VRApplication.prototype.animate = function ( t ) {
     requestAnimationFrame( this.animate );
@@ -575,33 +576,33 @@ Primrose.VRApplication = ( function () {
         this.gamepad.getValue( "drive" );
     heading = this.gamepad.getValue("heading"); // + this.mouse.getValue("heading");
 
-    // var pitch = this.gamepad.getValue( "pitch" );
-    // var fly = drive * Math.sin(pitch);
-    // if (this.inVR) {
-    //   this.currentUser.velocity.y = this.currentUser.velocity.y * 0.9 + fly * 0.1;
-    // }
-
+    var floatSpeed = 0.75 * this.walkSpeed;
+    floatup = -floatSpeed * this.gamepad.getValue("pitch");
     if ( this.onground ) {
-      if ( strafe || drive ) {
-        len = this.walkSpeed * Math.min( 1, 1 / Math.sqrt( drive * drive +
-            strafe * strafe ) );
+      if (floatup > 0) {
+        this.currentUser.velocity.y = this.currentUser.velocity.y * 0.1 + floatup * 0.9;
       }
-      else {
-        len = 0;
-      }
-
-      strafe *= len;
-      drive *= len;
-      len = strafe * Math.cos( heading ) + drive * Math.sin( heading );
-      drive = drive * Math.cos( heading ) - strafe * Math.sin( heading );
-      strafe = len;
-      this.currentUser.velocity.x = this.currentUser.velocity.x * 0.9 +
-          strafe * 0.1;
-      this.currentUser.velocity.z = this.currentUser.velocity.z * 0.9 +
-          drive * 0.1;
-
-      this.currentUser.quaternion.setFromAxisAngle( UP, heading );
+    } else {
+      this.currentUser.velocity.y = this.currentUser.velocity.y * 0.1 + floatup * 0.9;
     }
+    if ( strafe || drive ) {
+      len = this.walkSpeed * Math.min( 1, 1 / Math.sqrt( drive * drive +
+          strafe * strafe ) );
+    }
+    else {
+      len = 0;
+    }
+    strafe *= len;
+    drive *= len;
+    len = strafe * Math.cos( heading ) + drive * Math.sin( heading );
+    drive = drive * Math.cos( heading ) - strafe * Math.sin( heading );
+    strafe = len;
+    this.currentUser.velocity.x = this.currentUser.velocity.x * 0.9 +
+        strafe * 0.1;
+    this.currentUser.velocity.z = this.currentUser.velocity.z * 0.9 +
+        drive * 0.1;
+
+    this.currentUser.quaternion.setFromAxisAngle( UP, heading );
 
     //
     // do collision detection

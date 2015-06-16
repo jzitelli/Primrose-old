@@ -81,15 +81,22 @@ var terrain = new THREE.Mesh(
     geometry,
     new THREE.MeshLambertMaterial({
         side: THREE.DoubleSide,
-        map: texture
+        color: 0x112244
     }));
+    // new THREE.MeshLambertMaterial({
+    //     side: THREE.DoubleSide,
+    //     map: texture
+    // }));
 geometry.computeBoundingBox();
-var yScale = 8 / (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
+var yScale = 10 / (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
 terrain.scale.set(30 / (geometry.boundingBox.max.x - geometry.boundingBox.min.x),
     yScale,
     30 / (geometry.boundingBox.max.z - geometry.boundingBox.min.z));
-terrain.position.y -= yScale * (geometry.boundingBox.max.y + geometry.boundingBox.min.y) / 2;
+geometry.computeBoundingBox();
+terrain.position.y = 0; //10 + -0.5 * (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
 
+geometry.computeFaceNormals();
+geometry.computeVertexNormals();
 
 
 
@@ -184,8 +191,8 @@ TerrainApplication = (function() {
                 if (this.floor) {
                   this.scene.add(this.floor);
                 }
-                if (this.terrain) {
-                    this.scene.add(this.terrain);
+                if (this.options.terrain) {
+                    this.scene.add(this.options.terrain);
                 }
 
                 if (this.options.editors) {
@@ -236,8 +243,11 @@ function StartDemo() {
         },
         3, 1.1, {
             backgroundColor: 0x5fafbf,
-            // skyBox: skyBox,
-            // skyBoxPosition: skyBoxPosition,
+            gravity: 0,
+            drawDistance: 1000,
+            dtNetworkUpdate: 10,
+            skyBox: skyBox,
+            skyBoxPosition: skyBoxPosition,
             floor: floor,
             terrain: terrain,
             editors: [{
@@ -265,7 +275,10 @@ function StartDemo() {
                 rz: 0,
                 options: {
                     file: "editor 1 ishithshtishtistnitial contents"
-                }
+                },
+                hudx: 0,
+                hudy: 0,
+                hudz: 2
             }]
         }
     );

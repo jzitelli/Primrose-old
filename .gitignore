@@ -7,6 +7,9 @@ flask_examples/textures
 flask_examples/models/ConfigUtilDeskScene.tga
 flask_examples/models/ConfigUtilDeskScene.xml
 *.js~
+flask_examples/models/animated/flamingo.js
+flask_examples/models/animated/parrot.js
+flask_examples/models/animated/stork.js
 
 
 
