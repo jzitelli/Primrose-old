@@ -66,6 +66,8 @@ Primrose.VRApplication = ( function () {
 
     this.terrain = this.options.terrain || null;
 
+    this.pickingScene = new THREE.Scene();
+
     //
     // keyboard input
     //
@@ -307,18 +309,30 @@ Primrose.VRApplication = ( function () {
           this.glove.addTip( makeBall.call( this, s ) );
         }
 
+
+
         if (this.skyBox) {
           this.scene.add(this.skyBox);
         }
-
         if (this.floor) {
           this.scene.add(this.floor);
         }
-
         if (this.terrain) {
           console.log("adding terrain mesh");
           this.scene.add(this.terrain);
         }
+        if (this.options.editors) {
+          for (var i = 0; i < this.options.editors.length; ++i) {
+            var editorConfig = this.options.editors[i];
+            makeEditor(this.scene, this.pickingScene,
+              editorConfig.id,
+              editorConfig.w, editorConfig.h,
+              editorConfig.x, editorConfig.y, editorConfig.z,
+              editorConfig.rx, editorConfig.ry, editorConfig.rz,
+              editorConfig.options);
+          }
+        }
+
 
         this.fire( "ready" );
         requestAnimationFrame( this.animate );
@@ -393,7 +407,7 @@ Primrose.VRApplication = ( function () {
     this.ctrls.goRegular.addEventListener( "click", function () {
       requestFullScreen( this.ctrls.frontBuffer );
       this.inVR = false;
-      this.setSize();      
+      this.setSize();
     }.bind(this));
     this.ctrls.goVR.addEventListener( "click", function ( ) {
       requestFullScreen( this.ctrls.frontBuffer, this.vrDisplay );

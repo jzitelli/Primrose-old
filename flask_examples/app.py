@@ -11,7 +11,7 @@ app = Flask(__name__, static_folder=PRIMROSE_ROOT, static_url_path='')
 
 @app.route("/")
 def simple_app():
-    return render_template("index.html", title="Simple App")
+    return render_template("app_simple.html", title="Simple App")
 
 @app.route("/terrain")
 def terrain_demo():

@@ -171,7 +171,12 @@ function StartDemo ( ) {
        skyBox: skyBox,
        skyBoxPosition: skyBoxPosition,
        floor: floor,
-       terrain: terrain}
+       terrain: terrain,
+       editors: [{id: 'editor0',
+                  w: 2, h: 2,
+                  x: 0, y: 4, z: 0,
+                  rx: 0, ry: 0, rz: 0,
+                  options: {file: "editor 0 initial contents"}}]}
   );
 
   var btns = [];
