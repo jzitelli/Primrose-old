@@ -86,11 +86,12 @@ function generateTexture( data, width, height ) {
   context.putImageData( image, 0, 0 );
 
   // Scaled 4x
+  var scale = 16;
   canvasScaled = document.createElement( 'canvas' );
-  canvasScaled.width = width * 4;
-  canvasScaled.height = height * 4;
+  canvasScaled.width = width * scale;
+  canvasScaled.height = height * scale;
   context = canvasScaled.getContext( '2d' );
-  context.scale( 4, 4 );
+  context.scale( scale, scale );
   context.drawImage( canvas, 0, 0 );
   image = context.getImageData( 0, 0, canvasScaled.width, canvasScaled.height );
   imageData = image.data;
@@ -121,7 +122,7 @@ texture.needsUpdate = true;
 var terrain = new THREE.Mesh(
   geometry,
   new THREE.MeshLambertMaterial( { side: THREE.DoubleSide, map: texture } )); //, color: 0xefef00 } ));
-terrain.scale.set(0.1, 0.1, 0.1);
+terrain.scale.set(0.01, 0.1, 0.01);
 terrain.position.y -= 0.4; //set(0, 0.1, 0);
 
   //color: 0xefef00 } )); //map: texture } ) );
@@ -139,8 +140,7 @@ terrain.position.y -= 0.4; //set(0, 0.1, 0);
 
 
 var sceneModel = $.QueryString['sceneModel']
-  || "flask_examples/models/scene.json";
-
+  || "flask_examples/models/scene2.json";
 var skyBoxTexture = $.QueryString['skyBoxTexture']
   || "flask_examples/images/pana1.jpg";
 

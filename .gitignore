@@ -77,7 +77,9 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
 *.py~
 *.pyc
 flask_examples/models/ConfigUtilDeskScene.tga
 flask_examples/models/ConfigUtilDeskScene.xml
+*.js~
