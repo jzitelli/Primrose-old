@@ -64,8 +64,6 @@ Primrose.VRApplication = ( function () {
 
     this.floor = this.options.floor || null;
 
-    this.terrain = this.options.terrain || null;
-
     this.pickingScene = new THREE.Scene();
 
     //
@@ -317,22 +315,6 @@ Primrose.VRApplication = ( function () {
         if (this.floor) {
           this.scene.add(this.floor);
         }
-        if (this.terrain) {
-          console.log("adding terrain mesh");
-          this.scene.add(this.terrain);
-        }
-        if (this.options.editors) {
-          for (var i = 0; i < this.options.editors.length; ++i) {
-            var editorConfig = this.options.editors[i];
-            makeEditor(this.scene, this.pickingScene,
-              editorConfig.id,
-              editorConfig.w, editorConfig.h,
-              editorConfig.x, editorConfig.y, editorConfig.z,
-              editorConfig.rx, editorConfig.ry, editorConfig.rz,
-              editorConfig.options);
-          }
-        }
-
 
         this.fire( "ready" );
         requestAnimationFrame( this.animate );
@@ -633,7 +615,8 @@ Primrose.VRApplication = ( function () {
       }
     }
 
-    this.glove.readContacts( this.world.contacts );
+    // this.glove.readContacts( this.world.contacts );
+    
     for ( j = 0; j < this.buttons.length; ++j ) {
       this.buttons[j].readContacts( this.world.contacts );
     }

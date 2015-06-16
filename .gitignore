@@ -1,5 +1,14 @@
 dist
 flask_examples/sounds
+flask_examples/shaders
+flask_examples/textures
+*.py~
+*.pyc
+flask_examples/models/ConfigUtilDeskScene.tga
+flask_examples/models/ConfigUtilDeskScene.xml
+*.js~
+
+
 
 # Logs
 logs
@@ -77,9 +86,3 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
-
-*.py~
-*.pyc
-flask_examples/models/ConfigUtilDeskScene.tga
-flask_examples/models/ConfigUtilDeskScene.xml
-*.js~
