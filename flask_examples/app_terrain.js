@@ -1,92 +1,49 @@
-// see http://stackoverflow.com/a/3855394:
-(function($) {
-    $.QueryString = (function(a) {
-        if (a == "") return {};
-        var b = {};
-        for (var i = 0; i < a.length; ++i)
-        {
-            var p=a[i].split('=');
-            if (p.length != 2) continue;
-            b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
-        }
-        return b;
-    })(window.location.search.substr(1).split('&'))
-})(jQuery);
-
-var qd = {};
-location.search.substr(1).split("&").forEach(function(item) {var k = item.split("=")[0], v = decodeURIComponent(item.split("=")[1]); (k in qd) ? qd[k].push(v) : qd[k] = [v]});
-
-
-
-
-
-
-var worldWidth = 256, worldDepth = 256,
-worldHalfWidth = worldWidth / 2, worldHalfDepth = worldDepth / 2;
+var worldWidth = 256,
+    worldDepth = 256,
+    worldHalfWidth = worldWidth / 2, worldHalfDepth = worldDepth / 2;
 
 var clock = new THREE.Clock();
 
-
 function generateHeight( width, height ) {
-
   var size = width * height, data = new Uint8Array( size ),
   perlin = new ImprovedNoise(), quality = 1, z = Math.random() * 100;
-
   for ( var j = 0; j < 4; j ++ ) {
-
     for ( var i = 0; i < size; i ++ ) {
-
       var x = i % width, y = ~~ ( i / width );
       data[ i ] += Math.abs( perlin.noise( x / quality, y / quality, z ) * quality * 1.75 );
-
     }
-
     quality *= 5;
-
   }
-
   return data;
-
 }
 
 function generateTexture( data, width, height ) {
-
   var canvas, canvasScaled, context, image, imageData,
   level, diff, vector3, sun, shade;
-
   vector3 = new THREE.Vector3( 0, 0, 0 );
-
   sun = new THREE.Vector3( 1, 1, 1 );
   sun.normalize();
-
   canvas = document.createElement( 'canvas' );
   canvas.width = width;
   canvas.height = height;
-
   context = canvas.getContext( '2d' );
   context.fillStyle = '#000';
   context.fillRect( 0, 0, width, height );
-
   image = context.getImageData( 0, 0, canvas.width, canvas.height );
   imageData = image.data;
-
   for ( var i = 0, j = 0, l = imageData.length; i < l; i += 4, j ++ ) {
-
     vector3.x = data[ j - 2 ] - data[ j + 2 ];
     vector3.y = 2;
     vector3.z = data[ j - width * 2 ] - data[ j + width * 2 ];
     vector3.normalize();
-
     shade = vector3.dot( sun );
-
     imageData[ i ] = ( 96 + shade * 128 ) * ( 0.5 + data[ j ] * 0.007 );
     imageData[ i + 1 ] = ( 32 + shade * 96 ) * ( 0.5 + data[ j ] * 0.007 );
     imageData[ i + 2 ] = ( shade * 96 ) * ( 0.5 + data[ j ] * 0.007 );
   }
   context.putImageData( image, 0, 0 );
 
-  // Scaled 4x
-  var scale = 16;
+  var scale = 4;
   canvasScaled = document.createElement( 'canvas' );
   canvasScaled.width = width * scale;
   canvasScaled.height = height * scale;
@@ -109,28 +66,20 @@ var data = generateHeight( worldWidth, worldDepth );
 var geometry = new THREE.PlaneBufferGeometry( 7500, 7500, worldWidth - 1, worldDepth - 1 );
 geometry.applyMatrix( new THREE.Matrix4().makeRotationX( - Math.PI / 2 ) );
 var vertices = geometry.attributes.position.array;
-
-var datamin = Math.min.apply(Math, data),
-    datamax = Math.max.apply(Math, data);
-console.log("datamax, datamin:", datamax, datamin);
-
 for ( var i = 0, j = 0, l = vertices.length; i < l; i ++, j += 3 ) {
-  vertices[ j + 1 ] = data[ i ]; // * 10;
+  vertices[ j + 1 ] = data[ i ];
 }
 var texture = new THREE.Texture( generateTexture( data, worldWidth, worldDepth ), THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping );
 texture.needsUpdate = true;
 var terrain = new THREE.Mesh(
   geometry,
-  new THREE.MeshLambertMaterial( { side: THREE.DoubleSide, map: texture } )); //, color: 0xefef00 } ));
-terrain.scale.set(0.01, 0.1, 0.01);
-terrain.position.y -= 0.4; //set(0, 0.1, 0);
-
-  //color: 0xefef00 } )); //map: texture } ) );
-
-
-
-
-
+  new THREE.MeshLambertMaterial( { side: THREE.DoubleSide, map: texture} ));
+geometry.computeBoundingBox();
+var yScale = 8 / (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
+terrain.scale.set(30 / (geometry.boundingBox.max.x - geometry.boundingBox.min.x),
+  yScale,
+  30 / (geometry.boundingBox.max.z - geometry.boundingBox.min.z));
+terrain.position.y -= yScale * (geometry.boundingBox.max.y + geometry.boundingBox.min.y) / 2;
 
 
 
@@ -141,9 +90,9 @@ terrain.position.y -= 0.4; //set(0, 0.1, 0);
 
 var sceneModel = $.QueryString['sceneModel']
   || "flask_examples/models/scene2.json";
+
 var skyBoxTexture = $.QueryString['skyBoxTexture']
   || "flask_examples/images/pana1.jpg";
-
 var skyBoxPosition = qd['skyBoxPosition'];
 if (skyBoxPosition) {
   skyBoxPosition = skyBoxPosition.map(
@@ -192,11 +141,6 @@ var gridY = $.QueryString['gridY'] || 0;
 var gridZ = $.QueryString['gridZ'] || 0;
 
 var backgroundSound = $.QueryString['backgroundSound'];
-
-
-
-
-
 
 
 

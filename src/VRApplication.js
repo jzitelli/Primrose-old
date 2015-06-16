@@ -171,7 +171,7 @@ Primrose.VRApplication = ( function () {
         integrate: true, deadzone: 0.3
       },
       { name: "dheading", commands: [ "heading" ], delta: true },
-      { name: "pitch", axes: [ Primrose.Input.Gamepad.RSY ], integrate: true }
+      { name: "pitch", axes: [ Primrose.Input.Gamepad.RSY ], integrate: true, deadzone: 0.3 }
     ] );
       // { name: "jump", buttons: [ Primrose.Input.Gamepad. ],
       //   commandDown: this.jump.bind( this ), dt: 0.5 }
@@ -390,9 +390,11 @@ Primrose.VRApplication = ( function () {
         new THREE.Vector3( 0, 3, 2 ),
         this.avatarHeight / 2, true );
 
-    this.ctrls.goRegular.addEventListener( "click", requestFullScreen.bind(
-        window,
-        this.ctrls.frontBuffer ) );
+    this.ctrls.goRegular.addEventListener( "click", function () {
+      requestFullScreen( this.ctrls.frontBuffer );
+      this.inVR = false;
+      this.setSize();      
+    }.bind(this));
     this.ctrls.goVR.addEventListener( "click", function ( ) {
       requestFullScreen( this.ctrls.frontBuffer, this.vrDisplay );
       this.inVR = true;
@@ -575,8 +577,13 @@ Primrose.VRApplication = ( function () {
     drive = this.keyboard.getValue( "driveBack" ) +
         this.keyboard.getValue( "driveForward" ) +
         this.gamepad.getValue( "drive" );
+    heading = this.gamepad.getValue("heading"); // + this.mouse.getValue("heading");
 
-    heading = this.gamepad.getValue("heading");
+    // var pitch = this.gamepad.getValue( "pitch" );
+    // var fly = drive * Math.sin(pitch);
+    // if (this.inVR) {
+    //   this.currentUser.velocity.y = this.currentUser.velocity.y * 0.9 + fly * 0.1;
+    // }
 
     if ( this.onground ) {
       if ( strafe || drive ) {
@@ -596,6 +603,7 @@ Primrose.VRApplication = ( function () {
           strafe * 0.1;
       this.currentUser.velocity.z = this.currentUser.velocity.z * 0.9 +
           drive * 0.1;
+
       this.currentUser.quaternion.setFromAxisAngle( UP, heading );
     }
 
