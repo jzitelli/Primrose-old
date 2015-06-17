@@ -89,15 +89,16 @@ function StartDemo() {
                 w: 2,
                 h: 2,
                 x: 0,
-                y: 4,
-                z: 0,
+                y: 8,
+                z: -3,
                 rx: 0,
                 ry: 0,
                 rz: 0,
                 options: {
                     file: "",
                     filename: "editor0.js"
-                }
+                },
+                scale: 3
             }, {
                 id: 'editor1',
                 w: 2,
@@ -106,13 +107,14 @@ function StartDemo() {
                 y: 4,
                 z: 0,
                 rx: 0,
-                ry: Math.PI / 8,
+                ry: Math.PI / 4,
                 rz: 0,
                 options: {
                     file: "",
                     filename: "editor1.py"
                 },
-                hudx: -2,
+                scale: 2,
+                hudx: -4,
                 hudy: 0.5,
                 hudz: -2
             }, {
@@ -123,12 +125,13 @@ function StartDemo() {
                 y: 4,
                 z: 0,
                 rx: 0,
-                ry: -Math.PI / 8,
+                ry: -Math.PI / 4,
                 rz: 0,
+                scale: 2,
                 options: {
-                    file: "" //Q: toggle HUD\nP: reset position\nF: focus nearest editor\nR: VR recenter"
+                    file: "// Q: toggle HUD\n// P: reset position\n// F: focus nearest editor\n// R: VR recenter"
                 },
-                hudx: 2,
+                hudx: 4,
                 hudy: 0.5,
                 hudz: -2
             }]
@@ -292,6 +295,7 @@ var TerrainApplication = (function() {
     var log_meshes = [];
     var log_displayed = [];
     var buffsize = 10;
+
     function log(msg) {
         var mesh;
         var size = 0.5;
@@ -332,7 +336,44 @@ var TerrainApplication = (function() {
         Primrose.VRApplication.call(this, name, sceneModel, buttonModel, buttonOptions,
             avatarHeight, walkSpeed, options);
 
+        var pointerX, pointerY;
         // do more things...
+        this.setPointer = function (x, y) {
+            pointerX = x;
+            pointerY = ctrls.output.height - y;
+            mouse.set(2 * (x / ctrls.output.width) - 1, -2 * (y /
+                ctrls.output.height) + 1);
+            raycaster.setFromCamera(mouse, camera);
+            currentObject = null;
+            currentEditor = null;
+            var objects = raycaster.intersectObject(scene, true);
+            var firstObj = objects.length > 0 && objects[0].object;
+            if (firstObj === sky || firstObj === floor) {
+                pointer.position.copy(raycaster.ray.direction);
+                pointer.position.multiplyScalar(3);
+                pointer.position.add(raycaster.ray.origin);
+            } else {
+                for (var i = 0; i < objects.length; ++i) {
+                    var obj = objects[i];
+                    if (obj.object !== pointer) {
+                        try {
+                            pointer.position.set(0, 0, 0);
+                            pointer.lookAt(obj.face.normal);
+                            pointer.position.copy(obj.point);
+                            currentObject = obj.object;
+                            for (var j = 0; j < editor_geoms.length; ++j) {
+                                if (currentObject === editor_geoms[j]) {
+                                    currentEditor = editors[j];
+                                    break;
+                                }
+                            }
+                            break;
+                        } catch (exp) {}
+                    }
+                }
+            }
+        }
+
         function waitForResources(t) {
             this.lt = t;
             if (this.camera && this.scene && this.currentUser &&
@@ -346,6 +387,11 @@ var TerrainApplication = (function() {
                 scene = this.scene;
                 camera = this.camera;
                 hudGroup = this.hudGroup;
+
+                log("Instructions:");
+                log("P: reset position");
+                log("Alt + N: focus next editor");
+                log("Alt + Q: toggle HUD");
 
                 this.animate = this.animate.bind(this);
 
@@ -380,6 +426,11 @@ var TerrainApplication = (function() {
                             editorConfig.x, editorConfig.y, editorConfig.z,
                             editorConfig.rx, editorConfig.ry, editorConfig.rz,
                             editorConfig.options);
+                        if (editorConfig.scale) {
+                            mesh.scale.x *= editorConfig.scale;
+                            mesh.scale.y *= editorConfig.scale;
+                            mesh.scale.z *= editorConfig.scale;
+                        }
                         var editor = mesh.editor;
                         this.currentEditor = editor;
                         if (editorConfig.options.filename) {
@@ -388,10 +439,7 @@ var TerrainApplication = (function() {
                             }).
                             done(function(data) {
                                 console.log("loaded " + data.args.filename);
-                                console.log(editor);
-                                console.log(data.value);//editor.getLines().join('\n'));
                                 this.value = '' + data.value;
-                                //this. //overwriteText(data.value);
                             }.bind(editor)).
                             fail(function() {
                                 console.log("problem!!!");
@@ -424,36 +472,76 @@ var TerrainApplication = (function() {
     }
     inherit(TerrainApplication, Primrose.VRApplication);
 
-    TerrainApplication.prototype.evalEditor = function () {
+    TerrainApplication.prototype.evalEditor = function() {
         if (this.currentEditor) {
-          this.currentEditor.blur();
-          console.log("editor contents to eval:");
-          console.log(this.currentEditor.getLines().join(''));
-          try {
-            console.log("trying javascript eval...");
-            eval(this.currentEditor.getLines().join(''));
-          } catch (exp) {
-            console.log("caught javascript exception:");
-            console.log(exp.message);
-            console.log("trying python exec...");
-            $.ajax({
+            this.currentEditor.blur();
+            console.log("editor contents to eval:");
+            console.log(this.currentEditor.getLines().join(''));
+            try {
+                console.log("trying javascript eval...");
+                eval(this.currentEditor.getLines().join(''));
+            } catch (exp) {
+                console.log("caught javascript exception:");
+                console.log(exp.message);
+                console.log("trying python exec...");
+                $.ajax({
                     url: '/python_eval?pystr=' + this.currentEditor.getLines().join('%0A')
-            })
-            .done(function(data) {
-                var lines = data.out.split('\n');
-                for (var i = 0; i < lines.length; ++i) {
-                    console.log(lines[i]);
-                }
-                console.log("");
-                console.log("python returned:");
-                console.log(data.value);
-            })
-            .fail(function(jqXHR, textStatus) {
-                console.log(textStatus);
-            });
-          }
+                })
+                    .done(function(data) {
+                        var lines = data.out.split('\n');
+                        for (var i = 0; i < lines.length; ++i) {
+                            console.log(lines[i]);
+                        }
+                        console.log("");
+                        console.log("python returned:");
+                        console.log(data.value);
+                    })
+                    .fail(function(jqXHR, textStatus) {
+                        console.log(textStatus);
+                    });
+            }
         }
     };
 
-    return TerrainApplication;
+  TerrainApplication.prototype.enterFreeMode = function () {
+    if (this.currentEditor) {
+      this.currentEditor.blur();
+    }
+    // for (var i = 0; i < this.editors.length; ++i) {
+    // }
+  };
+
+  TerrainApplication.prototype.focusNearestEditor = function () {
+    if (this.currentEditor) {
+      if (this.currentEditor.focused) {
+        this.currentEditor.blur();
+      } else {
+        this.currentEditor.focus();
+        this.currentUser.velocity.set(0,0,0);
+      }
+    }
+    // for (var i = 0; i < this.editors.length; ++i) {
+    // }
+  };
+
+  TerrainApplication.prototype.focusNextEditor = function () {
+    if (this.currentEditor) {
+      this.currentEditor.blur();
+    }
+    for (var i = 0; i < this.editors.length; ++i) {
+      var editor = this.editors[i];
+      if (editor === this.currentEditor) {
+        if (i === this.editors.length - 1) {
+          this.currentEditor = this.editors[0];
+        } else {
+          this.currentEditor = this.editors[i+1];
+        }
+        break;
+      }
+    }
+    this.focusNearestEditor();
+    // this.currentEditor.focus();
+  };
+
+  return TerrainApplication;
 })();

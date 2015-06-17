@@ -320,80 +320,15 @@ Primrose.VRApplication = ( function () {
 
         this.animate = this.animate.bind( this );
 
-        // this.glove = new Primrose.Output.HapticGlove( {
-        //   scene: this.scene,
-        //   camera: this.camera
-        // }, 5, 5, 9080 );
-        // for ( var i = 0; i < this.glove.numJoints; ++i ) {
-        //   var s = textured( sphere( 0.1, 8, 8 ), 0xff0000 >> i );
-        //   this.scene.add( s );
-        //   this.glove.addTip( makeBall.call( this, s ) );
-        // }
-
-        if (this.floor) {
-          this.scene.add(this.floor);
-        }
-        if (this.pointer) {
-          this.scene.add(this.pointer);
-        }
-        if (this.skyBox) {
-          this.scene.add(this.skyBox);
-        }
-        if (this.terrain) {
-            this.scene.add(this.terrain);
-        }
-        if (this.pointer) {
-          this.scene.add(this.pointer);
-        }
-        if (this.hudGroup) {
-            this.scene.add(this.hudGroup);
-        }
-
-        if (this.options.editors) {
-            for (var i = 0; i < this.options.editors.length; ++i) {
-                var editorConfig = this.options.editors[i];
-                editorConfig.options = editorConfig.options || {};
-                editorConfig.options.autoBindEvents = true;
-                //editorConfig.options.keyEventSource = window;
-                var mesh = makeEditor(this.scene, this.pickingScene,
-                    editorConfig.id,
-                    editorConfig.w, editorConfig.h,
-                    editorConfig.x, editorConfig.y, editorConfig.z,
-                    editorConfig.rx, editorConfig.ry, editorConfig.rz,
-                    editorConfig.options);
-                var editor = mesh.editor;
-
-                var success = function (data) {
-                  console.log("loaded " + data.args.filename);
-                  this.overwriteText(data.value);
-                }.bind(editor);
-
-                if (editorConfig.options.filename) {
-                  $.ajax({
-                      url: "/read?filename=" + editorConfig.options.filename
-                  }).
-                  done(function(data) {
-                    success(data);
-                  }).
-                  fail(function() {
-                      console.log("problem!!!");
-                  });
-                }
-
-                this.editors.push(mesh.editor);
-                if (editorConfig.hudx || editorConfig.hudy || editorConfig.hudz) {
-                  var hudMesh = mesh.clone();
-                  hudMesh.position.set(
-                    editorConfig.hudx || 0,
-                    editorConfig.hudy || 0,
-                    editorConfig.hudz || 0
-                    );
-                  this.hudGroup.add(hudMesh);
-                  this.hudEditors.push(mesh.editor);
-                }
-                this.currentEditor = mesh.editor;
-            }
-        }
+        this.glove = new Primrose.Output.HapticGlove( {
+            scene: this.scene,
+            camera: this.camera
+          }, 5, 5, 9080 );
+          for ( var i = 0; i < this.glove.numJoints; ++i ) {
+            var s = textured( sphere( 0.1, 8, 8 ), 0xff0000 >> i );
+            this.scene.add( s );
+            this.glove.addTip( makeBall.call( this, s ) );
+          }
 
         this.fire( "ready" );
         requestAnimationFrame( this.animate );
