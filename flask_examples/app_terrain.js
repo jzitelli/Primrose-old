@@ -49,125 +49,14 @@ var options = {
         hudz: -3
     }, {
         id: 'editor2',
-        w: 2,
-        h: 2,
-        x: 8,
-        y: 4,
-        z: 0,
-        rx: 0,
-        ry: -Math.PI / 4,
-        rz: 0,
-        scale: 2,
+        w: 4, h: 4, x: 8, y: 6, z: 0,
+        rx: 0, ry: -Math.PI / 4, rz: 0,
         options: {
-            file: "// Q: toggle HUD\n// P: reset position\n// F: focus nearest editor\n// R: VR recenter"
+            filename: "terrain.js"
         },
-        hudx: 4,
-        hudy: 0.5,
-        hudz: -3
-        }]
+        scale: 2,
+    }]
 };
-
-var worldWidth = 512,
-    worldDepth = 512,
-    worldHalfWidth = worldWidth / 2,
-    worldHalfDepth = worldDepth / 2;
-
-var clock = new THREE.Clock();
-
-function generateHeight(width, height) {
-    var size = width * height,
-        data = new Uint8Array(size),
-        perlin = new ImprovedNoise(),
-        quality = 1,
-        z = Math.random() * 100;
-    for (var j = 0; j < 4; j++) {
-        for (var i = 0; i < size; i++) {
-            var x = i % width,
-                y = ~~ (i / width);
-            data[i] += Math.abs(perlin.noise(x / quality, y / quality, z) * quality * 1.75);
-        }
-        quality *= 5;
-    }
-    return data;
-}
-
-function generateTexture(data, width, height) {
-    var canvas, canvasScaled, context, image, imageData,
-        level, diff, vector3, sun, shade;
-    vector3 = new THREE.Vector3(0, 0, 0);
-    sun = new THREE.Vector3(1, 1, 1);
-    sun.normalize();
-    canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    context = canvas.getContext('2d');
-    context.fillStyle = '#000';
-    context.fillRect(0, 0, width, height);
-    image = context.getImageData(0, 0, canvas.width, canvas.height);
-    imageData = image.data;
-    for (var i = 0, j = 0, l = imageData.length; i < l; i += 4, j++) {
-        vector3.x = data[j - 2] - data[j + 2];
-        vector3.y = 2;
-        vector3.z = data[j - width * 2] - data[j + width * 2];
-        vector3.normalize();
-        shade = vector3.dot(sun);
-        imageData[i] = (96 + shade * 128) * (0.5 + data[j] * 0.007);
-        imageData[i + 1] = (32 + shade * 96) * (0.5 + data[j] * 0.007);
-        imageData[i + 2] = (shade * 96) * (0.5 + data[j] * 0.007);
-    }
-    context.putImageData(image, 0, 0);
-
-    var scale = 1;
-    canvasScaled = document.createElement('canvas');
-    canvasScaled.width = width * scale;
-    canvasScaled.height = height * scale;
-    context = canvasScaled.getContext('2d');
-    context.scale(scale, scale);
-    context.drawImage(canvas, 0, 0);
-    image = context.getImageData(0, 0, canvasScaled.width, canvasScaled.height);
-    imageData = image.data;
-    for (var i = 0, l = imageData.length; i < l; i += 4) {
-        var v = ~~ (Math.random() * 5);
-        imageData[i] += v;
-        imageData[i + 1] += v;
-        imageData[i + 2] += v;
-    }
-    context.putImageData(image, 0, 0);
-    return canvasScaled;
-}
-
-var data = generateHeight(worldWidth, worldDepth);
-var geometry = new THREE.PlaneBufferGeometry(7500, 7500, worldWidth - 1, worldDepth - 1);
-geometry.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
-var vertices = geometry.attributes.position.array;
-for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
-    vertices[j + 1] = data[i];
-}
-
-//var texture = new THREE.Texture(generateTexture(data, worldWidth, worldDepth), THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping);
-//texture.needsUpdate = true;
-var terrain = new THREE.Mesh(
-    geometry,
-    new THREE.MeshLambertMaterial({
-        side: THREE.DoubleSide,
-        color: 0x112288
-    }));
-// new THREE.MeshLambertMaterial({
-//     side: THREE.DoubleSide,
-//     map: texture
-// }));
-geometry.computeBoundingBox();
-var yScale = 7 / (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
-terrain.scale.set(30 / (geometry.boundingBox.max.x - geometry.boundingBox.min.x),
-    yScale,
-    30 / (geometry.boundingBox.max.z - geometry.boundingBox.min.z));
-geometry.computeBoundingBox();
-terrain.position.y = 0; //10 + -0.5 * (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
-
-geometry.computeFaceNormals();
-geometry.computeVertexNormals();
-
-options.terrain = terrain;
 
 /* global isOSX, Primrose, THREE, isMobile, requestFullScreen */
 var DEBUG_VR = false;

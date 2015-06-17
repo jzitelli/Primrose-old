@@ -1,7 +1,10 @@
-var options = {backgroundColor: 0x9fefcf};
-
 sceneModel = $.QueryString['sceneModel']
   || "flask_examples/models/scene.json";
+
+var options = {gravity: 4, backgroundColor: 0x9fefcf};
+
+options.backgroundSound = $.QueryString['backgroundSound']
+  || 'examples/audio/title.ogg';
 
 options.skyBoxPosition = qd['skyBoxPosition'];
 if (options.skyBoxPosition) {
@@ -53,13 +56,9 @@ if (floorLength || floorWidth) {
   options.floor = floor;
 }
 
-
 options.gridX = $.QueryString['gridX'];
 options.gridY = $.QueryString['gridY'];
 options.gridZ = $.QueryString['gridZ'];
-
-options.backgroundSound = $.QueryString['backgroundSound']
-  || 'examples/audio/title.ogg';
 
 /* global isOSX, Primrose, THREE, isMobile, requestFullScreen */
 
