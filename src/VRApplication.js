@@ -61,14 +61,21 @@ Primrose.VRApplication = ( function () {
 
     this.skyBox = this.options.skyBox || null;
     this.skyBoxPosition = this.options.skyBoxPosition || [0,0,0];
-
     this.floor = this.options.floor || null;
-
     this.pickingScene = new THREE.Scene();
+    this.fog = this.options.fog;
+    this.hudGroup = this.options.hudGroup || new THREE.Group();
+    this.pointer = textured(sphere(0.02, 4, 2), 0xff0000, true);
+    this.terrain = this.options.terrain;
+
+    this.editors = [];
+    this.hudEditors = [];
+    this.currentEditor;
 
     //
     // keyboard input
     //
+
     this.keyboard = new Primrose.Input.Keyboard( "keyboard", window, [
       { name: "strafeLeft", buttons: [ -Primrose.Input.Keyboard.A,
           -Primrose.Input.Keyboard.LEFTARROW ] },
@@ -82,6 +89,22 @@ Primrose.VRApplication = ( function () {
         ] },
       { name: "jump", buttons: [ Primrose.Input.Keyboard.SPACEBAR ],
         commandDown: this.jump.bind( this ), dt: 0.5 },
+
+      { name: "toggleHUD", buttons: [ Primrose.Input.Keyboard.Q ],
+        commandDown: this.toggleHUD.bind( this ), dt: 0.25},
+
+      { name: "focusNearestEditor", buttons: [ Primrose.Input.Keyboard.F ],
+        commandDown: this.focusNearestEditor.bind( this ), dt: 0.25},
+      { name: "focusNextEditor", buttons: [ Primrose.Input.Keyboard.N ],
+        commandDown: this.focusNextEditor.bind( this ), dt: 0.25},
+      { name: "evalEditor", buttons: [ Primrose.Input.Keyboard.E ],
+        commandDown: this.evalEditor.bind( this ), dt: 1.0},
+
+      { name: "enterVR", buttons: [ Primrose.Input.Keyboard.V ],
+        commandDown: this.enterVR.bind(this), dt: 1.0},
+      { name: "recenterVR", buttons: [ Primrose.Input.Keyboard.R ],
+        commandDown: this.recenterVR.bind( this ), dt: 0.25},
+
       { name: "resetPosition", buttons: [ Primrose.Input.Keyboard.P ],
         commandUp: this.resetPosition.bind( this ) }
     ] );
@@ -297,23 +320,79 @@ Primrose.VRApplication = ( function () {
 
         this.animate = this.animate.bind( this );
 
-        this.glove = new Primrose.Output.HapticGlove( {
-          scene: this.scene,
-          camera: this.camera
-        }, 5, 5, 9080 );
-        for ( var i = 0; i < this.glove.numJoints; ++i ) {
-          var s = textured( sphere( 0.1, 8, 8 ), 0xff0000 >> i );
-          this.scene.add( s );
-          this.glove.addTip( makeBall.call( this, s ) );
+        // this.glove = new Primrose.Output.HapticGlove( {
+        //   scene: this.scene,
+        //   camera: this.camera
+        // }, 5, 5, 9080 );
+        // for ( var i = 0; i < this.glove.numJoints; ++i ) {
+        //   var s = textured( sphere( 0.1, 8, 8 ), 0xff0000 >> i );
+        //   this.scene.add( s );
+        //   this.glove.addTip( makeBall.call( this, s ) );
+        // }
+
+        if (this.floor) {
+          this.scene.add(this.floor);
         }
-
-
-
+        if (this.pointer) {
+          this.scene.add(this.pointer);
+        }
         if (this.skyBox) {
           this.scene.add(this.skyBox);
         }
-        if (this.floor) {
-          this.scene.add(this.floor);
+        if (this.terrain) {
+            this.scene.add(this.terrain);
+        }
+        if (this.pointer) {
+          this.scene.add(this.pointer);
+        }
+        if (this.hudGroup) {
+            this.scene.add(this.hudGroup);
+        }
+
+        if (this.options.editors) {
+            for (var i = 0; i < this.options.editors.length; ++i) {
+                var editorConfig = this.options.editors[i];
+                editorConfig.options = editorConfig.options || {};
+                editorConfig.options.autoBindEvents = true;
+                //editorConfig.options.keyEventSource = window;
+                var mesh = makeEditor(this.scene, this.pickingScene,
+                    editorConfig.id,
+                    editorConfig.w, editorConfig.h,
+                    editorConfig.x, editorConfig.y, editorConfig.z,
+                    editorConfig.rx, editorConfig.ry, editorConfig.rz,
+                    editorConfig.options);
+                var editor = mesh.editor;
+
+                var success = function (data) {
+                  console.log("loaded " + data.args.filename);
+                  this.overwriteText(data.value);
+                }.bind(editor);
+
+                if (editorConfig.options.filename) {
+                  $.ajax({
+                      url: "/read?filename=" + editorConfig.options.filename
+                  }).
+                  done(function(data) {
+                    success(data);
+                  }).
+                  fail(function() {
+                      console.log("problem!!!");
+                  });
+                }
+
+                this.editors.push(mesh.editor);
+                if (editorConfig.hudx || editorConfig.hudy || editorConfig.hudz) {
+                  var hudMesh = mesh.clone();
+                  hudMesh.position.set(
+                    editorConfig.hudx || 0,
+                    editorConfig.hudy || 0,
+                    editorConfig.hudz || 0
+                    );
+                  this.hudGroup.add(hudMesh);
+                  this.hudEditors.push(mesh.editor);
+                }
+                this.currentEditor = mesh.editor;
+            }
         }
 
         this.fire( "ready" );
@@ -366,6 +445,9 @@ Primrose.VRApplication = ( function () {
           this.skyBox.position.y += this.skyBoxPosition[1];
           this.skyBox.position.z += this.skyBoxPosition[2];
         }
+      }
+      if (this.hudGroup) {
+        this.hudGroup.position.copy(this.camera.position);
       }
 
       if ( this.inVR ) {
@@ -551,6 +633,52 @@ Primrose.VRApplication = ( function () {
     }
   };
 
+
+  VRApplication.prototype.toggleHUD = function () {
+    if (this.hudGroup) {
+      this.hudGroup.visible = !this.hudGroup.visible;
+      if (this.hudGroup.visible) {
+        $("#main").hide();
+      }
+    }
+  };
+
+  VRApplication.prototype.focusNearestEditor = function () {
+    if (this.currentEditor) {
+      this.currentEditor.focus();
+    }
+    // for (var i = 0; i < this.editors.length; ++i) {
+    // }
+  };
+
+  VRApplication.prototype.focusNextEditor = function () {
+    if (this.currentEditor) {
+      this.currentEditor.blur();
+    }
+    for (var i = 0; i < this.editors.length; ++i) {
+      var editor = this.editors[i];
+      if (editor === this.currentEditor) {
+        if (i === this.editors.length - 1) {
+          this.currentEditor = this.editors[0];
+        } else {
+          this.currentEditor = this.editors[i+1];
+        }
+        break;
+      }
+    }
+    this.currentEditor.focus();
+  };
+
+  VRApplication.prototype.enterVR = function () {
+      requestFullScreen( this.ctrls.frontBuffer, this.vrDisplay );
+      this.inVR = true;
+      this.setSize();
+  };
+
+  VRApplication.prototype.recenterVR = function () {
+    console.log("todo");
+  };
+
   var heading = 0,
       strafe,
       drive,
@@ -568,12 +696,13 @@ Primrose.VRApplication = ( function () {
     this.mouse.update( dt );
     this.gamepad.update( dt );
 
-    strafe = this.keyboard.getValue( "strafeRight" ) +
-        this.keyboard.getValue( "strafeLeft" ) +
-        this.gamepad.getValue( "strafe" );
-    drive = this.keyboard.getValue( "driveBack" ) +
-        this.keyboard.getValue( "driveForward" ) +
-        this.gamepad.getValue( "drive" );
+    strafe = this.gamepad.getValue( "strafe" );
+    drive = this.gamepad.getValue( "drive" );
+    if (!this.currentEditor || !this.currentEditor.focused) {
+      strafe += this.keyboard.getValue( "strafeRight" ) + this.keyboard.getValue( "strafeLeft" );
+      drive += this.keyboard.getValue( "driveBack" ) + this.keyboard.getValue( "driveForward" );
+    }
+
     heading = this.gamepad.getValue("heading"); // + this.mouse.getValue("heading");
 
     var floatSpeed = 0.75 * this.walkSpeed;

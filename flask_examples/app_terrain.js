@@ -1,5 +1,182 @@
-var worldWidth = 256,
-    worldDepth = 256,
+var DEBUG_APP = $.QueryString['debug']; //1;
+
+var sceneModel = $.QueryString['sceneModel'] || "flask_examples/models/scene2.json";
+
+var skyBoxTexture = $.QueryString['skyBoxTexture'] || "flask_examples/images/axes_1_b.png";
+var skyBoxPosition = qd['skyBoxPosition'];
+if (skyBoxPosition) {
+    skyBoxPosition = skyBoxPosition.map(
+        function(item) {
+            return parseFloat(item);
+        }
+    );
+} else {
+    skyBoxPosition = [0, 0, 0];
+}
+var skyBox = textured(
+    shell(70, 12, 7, Math.PI * 2, Math.PI / 1.666),
+    skyBoxTexture, true);
+
+var floorLength = $.QueryString['floorLength'];
+var floorWidth = $.QueryString['floorWidth'];
+var floorTexture = $.QueryString['floorTexture'];
+var floorTextureST = qd['floorTextureST'];
+if (floorTextureST) {
+    floorTextureST = floorTextureST.map(
+        function(item) {
+            return parseFloat(item);
+        }
+    );
+} else if (!floorTexture) {
+    floorTexture = 'examples/models/holodeck.png';
+    floorTextureST = [floorLength, floorWidth];
+} else {
+    floorTextureST = [1, 1];
+}
+var floorPosition = qd['floorPosition'];
+if (floorPosition) {
+    floorPosition = floorPosition.map(
+        function(item) {
+            return parseFloat(item);
+        }
+    );
+} else {
+    floorPosition = [0, 0.25, 0];
+}
+var floor;
+if (floorLength || floorWidth) {
+    floor = textured(
+        quad(floorLength || 1, floorWidth || 1),
+        floorTexture, false, 1, floorTextureST[0], floorTextureST[1]);
+    floor.rotation.set(Math.PI / 2, 0, 0); //x = Math.PI / 2;
+    floor.position.set(floorPosition[0], floorPosition[1], floorPosition[2]);
+}
+
+var gridX = $.QueryString['gridX'] || 0;
+var gridY = $.QueryString['gridY'] || 0;
+var gridZ = $.QueryString['gridZ'] || 0;
+
+var backgroundSound = $.QueryString['backgroundSound'];
+
+
+/* global isOSX, Primrose, THREE, isMobile, requestFullScreen */
+var DEBUG_VR = false;
+
+function StartDemo() {
+    "use strict";
+    var application = new TerrainApplication(
+        "Terrain Demo",
+        sceneModel,
+        "flask_examples/models/button.json", {
+            maxThrow: 0.1,
+            minDeflection: 10,
+            colorUnpressed: 0x7f0000,
+            colorPressed: 0x007f00,
+            toggle: true
+        },
+        3, 1.1, {
+            fog: new THREE.Fog(0x00ff00),
+            backgroundColor: 0x5fafbf,
+            gravity: 0.08,
+            drawDistance: 1000,
+            dtNetworkUpdate: 10,
+            skyBox: skyBox,
+            skyBoxPosition: skyBoxPosition,
+            floor: floor,
+            terrain: terrain,
+            editors: [{
+                id: 'editor0',
+                w: 2,
+                h: 2,
+                x: 0,
+                y: 4,
+                z: 0,
+                rx: 0,
+                ry: 0,
+                rz: 0,
+                options: {
+                    file: "",
+                    filename: "editor0.js"
+                }
+            }, {
+                id: 'editor1',
+                w: 2,
+                h: 2,
+                x: -8,
+                y: 4,
+                z: 0,
+                rx: 0,
+                ry: Math.PI / 8,
+                rz: 0,
+                options: {
+                    file: "",
+                    filename: "editor1.py"
+                },
+                hudx: -2,
+                hudy: 0.5,
+                hudz: -2
+            }, {
+                id: 'editor2',
+                w: 2,
+                h: 2,
+                x: 8,
+                y: 4,
+                z: 0,
+                rx: 0,
+                ry: -Math.PI / 8,
+                rz: 0,
+                options: {
+                    file: "" //Q: toggle HUD\nP: reset position\nF: focus nearest editor\nR: VR recenter"
+                },
+                hudx: 2,
+                hudy: 0.5,
+                hudz: -2
+            }]
+        }
+    );
+
+    var btns = [];
+    application.addEventListener("ready", function() {
+        for (var i = 0; i < 5; ++i) {
+            btns.push(application.makeButton());
+            btns[i].moveBy((i - 2) * 2, 0, -2);
+        }
+    });
+
+    var t = 0;
+    application.addEventListener("update", function(dt) {
+        t += dt;
+    });
+
+
+    var audio3d = new Primrose.Output.Audio3D();
+
+    function playSound(buffer, time) {
+        var source = audio3d.context.createBufferSource();
+        source.buffer = buffer;
+        source.connect(audio3d.context.destination);
+        source[source.start ? 'start' : 'noteOn'](time);
+    }
+
+    if (backgroundSound) {
+        audio3d.loadBuffer(
+            backgroundSound,
+            null,
+            function(buffer) {
+                playSound(buffer, 0);
+            }
+        );
+    }
+
+    application.start();
+    if (DEBUG_APP) {
+        $("#main").hide();
+    }
+}
+
+
+var worldWidth = 512,
+    worldDepth = 512,
     worldHalfWidth = worldWidth / 2,
     worldHalfDepth = worldDepth / 2;
 
@@ -75,20 +252,20 @@ for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
     vertices[j + 1] = data[i];
 }
 
-var texture = new THREE.Texture(generateTexture(data, worldWidth, worldDepth), THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping);
-texture.needsUpdate = true;
+//var texture = new THREE.Texture(generateTexture(data, worldWidth, worldDepth), THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping);
+//texture.needsUpdate = true;
 var terrain = new THREE.Mesh(
     geometry,
     new THREE.MeshLambertMaterial({
         side: THREE.DoubleSide,
-        color: 0x112244
+        color: 0x112288
     }));
-    // new THREE.MeshLambertMaterial({
-    //     side: THREE.DoubleSide,
-    //     map: texture
-    // }));
+// new THREE.MeshLambertMaterial({
+//     side: THREE.DoubleSide,
+//     map: texture
+// }));
 geometry.computeBoundingBox();
-var yScale = 10 / (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
+var yScale = 7 / (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
 terrain.scale.set(30 / (geometry.boundingBox.max.x - geometry.boundingBox.min.x),
     yScale,
     30 / (geometry.boundingBox.max.z - geometry.boundingBox.min.z));
@@ -102,219 +279,181 @@ geometry.computeVertexNormals();
 
 
 
+var TerrainApplication = (function() {
+    var logMaterial = new THREE.MeshBasicMaterial({
+        color: 0x00ff00,
+        side: THREE.DoubleSide
+    });
+    var scene;
+    var camera;
+    var hudGroup;
 
-
-var sceneModel = $.QueryString['sceneModel'] || "flask_examples/models/scene2.json";
-
-
-var skyBoxTexture = $.QueryString['skyBoxTexture'] || "flask_examples/images/pana1.jpg";
-var skyBoxPosition = qd['skyBoxPosition'];
-if (skyBoxPosition) {
-    skyBoxPosition = skyBoxPosition.map(
-        function(item) {
-            return parseFloat(item);
+    var log_msgs = [];
+    var log_meshes = [];
+    var log_displayed = [];
+    var buffsize = 10;
+    function log(msg) {
+        var mesh;
+        var size = 0.5;
+        log_msgs.push(msg);
+        if (log_msgs.slice(0, -1).indexOf(msg) > -1) {
+            mesh = log_meshes[log_msgs.indexOf(msg)].clone();
+        } else {
+            var height = 0.0; //height || size / 17;
+            var font = 'janda manatee solid';
+            var weight = 'normal';
+            var options = {
+                size: size,
+                height: height,
+                font: font,
+                weight: weight,
+                curveSegments: 3
+            };
+            var geometry = new THREE.TextGeometry(msg, options);
+            mesh = new THREE.Mesh(geometry, logMaterial);
         }
-    );
-} else {
-    skyBoxPosition = [0, 0, 0];
-}
-var skyBox = textured(
-    shell(200, 12, 7, Math.PI * 2, Math.PI / 1.666),
-    skyBoxTexture, true);
-
-
-var floorLength = $.QueryString['floorLength'];
-var floorWidth = $.QueryString['floorWidth'];
-var floorTexture = $.QueryString['floorTexture'];
-var floorTextureST = qd['floorTextureST'];
-if (floorTextureST) {
-    floorTextureST = floorTextureST.map(
-        function(item) {
-            return parseFloat(item);
+        log_meshes.push(mesh);
+        //hudGroup.add(mesh);
+        log_displayed.push(mesh);
+        scene.add(mesh);
+        if (log_displayed.length > buffsize) {
+            scene.remove(log_displayed.shift());
         }
-    );
-} else if (!floorTexture) {
-    floorTexture = 'examples/models/holodeck.png';
-    floorTextureST = [floorLength, floorWidth];
-} else {
-    floorTextureST = [1, 1];
-}
-var floorPosition = qd['floorPosition'];
-if (floorPosition) {
-    floorPosition = floorPosition.map(
-        function(item) {
-            return parseFloat(item);
+        for (var i = 0; i < log_displayed.length; ++i) {
+            mesh = log_displayed[i];
+            mesh.position.x = camera.position.x - 10.0;
+            mesh.position.z = camera.position.z - 10.0;
+            mesh.position.y = 10 + (log_displayed.length - i - 1) * 1.75 * size;
         }
-    );
-} else {
-    floorPosition = [0, 0.25, 0];
-}
-var floor;
-if (floorLength || floorWidth) {
-    floor = textured(
-        quad(floorLength || 1, floorWidth || 1),
-        floorTexture, false, 1, floorTextureST[0], floorTextureST[1]);
-    floor.rotation.set(Math.PI / 2, 0, 0); //x = Math.PI / 2;
-    floor.position.set(floorPosition[0], floorPosition[1], floorPosition[2]);
-}
-
-var gridX = $.QueryString['gridX'] || 0;
-var gridY = $.QueryString['gridY'] || 0;
-var gridZ = $.QueryString['gridZ'] || 0;
-
-var backgroundSound = $.QueryString['backgroundSound'];
-
-
-
-
-
-TerrainApplication = (function() {
+    }
 
     function TerrainApplication(name, sceneModel, buttonModel, buttonOptions,
         avatarHeight, walkSpeed, options) {
         Primrose.VRApplication.call(this, name, sceneModel, buttonModel, buttonOptions,
             avatarHeight, walkSpeed, options);
 
-        this.pointer = textured(sphere(0.01, 4, 2), 0xff0000, true);
-
+        // do more things...
         function waitForResources(t) {
             this.lt = t;
             if (this.camera && this.scene && this.currentUser &&
                 this.buttonFactory.template) {
+                this.setSize();
 
-                this.setSize( );
-                this.animate = this.animate.bind( this );
-
-                if (this.skyBox) {
-                  this.scene.add(this.skyBox);
+                if (this.passthrough) {
+                    this.camera.add(this.passthrough.mesh);
                 }
+
+                scene = this.scene;
+                camera = this.camera;
+                hudGroup = this.hudGroup;
+
+                this.animate = this.animate.bind(this);
+
                 if (this.floor) {
-                  this.scene.add(this.floor);
+                    this.scene.add(this.floor);
                 }
-                if (this.options.terrain) {
-                    this.scene.add(this.options.terrain);
+                if (this.pointer) {
+                    this.scene.add(this.pointer);
+                }
+                if (this.skyBox) {
+                    this.scene.add(this.skyBox);
+                }
+                if (this.terrain) {
+                    this.scene.add(this.terrain);
+                }
+                if (this.pointer) {
+                    this.scene.add(this.pointer);
+                }
+                if (this.hudGroup) {
+                    this.scene.add(this.hudGroup);
                 }
 
                 if (this.options.editors) {
                     for (var i = 0; i < this.options.editors.length; ++i) {
                         var editorConfig = this.options.editors[i];
-                        makeEditor(this.scene, this.pickingScene,
+                        editorConfig.options = editorConfig.options || {};
+                        editorConfig.options.autoBindEvents = true;
+                        //editorConfig.options.keyEventSource = window;
+                        var mesh = makeEditor(this.scene, this.pickingScene,
                             editorConfig.id,
                             editorConfig.w, editorConfig.h,
                             editorConfig.x, editorConfig.y, editorConfig.z,
                             editorConfig.rx, editorConfig.ry, editorConfig.rz,
                             editorConfig.options);
+                        var editor = mesh.editor;
+                        this.currentEditor = editor;
+                        if (editorConfig.options.filename) {
+                            $.ajax({
+                                url: "/read?filename=" + editorConfig.options.filename
+                            }).
+                            done(function(data) {
+                                console.log("loaded " + data.args.filename);
+                                console.log(editor);
+                                console.log(data.value);//editor.getLines().join('\n'));
+                                this.value = '' + data.value;
+                                //this. //overwriteText(data.value);
+                            }.bind(editor)).
+                            fail(function() {
+                                console.log("problem!!!");
+                            });
+                        }
+
+                        this.editors.push(mesh.editor);
+                        if (editorConfig.hudx || editorConfig.hudy || editorConfig.hudz) {
+                            var hudMesh = mesh.clone();
+                            hudMesh.position.set(
+                                editorConfig.hudx || 0,
+                                editorConfig.hudy || 0,
+                                editorConfig.hudz || 0
+                            );
+                            this.hudGroup.add(hudMesh);
+                            this.hudEditors.push(mesh.editor);
+                        }
+                        this.currentEditor = mesh.editor;
                     }
                 }
-
                 this.fire("ready");
                 requestAnimationFrame(this.animate);
             } else {
                 requestAnimationFrame(waitForResources.bind(this));
             }
         }
-
         this.start = function() {
             requestAnimationFrame(waitForResources.bind(this));
-        }
+        };
     }
-
     inherit(TerrainApplication, Primrose.VRApplication);
+
+    TerrainApplication.prototype.evalEditor = function () {
+        if (this.currentEditor) {
+          this.currentEditor.blur();
+          console.log("editor contents to eval:");
+          console.log(this.currentEditor.getLines().join(''));
+          try {
+            console.log("trying javascript eval...");
+            eval(this.currentEditor.getLines().join(''));
+          } catch (exp) {
+            console.log("caught javascript exception:");
+            console.log(exp.message);
+            console.log("trying python exec...");
+            $.ajax({
+                    url: '/python_eval?pystr=' + this.currentEditor.getLines().join('%0A')
+            })
+            .done(function(data) {
+                var lines = data.out.split('\n');
+                for (var i = 0; i < lines.length; ++i) {
+                    console.log(lines[i]);
+                }
+                console.log("");
+                console.log("python returned:");
+                console.log(data.value);
+            })
+            .fail(function(jqXHR, textStatus) {
+                console.log(textStatus);
+            });
+          }
+        }
+    };
 
     return TerrainApplication;
 })();
-
-
-/* global isOSX, Primrose, THREE, isMobile, requestFullScreen */
-
-var DEBUG_VR = false;
-
-function StartDemo() {
-    "use strict";
-    var application = new TerrainApplication(
-        "Terrain App",
-        sceneModel,
-        "flask_examples/models/button.json", {
-            maxThrow: 0.1,
-            minDeflection: 10,
-            colorUnpressed: 0x7f0000,
-            colorPressed: 0x007f00,
-            toggle: true
-        },
-        3, 1.1, {
-            backgroundColor: 0x5fafbf,
-            gravity: 0,
-            drawDistance: 1000,
-            dtNetworkUpdate: 10,
-            skyBox: skyBox,
-            skyBoxPosition: skyBoxPosition,
-            floor: floor,
-            terrain: terrain,
-            editors: [{
-                id: 'editor0',
-                w: 2,
-                h: 2,
-                x: 0,
-                y: 4,
-                z: 0,
-                rx: 0,
-                ry: 0,
-                rz: 0,
-                options: {
-                    file: "editor 0 initial contents"
-                }
-            }, {
-                id: 'editor1',
-                w: 2,
-                h: 2,
-                x: -8,
-                y: 4,
-                z: 0,
-                rx: 0,
-                ry: 0,
-                rz: 0,
-                options: {
-                    file: "editor 1 ishithshtishtistnitial contents"
-                },
-                hudx: 0,
-                hudy: 0,
-                hudz: 2
-            }]
-        }
-    );
-
-    var btns = [];
-    application.addEventListener("ready", function() {
-        for (var i = 0; i < 5; ++i) {
-            btns.push(application.makeButton());
-            btns[i].moveBy((i - 2) * 2, 0, -2);
-        }
-    });
-
-    var t = 0;
-    application.addEventListener("update", function(dt) {
-        t += dt;
-    });
-
-
-    var audio3d = new Primrose.Output.Audio3D();
-
-    function playSound(buffer, time) {
-        var source = audio3d.context.createBufferSource();
-        source.buffer = buffer;
-        source.connect(audio3d.context.destination);
-        source[source.start ? 'start' : 'noteOn'](time);
-    }
-
-    if (backgroundSound) {
-        audio3d.loadBuffer(
-            backgroundSound,
-            null,
-            function(buffer) {
-                playSound(buffer, 0);
-            }
-        );
-    }
-
-    application.start();
-}
