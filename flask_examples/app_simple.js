@@ -1,19 +1,24 @@
-var sceneModel = $.QueryString['sceneModel']
+var options = {backgroundColor: 0x9fefcf};
+
+sceneModel = $.QueryString['sceneModel']
   || "flask_examples/models/scene.json";
-var skyBoxTexture = $.QueryString['skyBoxTexture']
-  || "flask_examples/images/pana1.jpg";
-var skyBoxPosition = qd['skyBoxPosition'];
-if (skyBoxPosition) {
-  skyBoxPosition = skyBoxPosition.map(
+
+options.skyBoxPosition = qd['skyBoxPosition'];
+if (options.skyBoxPosition) {
+  options.skyBoxPosition = options.skyBoxPosition.map(
     function (item) { return parseFloat(item); }
   );
 } else {
-  skyBoxPosition = [0, 0, 0];
+  options.skyBoxPosition = [0, 0, 0];
 }
-var skyBox = textured(
-  shell(80, 12, 7, Math.PI * 2, Math.PI / 1.666),
-  skyBoxTexture, true);
 
+var skyBoxTexture = $.QueryString['skyBoxTexture']
+  || "flask_examples/images/pana1.jpg";
+if (skyBoxTexture) {
+  options.skyBox = textured(
+    shell(80, 12, 7, Math.PI * 2, Math.PI / 1.666),
+    skyBoxTexture, true);
+}
 
 var floor;
 var floorPosition = qd['floorPosition'];
@@ -45,16 +50,16 @@ if (floorLength || floorWidth) {
     floorTexture, false, 1, floorTextureST[0], floorTextureST[1]);
   floor.rotation.set(Math.PI / 2, 0, 0); //x = Math.PI / 2;
   floor.position.set(floorPosition[0], floorPosition[1], floorPosition[2]);
+  options.floor = floor;
 }
 
 
-var gridX = $.QueryString['gridX'] || 0;
-var gridY = $.QueryString['gridY'] || 0;
-var gridZ = $.QueryString['gridZ'] || 0;
+options.gridX = $.QueryString['gridX'];
+options.gridY = $.QueryString['gridY'];
+options.gridZ = $.QueryString['gridZ'];
 
-
-var backgroundSound = $.QueryString['backgroundSound'];
-
+options.backgroundSound = $.QueryString['backgroundSound']
+  || 'examples/audio/title.ogg';
 
 /* global isOSX, Primrose, THREE, isMobile, requestFullScreen */
 
@@ -62,7 +67,7 @@ var DEBUG_VR = false;
 
 function StartDemo ( ) {
   "use strict";
-  var application = new Primrose.VRApplication(
+  var application = new TerrainApplication(
       "Simple App",
       sceneModel,
       "flask_examples/models/button.json", {
@@ -73,10 +78,7 @@ function StartDemo ( ) {
         toggle: true
       },
       3, 1.1,
-      {backgroundColor: 0x9fefcf,
-       skyBox: skyBox,
-       skyBoxPosition: skyBoxPosition,
-       floor: floor}
+      options
   );
 
   var btns = [];
@@ -91,28 +93,6 @@ function StartDemo ( ) {
   application.addEventListener( "update", function ( dt ) {
     t += dt;
   } );
-
-
-  var audio3d = new Primrose.Output.Audio3D();
-  function playSound(buffer, time) {
-    var source = audio3d.context.createBufferSource();
-    source.buffer = buffer;
-    source.connect(audio3d.context.destination);
-    source[source.start ? 'start' : 'noteOn'](time);
-  }
-
-  if (backgroundSound) {
-    audio3d.loadBuffer(
-      // TODO:
-      // "flask_examples/sounds/backgroundmusic.ogg",
-      //"examples/audio/game1.ogg",
-      backgroundSound,
-      null,
-      function (buffer) {
-        playSound(buffer, 0);
-      }
-    );
-  }
 
   application.start();
 }

@@ -1,5 +1,7 @@
 var DEBUG_APP = $.QueryString['debug']; //1;
 
+var backgroundSound = $.QueryString['backgroundSound'];
+
 var sceneModel = $.QueryString['sceneModel'] || "flask_examples/models/scene2.json";
 
 var skyBoxTexture = $.QueryString['skyBoxTexture'] || "flask_examples/images/axes_1_b.png";
@@ -17,48 +19,8 @@ var skyBox = textured(
     shell(70, 12, 7, Math.PI * 2, Math.PI / 1.666),
     skyBoxTexture, true);
 
-var floorLength = $.QueryString['floorLength'];
-var floorWidth = $.QueryString['floorWidth'];
-var floorTexture = $.QueryString['floorTexture'];
-var floorTextureST = qd['floorTextureST'];
-if (floorTextureST) {
-    floorTextureST = floorTextureST.map(
-        function(item) {
-            return parseFloat(item);
-        }
-    );
-} else if (!floorTexture) {
-    floorTexture = 'examples/models/holodeck.png';
-    floorTextureST = [floorLength, floorWidth];
-} else {
-    floorTextureST = [1, 1];
-}
-var floorPosition = qd['floorPosition'];
-if (floorPosition) {
-    floorPosition = floorPosition.map(
-        function(item) {
-            return parseFloat(item);
-        }
-    );
-} else {
-    floorPosition = [0, 0.25, 0];
-}
-var floor;
-if (floorLength || floorWidth) {
-    floor = textured(
-        quad(floorLength || 1, floorWidth || 1),
-        floorTexture, false, 1, floorTextureST[0], floorTextureST[1]);
-    floor.rotation.set(Math.PI / 2, 0, 0); //x = Math.PI / 2;
-    floor.position.set(floorPosition[0], floorPosition[1], floorPosition[2]);
-}
-
-var gridX = $.QueryString['gridX'] || 0;
-var gridY = $.QueryString['gridY'] || 0;
-var gridZ = $.QueryString['gridZ'] || 0;
-
-var backgroundSound = $.QueryString['backgroundSound'];
-
 var options = {
+    backgroundSound: backgroundSound,
     fog: new THREE.Fog(0x00ff00),
     backgroundColor: 0x5fafbf,
     gravity: 0.08,
@@ -66,7 +28,6 @@ var options = {
     dtNetworkUpdate: 10,
     skyBox: skyBox,
     skyBoxPosition: skyBoxPosition,
-    floor: floor,
     editors: [{
         id: 'editor0',
         w: 2, h: 2, x: 0, y: 8, z: -3,
@@ -85,7 +46,7 @@ var options = {
         scale: 2,
         hudx: -4,
         hudy: 0.5,
-        hudz: -2
+        hudz: -3
     }, {
         id: 'editor2',
         w: 2,
@@ -102,68 +63,9 @@ var options = {
         },
         hudx: 4,
         hudy: 0.5,
-        hudz: -2
+        hudz: -3
         }]
 };
-
-/* global isOSX, Primrose, THREE, isMobile, requestFullScreen */
-var DEBUG_VR = false;
-
-function StartDemo() {
-    "use strict";
-    var application = new TerrainApplication(
-        "Terrain Demo",
-        sceneModel,
-        "flask_examples/models/button.json", {
-            maxThrow: 0.1,
-            minDeflection: 10,
-            colorUnpressed: 0x7f0000,
-            colorPressed: 0x007f00,
-            toggle: true
-        },
-        3, 1.1,
-        options
-    );
-
-    var btns = [];
-    application.addEventListener("ready", function() {
-        for (var i = 0; i < 5; ++i) {
-            btns.push(application.makeButton());
-            btns[i].moveBy((i - 2) * 2, 0, -2);
-        }
-    });
-
-    var t = 0;
-    application.addEventListener("update", function(dt) {
-        t += dt;
-    });
-
-
-    var audio3d = new Primrose.Output.Audio3D();
-
-    function playSound(buffer, time) {
-        var source = audio3d.context.createBufferSource();
-        source.buffer = buffer;
-        source.connect(audio3d.context.destination);
-        source[source.start ? 'start' : 'noteOn'](time);
-    }
-
-    if (backgroundSound) {
-        audio3d.loadBuffer(
-            backgroundSound,
-            null,
-            function(buffer) {
-                playSound(buffer, 0);
-            }
-        );
-    }
-
-    application.start();
-    if (DEBUG_APP) {
-        $("#main").hide();
-    }
-}
-
 
 var worldWidth = 512,
     worldDepth = 512,
@@ -215,7 +117,7 @@ function generateTexture(data, width, height) {
     }
     context.putImageData(image, 0, 0);
 
-    var scale = 4;
+    var scale = 1;
     canvasScaled = document.createElement('canvas');
     canvasScaled.width = width * scale;
     canvasScaled.height = height * scale;
@@ -266,3 +168,41 @@ geometry.computeFaceNormals();
 geometry.computeVertexNormals();
 
 options.terrain = terrain;
+
+/* global isOSX, Primrose, THREE, isMobile, requestFullScreen */
+var DEBUG_VR = false;
+
+function StartDemo() {
+    "use strict";
+    var application = new TerrainApplication(
+        "Terrain Demo",
+        sceneModel,
+        "flask_examples/models/button.json", {
+            maxThrow: 0.1,
+            minDeflection: 10,
+            colorUnpressed: 0x7f0000,
+            colorPressed: 0x007f00,
+            toggle: true
+        },
+        3, 1.1,
+        options
+    );
+
+    var btns = [];
+    application.addEventListener("ready", function() {
+        for (var i = 0; i < 5; ++i) {
+            btns.push(application.makeButton());
+            btns[i].moveBy((i - 2) * 2, 0, -2);
+        }
+    });
+
+    var t = 0;
+    application.addEventListener("update", function(dt) {
+        t += dt;
+    });
+
+    application.start();
+    if (DEBUG_APP) {
+        $("#main").hide();
+    }
+}

@@ -89,3 +89,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+primrose.sublime-workspace
+lib/jquery.js
+lib/Heather.min.js

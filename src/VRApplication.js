@@ -304,16 +304,6 @@ Primrose.VRApplication = ( function () {
         this.animate = this.animate.bind( this );
 
         this.glove = new Primrose.Output.HapticGlove( {
-// <<<<<<< HEAD
-//             scene: this.scene,
-//             camera: this.camera
-//           }, 5, 5, 9080 );
-//           for ( var i = 0; i < this.glove.numJoints; ++i ) {
-//             var s = textured( sphere( 0.1, 8, 8 ), 0xff0000 >> i );
-//             this.scene.add( s );
-//             this.glove.addTip( makeBall.call( this, s ) );
-//           }
-// =======
           scene: this.scene,
           camera: this.camera
         }, 2, 5, 5, 9080 );
@@ -322,7 +312,6 @@ Primrose.VRApplication = ( function () {
           this.scene.add( s );
           this.glove.addTip( makeBall.call( this, s ) );
         }
-// >>>>>>> upstream/master
 
         this.fire( "ready" );
         requestAnimationFrame( this.animate );
@@ -675,13 +664,13 @@ Primrose.VRApplication = ( function () {
       }
       this.camera.position.add( this.pRift );
 
-      if( state.linearVelocity ){
-        this.currentUser.velocity.copy( state.linearVelocity );
-      }
+      // if( state.linearVelocity ){
+      //   this.currentUser.velocity.copy( state.linearVelocity );
+      // }
 
-      if( state.linearAcceleration ){
-        this.currentUser.force.copy( state.linearAcceleration );
-      }
+      // if( state.linearAcceleration ){
+      //   this.currentUser.force.copy( state.linearAcceleration );
+      // }
     }
 
     this.camera.position.y += this.avatarHeight;
