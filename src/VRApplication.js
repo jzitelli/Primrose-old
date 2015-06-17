@@ -42,6 +42,7 @@ Primrose.VRApplication = ( function () {
     this.qRoll = new THREE.Quaternion( );
     this.qPitch = new THREE.Quaternion( );
     this.qRift = new THREE.Quaternion( );
+    this.pRift = new THREE.Vector3( );
     this.onground = false;
     this.lt = 0;
     this.frame = 0;
@@ -55,9 +56,7 @@ Primrose.VRApplication = ( function () {
     this.world.defaultContactMaterial.friction = 0.2;
     this.world.gravity.set( 0, -this.options.gravity, 0 );
     this.world.broadphase = new CANNON.SAPBroadphase( this.world );
-    this.world.addEventListener( "collide", function () {
-      console.log( arguments );
-    } );
+    this.audio = new Primrose.Output.Audio3D();
 
     this.skyBox = this.options.skyBox || null;
     this.skyBoxPosition = this.options.skyBoxPosition || [0,0,0];
@@ -87,6 +86,8 @@ Primrose.VRApplication = ( function () {
       { name: "driveBack", buttons: [ Primrose.Input.Keyboard.S,
           Primrose.Input.Keyboard.DOWNARROW
         ] },
+      { name: "zeroSensor", buttons: [ Primrose.Input.Keyboard.Z ],
+        commandDown: this.zero.bind( this ), dt: 1 },
       { name: "jump", buttons: [ Primrose.Input.Keyboard.SPACEBAR ],
         commandDown: this.jump.bind( this ), dt: 0.5 },
       { name: "resetPosition", buttons: [ Primrose.Input.Keyboard.P ],
@@ -303,14 +304,25 @@ Primrose.VRApplication = ( function () {
         this.animate = this.animate.bind( this );
 
         this.glove = new Primrose.Output.HapticGlove( {
-            scene: this.scene,
-            camera: this.camera
-          }, 5, 5, 9080 );
-          for ( var i = 0; i < this.glove.numJoints; ++i ) {
-            var s = textured( sphere( 0.1, 8, 8 ), 0xff0000 >> i );
-            this.scene.add( s );
-            this.glove.addTip( makeBall.call( this, s ) );
-          }
+// <<<<<<< HEAD
+//             scene: this.scene,
+//             camera: this.camera
+//           }, 5, 5, 9080 );
+//           for ( var i = 0; i < this.glove.numJoints; ++i ) {
+//             var s = textured( sphere( 0.1, 8, 8 ), 0xff0000 >> i );
+//             this.scene.add( s );
+//             this.glove.addTip( makeBall.call( this, s ) );
+//           }
+// =======
+          scene: this.scene,
+          camera: this.camera
+        }, 2, 5, 5, 9080 );
+        for ( var i = 0; i < this.glove.numJoints; ++i ) {
+          var s = textured( sphere( 0.1, 8, 8 ), 0xff0000 >> i );
+          this.scene.add( s );
+          this.glove.addTip( makeBall.call( this, s ) );
+        }
+// >>>>>>> upstream/master
 
         this.fire( "ready" );
         requestAnimationFrame( this.animate );
@@ -382,14 +394,16 @@ Primrose.VRApplication = ( function () {
 
     this.currentUser = makeBall.call(
         this,
-        new THREE.Vector3( 0, 3, 2 ),
+        new THREE.Vector3( 0, 3, 5 ),
         this.avatarHeight / 2, true );
 
     this.ctrls.goRegular.addEventListener( "click", function () {
       requestFullScreen( this.ctrls.frontBuffer );
-      this.inVR = false;
+    //   this.inVR = false;
+    //   this.setSize();
+    // }.bind(this));
       this.setSize();
-    }.bind(this));
+    }.bind( this ) );
     this.ctrls.goVR.addEventListener( "click", function ( ) {
       requestFullScreen( this.ctrls.frontBuffer, this.vrDisplay );
       this.inVR = true;
@@ -543,6 +557,12 @@ Primrose.VRApplication = ( function () {
     this.currentUser.velocity.set( 0, 0, 0 );
   };
 
+  VRApplication.prototype.zero = function () {
+    if ( this.vrSensor ) {
+      this.vrSensor.resetSensor();
+    }
+  };
+
   VRApplication.prototype.jump = function () {
     if ( this.onground ) {
       this.currentUser.velocity.y += 10;
@@ -640,21 +660,30 @@ Primrose.VRApplication = ( function () {
     // update the camera
     //
     this.camera.quaternion.copy( this.currentUser.quaternion );
+    this.camera.position.copy( this.currentUser.position );
 
     if ( this.inVR ) {
       var state = this.vrSensor.getState();
-      this.qRift.copy( state.orientation );
+
+      if ( state.orientation ) {
+        this.qRift.copy( state.orientation );
+      }
       this.camera.quaternion.multiply( this.qRift );
-      this.camera.position.copy( state.position );
-    }
-    else {
-//      this.qPitch.setFromAxisAngle( RIGHT, this.gamepad.getValue( "pitch" ) +
-//          this.mouse.getValue( "pitch" ) );
-//      this.camera.quaternion.multiply( this.qPitch );
-      this.camera.position.set( 0, 0, 0 );
+
+      if ( state.position ) {
+        this.pRift.copy( state.position );
+      }
+      this.camera.position.add( this.pRift );
+
+      if( state.linearVelocity ){
+        this.currentUser.velocity.copy( state.linearVelocity );
+      }
+
+      if( state.linearAcceleration ){
+        this.currentUser.force.copy( state.linearAcceleration );
+      }
     }
 
-    this.camera.position.add( this.currentUser.position );
     this.camera.position.y += this.avatarHeight;
 
     this.renderScene( this.scene );
