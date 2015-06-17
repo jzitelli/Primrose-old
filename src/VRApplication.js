@@ -89,22 +89,6 @@ Primrose.VRApplication = ( function () {
         ] },
       { name: "jump", buttons: [ Primrose.Input.Keyboard.SPACEBAR ],
         commandDown: this.jump.bind( this ), dt: 0.5 },
-
-      { name: "toggleHUD", buttons: [ Primrose.Input.Keyboard.Q ],
-        commandDown: this.toggleHUD.bind( this ), dt: 0.25},
-
-      { name: "focusNearestEditor", buttons: [ Primrose.Input.Keyboard.F ],
-        commandDown: this.focusNearestEditor.bind( this ), dt: 0.25},
-      { name: "focusNextEditor", buttons: [ Primrose.Input.Keyboard.N ],
-        commandDown: this.focusNextEditor.bind( this ), dt: 0.25},
-      { name: "evalEditor", buttons: [ Primrose.Input.Keyboard.E ],
-        commandDown: this.evalEditor.bind( this ), dt: 1.0},
-
-      { name: "enterVR", buttons: [ Primrose.Input.Keyboard.V ],
-        commandDown: this.enterVR.bind(this), dt: 1.0},
-      { name: "recenterVR", buttons: [ Primrose.Input.Keyboard.R ],
-        commandDown: this.recenterVR.bind( this ), dt: 0.25},
-
       { name: "resetPosition", buttons: [ Primrose.Input.Keyboard.P ],
         commandUp: this.resetPosition.bind( this ) }
     ] );
@@ -188,16 +172,14 @@ Primrose.VRApplication = ( function () {
     // gamepad input
     //
     this.gamepad = new Primrose.Input.Gamepad( "gamepad", [
-      { name: "strafe", axes: [ Primrose.Input.Gamepad.LSX ] },
-      { name: "drive", axes: [ Primrose.Input.Gamepad.LSY ] },
+      { name: "strafe", axes: [ Primrose.Input.Gamepad.LSX ] , deadzone: 0.3},
+      { name: "drive", axes: [ Primrose.Input.Gamepad.LSY ], deadzone: 0.3 },
       { name: "heading", axes: [ -Primrose.Input.Gamepad.RSX ],
         integrate: true, deadzone: 0.3
       },
       { name: "dheading", commands: [ "heading" ], delta: true },
-      { name: "pitch", axes: [ Primrose.Input.Gamepad.RSY ], integrate: true, deadzone: 0.3 }
-    ] );
-      // { name: "jump", buttons: [ Primrose.Input.Gamepad. ],
-      //   commandDown: this.jump.bind( this ), dt: 0.5 }
+      { name: "pitch", axes: [ Primrose.Input.Gamepad.RSY ], deadzone: 0.3 }] //integrate: true
+      );
 
     this.gamepad.addEventListener( "gamepadconnected",
         this.connectGamepad.bind( this ), false );
@@ -566,52 +548,6 @@ Primrose.VRApplication = ( function () {
       this.currentUser.velocity.y += 10;
       this.onground = false;
     }
-  };
-
-
-  VRApplication.prototype.toggleHUD = function () {
-    if (this.hudGroup) {
-      this.hudGroup.visible = !this.hudGroup.visible;
-      if (this.hudGroup.visible) {
-        $("#main").hide();
-      }
-    }
-  };
-
-  VRApplication.prototype.focusNearestEditor = function () {
-    if (this.currentEditor) {
-      this.currentEditor.focus();
-    }
-    // for (var i = 0; i < this.editors.length; ++i) {
-    // }
-  };
-
-  VRApplication.prototype.focusNextEditor = function () {
-    if (this.currentEditor) {
-      this.currentEditor.blur();
-    }
-    for (var i = 0; i < this.editors.length; ++i) {
-      var editor = this.editors[i];
-      if (editor === this.currentEditor) {
-        if (i === this.editors.length - 1) {
-          this.currentEditor = this.editors[0];
-        } else {
-          this.currentEditor = this.editors[i+1];
-        }
-        break;
-      }
-    }
-    this.currentEditor.focus();
-  };
-
-  VRApplication.prototype.enterVR = function () {
-      requestFullScreen( this.ctrls.frontBuffer, this.vrDisplay );
-      this.inVR = true;
-      this.setSize();
-  };
-
-  VRApplication.prototype.recenterVR = function () {
-    console.log("todo");
   };
 
   var heading = 0,
