@@ -448,7 +448,7 @@ var TerrainApplication = (function() {
         mesh.position.y += 4;
         mesh.position.z -= 4;
         this.scene.add(mesh);
-        var body = makeBall(mesh);
+        var body = makeBall.call(this, mesh);
     }
   };
 

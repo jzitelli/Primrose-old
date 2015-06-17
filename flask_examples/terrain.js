@@ -32,10 +32,9 @@ for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
 //texture.needsUpdate = true;
 var terrain = new THREE.Mesh(
     geometry,
-    new THREE.MeshPhongMaterial({
+    new THREE.MeshLambertMaterial({
         side: THREE.DoubleSide,
-        color: 0x123488,
-        specular: 0xaaaaaa
+        color: 0x123488
     }));
 // new THREE.MeshLambertMaterial({
 //     side: THREE.DoubleSide,
