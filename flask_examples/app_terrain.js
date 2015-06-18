@@ -45,13 +45,14 @@ var options = {
         },
         scale: 2,
         hudx: -4,
-        hudy: 0.5,
+        hudy: 0,
         hudz: -3
     }, {
         id: 'editor2',
-        w: 4, h: 4, x: 8, y: 6, z: 0,
+        w: 2, h: 2, x: 8, y: 6, z: 0,
         rx: 0, ry: -Math.PI / 4, rz: 0,
         options: {
+            fontSize: 20,
             filename: "terrain.js"
         },
         scale: 2,

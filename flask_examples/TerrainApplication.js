@@ -252,7 +252,7 @@ var TerrainApplication = (function() {
                     },
                     scale: 2,
                     hudx: 4,
-                    hudy: 0.5,
+                    hudy: 0,
                     hudz: -3
                 });
 
