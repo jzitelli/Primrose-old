@@ -22,7 +22,7 @@ skyBox = textured(
 
 var options = {
     backgroundSound: backgroundSound,
-    fog: new THREE.FogExp2(0x123300, 0.028, 25, 70),
+    fog: new THREE.FogExp2(0x123300, 0.028, 25, 80),
     backgroundColor: 0x123300,
     gravity: 9.8,
     drawDistance: 1000,

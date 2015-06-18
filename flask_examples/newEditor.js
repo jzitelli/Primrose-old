@@ -1,14 +1,12 @@
 log("put javascript in me!!!");
 
-// vars of interest:
-
 // scene
 // camera
 // hudGroup
 
-
-
-// three.js geometry:
+// Mesh
+// MeshBasicMaterial
+// MeshLambertMaterial
 
 // BoxGeometry
 // CircleGeometry
@@ -26,7 +24,6 @@ log("put javascript in me!!!");
 // TetrahedronGeometry
 // TextGeometry
 // TubeGeometry
-
 
 // ArrowHelper
 // AxisHelper

@@ -1,3 +1,5 @@
+(function () {
+
 var worldWidth = 512,
     worldDepth = 512,
     worldHalfWidth = worldWidth / 2,
@@ -45,13 +47,13 @@ var yScale = 7 / (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
 terrain.scale.set(30 / (geometry.boundingBox.max.x - geometry.boundingBox.min.x),
     yScale,
     30 / (geometry.boundingBox.max.z - geometry.boundingBox.min.z));
-geometry.computeBoundingBox();
 terrain.position.y = 0;
 
 geometry.computeFaceNormals();
 geometry.computeVertexNormals();
 
 scene.add(terrain);
+})();
 
 // function generateTexture(data, width, height) {
 //     var canvas, canvasScaled, context, image, imageData,

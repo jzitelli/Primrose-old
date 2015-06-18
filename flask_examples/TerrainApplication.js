@@ -115,19 +115,12 @@ var TerrainApplication = (function() {
             );
         }
 
-
+        this.keyboard.addCommand({
+            name: "toggleMenu", buttons: [ Primrose.Input.Keyboard.M ],
+            commandDown: this.toggleMenu.bind( this ), dt: 0.25});
         this.keyboard.addCommand({
             name: "toggleHUD", buttons: [ Primrose.Input.Keyboard.Q ],
             commandDown: this.toggleHUD.bind( this ), dt: 0.25});
-        this.keyboard.addCommand({
-            name: "focusNearestEditor", buttons: [ Primrose.Input.Keyboard.F ],
-            commandDown: this.focusNearestEditor.bind( this ), dt: 0.25});
-        this.keyboard.addCommand({
-            name: "focusNextEditor", buttons: [ Primrose.Input.Keyboard.N ],
-            commandDown: this.focusNextEditor.bind( this ), dt: 0.25});
-        this.keyboard.addCommand({
-            name: "evalEditor", buttons: [ Primrose.Input.Keyboard.E ],
-            commandDown: this.evalEditor.bind( this ), dt: 1.0});
 
         function printInstructions() {
             for (var i = 0; i < instructions.length; ++i) {
@@ -136,8 +129,8 @@ var TerrainApplication = (function() {
         }
 
         this.gamepad.addCommand({
-            name: "selectNearestObj", buttons: [ 1 ], //{toggle: false} ], //{index: 0, toggle: false}
-            commandDown: this.selectNearestObj.bind( this ), dt: 0.5 });
+            name: "selectNextObj", buttons: [ 1 ], //{toggle: false} ], //{index: 0, toggle: false}
+            commandDown: this.selectNextObj.bind( this ), dt: 0.5 });
 
         this.gamepad.addCommand({
             name: "blurEditor", buttons: [ 14 ],
@@ -209,11 +202,41 @@ var TerrainApplication = (function() {
                 }
             }
         }
+        this.addPhysicsBody = function ( obj, body, shape, radius, skipObj ) {
+      body.addShape( shape );
+      body.linearDamping = body.angularDamping = 0.05;
+      if ( skipObj ) {
+        body.position.set( obj.x, obj.y + radius / 2, obj.z );
+      }
+      else {
+        obj.physics = body;
+        body.graphics = obj;
+        body.position.copy( obj.position );
+        body.quaternion.copy( obj.quaternion );
+      }
+      this.world.add( body );
+      return body;
+    };
+
+        this.makeBall = function ( obj, radius, skipObj ) {
+          var body = new CANNON.Body( { mass: 1, material: this.bodyMaterial,
+            fixedRotation: true } );
+          var shape = new CANNON.Sphere( radius ||
+              obj.geometry.boundingSphere.radius );
+          body = this.addPhysicsBody( obj, body, shape, radius, skipObj );
+          body.velocity.copy(this.currentUser.velocity);
+        };
 
         function waitForResources(t) {
             this.lt = t;
             if (this.camera && this.scene && this.currentUser &&
                 this.buttonFactory.template) {
+                this.setSize();
+
+                scene = this.scene;
+                camera = this.camera;
+                hudGroup = this.hudGroup;
+
                 if (this.skyBox) {
                     this.scene.add(this.skyBox);
                 }
@@ -222,20 +245,8 @@ var TerrainApplication = (function() {
                     this.scene.fog = this.fog;
                 }
 
-                this.setSize();
-
                 if (this.passthrough) {
                     this.camera.add(this.passthrough.mesh);
-                }
-
-                scene = this.scene;
-                camera = this.camera;
-                hudGroup = this.hudGroup;
-
-                this.animate = this.animate.bind(this);
-
-                if (this.skyBox) {
-                    this.scene.add(this.skyBox);
                 }
 
                 if (this.floor) {
@@ -250,6 +261,15 @@ var TerrainApplication = (function() {
                 if (this.hudGroup) {
                     this.scene.add(this.hudGroup);
                 }
+
+
+
+
+
+
+
+
+
 
                 this.options.editors = this.options.editors || [];
                 this.options.editors.push({
@@ -314,6 +334,16 @@ var TerrainApplication = (function() {
                     }
                 }
                 printInstructions();
+
+
+
+
+
+
+
+
+
+                this.animate = this.animate.bind(this);
                 this.fire("ready");
 
                 requestAnimationFrame(this.animate);
@@ -326,6 +356,33 @@ var TerrainApplication = (function() {
         };
     }
     inherit(TerrainApplication, Primrose.VRApplication);
+
+    TerrainApplication.prototype.selectNextObj = function () {
+        function selectables() {
+            var objs = [];
+            for (var i = 0; i < scene.children.length; ++i) {
+                var obj = scene.children[i];
+                if (obj instanceof THREE.Mesh) {
+                    objs.push(obj);
+                }
+            }
+            return objs;
+        }
+        var objs = selectables();
+        this.currentObject = this.currentObject || objs[0];
+        for (var i = 0; i < objs.length; ++i) {
+            var obj = objs[i];
+            if (this.currentObject === obj) {
+                if (i == objs.length - 1) {
+                    this.currentObject = objs[0];
+                } else{
+                    this.currentObject = objs[i+1];
+                }
+                break;
+            }
+        }
+        log("currentObject: " + this.currentObject.name);
+    }
 
     TerrainApplication.prototype.selectNearestObj = function() {
         log("selected nothing");
@@ -465,14 +522,22 @@ var TerrainApplication = (function() {
     if (this.scene) {
         log("adding object");
         var mesh = new THREE.Mesh(new THREE.SphereGeometry(0.5),
-                new THREE.MeshLambertMaterial({color: 0xff4433}));
+                new THREE.MeshLambertMaterial({color: 0xee3321}));
         mesh.position.copy(this.currentUser.position);
         mesh.position.y += 4;
         mesh.position.z -= 4;
         this.scene.add(mesh);
-        var body = makeBall.call(this, mesh);
+        var body = this.makeBall(mesh);
     }
   };
+
+  TerrainApplication.prototype.toggleMenu = function () {
+    $("#main").toggle();
+  };
+
+  TerrainApplication.prototype.spawn = function () {
+  };
+
 
   TerrainApplication.prototype.enterVR = function () {
     log("TODO: enterVR via gamepad");
