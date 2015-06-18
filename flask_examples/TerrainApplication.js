@@ -95,6 +95,7 @@ var TerrainApplication = (function() {
         Primrose.VRApplication.call(this, name, sceneModel, buttonModel, buttonOptions,
             avatarHeight, walkSpeed, options);
 
+        this.fog = options.fog;
         this.hudGroup = new THREE.Group();
 
         var audio3d = new Primrose.Output.Audio3D();
@@ -213,6 +214,14 @@ var TerrainApplication = (function() {
             this.lt = t;
             if (this.camera && this.scene && this.currentUser &&
                 this.buttonFactory.template) {
+                if (this.skyBox) {
+                    this.scene.add(this.skyBox);
+                }
+
+                if (this.fog) {
+                    this.scene.fog = this.fog;
+                }
+
                 this.setSize();
 
                 if (this.passthrough) {
@@ -225,11 +234,12 @@ var TerrainApplication = (function() {
 
                 this.animate = this.animate.bind(this);
 
-                if (this.floor) {
-                    this.scene.add(this.floor);
-                }
                 if (this.skyBox) {
                     this.scene.add(this.skyBox);
+                }
+
+                if (this.floor) {
+                    this.scene.add(this.floor);
                 }
                 if (this.terrain) {
                     this.scene.add(this.terrain);
@@ -426,6 +436,18 @@ var TerrainApplication = (function() {
             0, 0, 0,
             0, 0, 0,
             {autoBindEvents: true});
+        var editor = mesh.editor;
+        $.ajax({
+            url: "/read?filename=newEditor.js"
+        }).
+        done(function(data) {
+            console.log("loaded " + data.args.filename);
+            this.value = '' + data.value;
+        }.bind(editor)).
+        fail(function() {
+            console.log("problem!");
+        });
+
         var scale = 2;
         mesh.scale.x *= scale;
         mesh.scale.y *= scale;
@@ -433,8 +455,8 @@ var TerrainApplication = (function() {
         mesh.position.copy(this.currentUser.position);
         mesh.position.z -= 3;
         mesh.position.y += 2;
-        this.editors.push(mesh.editor);
-        this.currentEditor = mesh.editor;
+        this.editors.push(editor);
+        this.currentEditor = editor;
         this.currentEditor.focus();
     }
   };
@@ -442,7 +464,7 @@ var TerrainApplication = (function() {
   TerrainApplication.prototype.newObject = function () {
     if (this.scene) {
         log("adding object");
-        var mesh = new THREE.Mesh(new THREE.SphereGeometry(1),
+        var mesh = new THREE.Mesh(new THREE.SphereGeometry(0.5),
                 new THREE.MeshLambertMaterial({color: 0xff4433}));
         mesh.position.copy(this.currentUser.position);
         mesh.position.y += 4;

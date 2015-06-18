@@ -58,14 +58,12 @@ Primrose.VRApplication = ( function () {
     this.world.broadphase = new CANNON.SAPBroadphase( this.world );
     this.audio = new Primrose.Output.Audio3D();
 
-    this.skyBox = this.options.skyBox || null;
+    this.skyBox = this.options.skyBox;
     this.skyBoxPosition = this.options.skyBoxPosition || [0,0,0];
     this.floor = this.options.floor || null;
     this.pickingScene = new THREE.Scene();
-    this.fog = this.options.fog;
     this.hudGroup = this.options.hudGroup || new THREE.Group();
     this.pointer = textured(sphere(0.02, 4, 2), 0xff0000, true);
-    this.terrain = this.options.terrain;
 
     this.editors = [];
     this.hudEditors = [];

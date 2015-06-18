@@ -1,0 +1,59 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"title": "Primrose scene configuration schema",
+	"type": "object",
+	"definitions": {
+		"editor": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "string"
+				},
+				"text": {
+					"type": "string"
+				},
+				"width": {"type": "number"},
+				"height": {"type": "number"},
+				"position": {
+					"type": "array",
+					"items": {
+						"type": "number"
+					},
+					"minItems": 1
+				},
+				"rotation": {
+					"type": "array",
+					"items": {
+						"type": "number"
+					},
+					"minItems": 1
+				},
+				"grammer": {"type": "string"},
+				"filename": {"type": "string"}
+			},
+			"required": ["id"]
+		}
+	},
+	"properties": {
+		"floor_texture": {
+			"type": "string"
+		},
+		"sky_texture": {
+			"type": "string"
+		},
+		"editors": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/editor"
+			}
+		},
+		"floor_size": {
+			"type": "array",
+			"items": {"type": "number"}
+		},
+		"floor_position": {
+			"type": "array",
+			"items": {"type": "number"}
+		}
+	}
+}

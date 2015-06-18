@@ -328,7 +328,7 @@ function makeEditor ( scene, pickingScene, id, w, h, x, y, z, rx, ry, rz,
   options.theme = options.theme || Primrose.Text.Themes.Dark;
   options.tokenizer = options.tokenizer || Primrose.Text.Grammars.PlainText;
   var t = new Primrose.Text.Controls.TextBox( id, options );
-  var o = textured( quad( w, h ), t, true, 1 );
+  var o = textured( quad( w, h ), t, true, options.opacity || 1 );
   var p = textured( quad( w, h ), t.getRenderer( )
       .getPickingTexture( ), true );
   o.position.set( x, y, z );

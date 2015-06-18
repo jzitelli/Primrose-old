@@ -4,7 +4,7 @@ var backgroundSound = $.QueryString['backgroundSound'];
 
 var sceneModel = $.QueryString['sceneModel'] || "flask_examples/models/scene2.json";
 
-var skyBoxTexture = $.QueryString['skyBoxTexture'] || "flask_examples/images/axes_1_b.png";
+var skyBoxTexture = $.QueryString['skyBoxTexture'] || "flask_examples/images/beach3.jpg";
 var skyBoxPosition = qd['skyBoxPosition'];
 if (skyBoxPosition) {
     skyBoxPosition = skyBoxPosition.map(
@@ -15,15 +15,16 @@ if (skyBoxPosition) {
 } else {
     skyBoxPosition = [0, 0, 0];
 }
-var skyBox = textured(
-    shell(70, 12, 7, Math.PI * 2, Math.PI / 1.666),
+var skyBox;
+skyBox = textured(
+    shell(50, 12, 7, Math.PI * 2, Math.PI / 1.666),
     skyBoxTexture, true);
 
 var options = {
     backgroundSound: backgroundSound,
-    fog: new THREE.Fog(0x00ff00),
-    backgroundColor: 0x5fafbf,
-    gravity: 0.08,
+    fog: new THREE.FogExp2(0x123300, 0.028, 25, 70),
+    backgroundColor: 0x123300,
+    gravity: 9.8,
     drawDistance: 1000,
     dtNetworkUpdate: 10,
     skyBox: skyBox,
@@ -33,12 +34,13 @@ var options = {
         w: 2, h: 2, x: 0, y: 8, z: -3,
         rx: 0, ry: 0, rz: 0,
         options: {
+            opacity: 0.8,
             filename: "editor0.js"
         },
         scale: 3
     }, {
         id: 'editor1',
-        w: 2, h: 2, x: -8, y: 4, z: 0,
+        w: 2, h: 2, x: -8, y: 4, z: -2,
         rx: 0, ry: Math.PI / 4, rz: 0,
         options: {
             filename: "editor1.py"
@@ -49,13 +51,32 @@ var options = {
         hudz: -3
     }, {
         id: 'editor2',
-        w: 2, h: 2, x: 8, y: 6, z: 0,
+        w: 2, h: 2, x: 8, y: 7, z: -3,
         rx: 0, ry: -Math.PI / 4, rz: 0,
         options: {
-            fontSize: 20,
+            fontSize: 40,
             filename: "terrain.js"
         },
-        scale: 2,
+        scale: 3
+    }, {
+        id: 'editor3',
+        w: 2, h: 2, x: -12, y: 6, z: -3,
+        rx: 0, ry: Math.PI / 4, rz: 0,
+        options: {
+            fontSize: 40,
+            filename: "sswcs.js"
+        },
+        scale: 3
+    },
+    {
+        id: 'editor4',
+        w: 2, h: 2, x: 0, y: 6, z: -7,
+        rx: 0, ry: 0, rz: 0,
+        options: {
+            fontSize: 40,
+            filename: "seascape_with_cubesnakes.js"
+        },
+        scale: 3
     }]
 };
 
