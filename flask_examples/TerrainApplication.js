@@ -1,37 +1,4 @@
 var TerrainApplication = (function() {
-    var butmap = {'A': 1, 'B': 2, 'X': 3, 'Y': 4,
-    'rt': 5, 'rb': 6, 'lt': 7, 'lb': 8, 'back': 9, 'start': 10};
-    var xbox = [];
-    xbox[1]  = 'A';
-    xbox[2]  = 'B';
-    xbox[3]  = 'X';
-    xbox[4]  = 'Y';
-    xbox[5]  = 'left trigger';
-    xbox[6]  = 'right trigger';
-    xbox[7]  = 'left bumper';
-    xbox[8]  = 'right bumper';
-    xbox[9]  = 'back';
-    xbox[10] = 'start';
-    xbox[13] = 'up pad';
-    xbox[14] = 'down pad';
-    xbox[15] = 'left pad';
-    xbox[16] = 'right pad';
-
-    var instructions = ["XBOX Instructions:",
-        xbox[14] + ": exit editor",
-        xbox[15] + ": enter previous editor",
-        xbox[16] + ": enter next editor", 
-        xbox[1] + ": select nearest object",
-        xbox[2] + ": evaluate/execute current editor",
-        xbox[3] + ": toggle HUD",
-        xbox[4] + ": toggle log",
-        xbox[7] + ": new object",
-        xbox[8] + ": new editor",
-        xbox[5] + ": undo",
-        xbox[6] + ": redo",
-        xbox[9] + ": zero VR sensor"
-        ];
-
     var logMaterial = new THREE.MeshBasicMaterial({
         color: 0x22ff00,
         side: THREE.DoubleSide
@@ -89,14 +56,48 @@ var TerrainApplication = (function() {
         }
     }
 
+    var butmap = {'A': 1, 'B': 2, 'X': 3, 'Y': 4,
+    'rt': 5, 'rb': 6, 'lt': 7, 'lb': 8, 'back': 9, 'start': 10};
+    var xbox = [];
+    xbox[1]  = 'A';
+    xbox[2]  = 'B';
+    xbox[3]  = 'X';
+    xbox[4]  = 'Y';
+    xbox[5]  = 'left trigger';
+    xbox[6]  = 'right trigger';
+    xbox[7]  = 'left bumper';
+    xbox[8]  = 'right bumper';
+    xbox[9]  = 'back';
+    xbox[10] = 'start';
+    xbox[13] = 'up pad';
+    xbox[14] = 'down pad';
+    xbox[15] = 'left pad';
+    xbox[16] = 'right pad';
+
+    var instructions = ["XBOX Instructions:",
+        "down pad: exit editor",
+        "left pad: enter previous editor",
+        "right pad: enter next editor", 
+        "A: select nearest object",
+        "B: evaluate/execute current editor",
+        "start: toggle HUD",
+        "Y: toggle log",
+        "right bumper: new object",
+        "right trigger: new editor",
+        "left trigger: undo",
+        "right trigger: redo",
+        "back: zero VR sensor"
+        ];
+
     function TerrainApplication(name, sceneModel, buttonModel, buttonOptions,
         avatarHeight, walkSpeed, options) {
 
         Primrose.VRApplication.call(this, name, sceneModel, buttonModel, buttonOptions,
             avatarHeight, walkSpeed, options);
 
-        this.fog = options.fog;
-        this.hudGroup = new THREE.Group();
+        this.editors = [];
+        this.hudEditors = [];
+        this.currentEditor;
 
         var audio3d = new Primrose.Output.Audio3D();
         function playSound(buffer, time) {
@@ -149,7 +150,7 @@ var TerrainApplication = (function() {
             commandDown: this.evalEditor.bind( this ), dt: 1.0 });
 
         this.gamepad.addCommand({
-            name: "toggleHUD", buttons: [ 3 ],
+            name: "toggleHUD", buttons: [ 10 ],
             commandDown: this.toggleHUD.bind( this ), dt: 0.25});
 
         this.gamepad.addCommand({

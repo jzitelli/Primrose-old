@@ -16,14 +16,14 @@ if (skyBoxPosition) {
     skyBoxPosition = [0, 0, 0];
 }
 var skyBox;
-skyBox = textured(
-    shell(50, 12, 7, Math.PI * 2, Math.PI / 1.666),
-    skyBoxTexture, true);
+// skyBox = textured(
+//     shell(50, 12, 7, Math.PI * 2, Math.PI / 1.666),
+//     skyBoxTexture, true);
 
 var options = {
     backgroundSound: backgroundSound,
-    fog: new THREE.FogExp2(0x123300, 0.028, 25, 80),
-    backgroundColor: 0x123300,
+    // fog: new THREE.FogExp2(0x123300, 0.028, 25, 80),
+    backgroundColor: 0x000000,
     gravity: 9.8,
     drawDistance: 1000,
     dtNetworkUpdate: 10,
@@ -31,50 +31,40 @@ var options = {
     skyBoxPosition: skyBoxPosition,
     editors: [{
         id: 'editor0',
-        w: 2, h: 2, x: 0, y: 8, z: -3,
+        w: 1, h: 1, x: 0, y: 8, z: -3,
         rx: 0, ry: 0, rz: 0,
         options: {
-            opacity: 0.8,
+            //opacity: 0.8,
             filename: "editor0.js"
         },
         scale: 3
     }, {
         id: 'editor1',
-        w: 2, h: 2, x: -8, y: 4, z: -2,
+        w: 1, h: 1, x: -8, y: 4, z: -2,
         rx: 0, ry: Math.PI / 4, rz: 0,
         options: {
             filename: "editor1.py"
         },
         scale: 2,
-        hudx: -4,
+        hudx: -5,
         hudy: 0,
-        hudz: -3
+        hudz: -2
     }, {
         id: 'editor2',
-        w: 2, h: 2, x: 8, y: 7, z: -3,
+        w: 1, h: 1, x: 8, y: 7, z: -3,
         rx: 0, ry: -Math.PI / 4, rz: 0,
         options: {
-            fontSize: 40,
+            fontSize: 10,
             filename: "terrain.js"
         },
         scale: 3
     }, {
         id: 'editor3',
-        w: 2, h: 2, x: -12, y: 6, z: -3,
-        rx: 0, ry: Math.PI / 4, rz: 0,
-        options: {
-            fontSize: 40,
-            filename: "sswcs.js"
-        },
-        scale: 3
-    },
-    {
-        id: 'editor4',
-        w: 2, h: 2, x: 0, y: 6, z: -7,
+        w: 1, h: 1, x: 0, y: 6, z: -7,
         rx: 0, ry: 0, rz: 0,
         options: {
-            fontSize: 40,
-            filename: "seascape_with_cubesnakes.js"
+            fontSize: 10,
+            filename: "sswcs.js"
         },
         scale: 3
     }]
@@ -99,13 +89,13 @@ function StartDemo() {
         options
     );
 
-    var btns = [];
-    application.addEventListener("ready", function() {
-        for (var i = 0; i < 5; ++i) {
-            btns.push(application.makeButton());
-            btns[i].moveBy((i - 2) * 2, 0, -2);
-        }
-    });
+    // var btns = [];
+    // application.addEventListener("ready", function() {
+    //     for (var i = 0; i < 5; ++i) {
+    //         btns.push(application.makeButton());
+    //         btns[i].moveBy((i - 2) * 2, 0, -2);
+    //     }
+    // });
 
     var t = 0;
     application.addEventListener("update", function(dt) {
