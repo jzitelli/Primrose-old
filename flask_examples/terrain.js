@@ -1,101 +1,96 @@
-(function () {
+(function() {
 
-var worldWidth = 512,
-    worldDepth = 512,
-    worldHalfWidth = worldWidth / 2,
-    worldHalfDepth = worldDepth / 2;
+    var worldWidth = 512,
+        worldDepth = 512,
+        worldHalfWidth = worldWidth / 2,
+        worldHalfDepth = worldDepth / 2;
 
-function generateHeight(width, height) {
-    var size = width * height,
-        data = new Uint8Array(size),
-        perlin = new ImprovedNoise(),
-        quality = 1,
-        z = Math.random() * 100;
-    for (var j = 0; j < 4; j++) {
-        for (var i = 0; i < size; i++) {
-            var x = i % width,
-                y = ~~ (i / width);
-            data[i] += Math.abs(perlin.noise(x / quality, y / quality, z) * quality * 1.75);
+    function generateHeight(width, height) {
+        var size = width * height,
+            data = new Uint8Array(size),
+            perlin = new ImprovedNoise(),
+            quality = 1,
+            z = Math.random() * 100;
+        for (var j = 0; j < 4; j++) {
+            for (var i = 0; i < size; i++) {
+                var x = i % width,
+                    y = ~~ (i / width);
+                data[i] += Math.abs(perlin.noise(x / quality, y / quality, z) * quality * 1.75);
+            }
+            quality *= 5;
         }
-        quality *= 5;
+        return data;
     }
-    return data;
-}
 
-var data = generateHeight(worldWidth, worldDepth);
-var geometry = new THREE.PlaneBufferGeometry(7500, 7500, worldWidth - 1, worldDepth - 1);
-geometry.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
-var vertices = geometry.attributes.position.array;
-for (var i = 0, j = 0, l = vertices.length; i < l; i++, j += 3) {
-    vertices[j + 1] = data[i];
-}
+    function getImageData(image) {
+        var canvas = document.createElement('canvas');
+        canvas.width = image.width;
+        canvas.height = image.height;
+        var context = canvas.getContext('2d');
+        context.drawImage(image, 0, 0);
+        return context.getImageData(0, 0, image.width, image.height);
+    }
 
-//var texture = new THREE.Texture(generateTexture(data, worldWidth, worldDepth), THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping);
-//texture.needsUpdate = true;
-var terrain = new THREE.Mesh(
-    geometry,
-    new THREE.MeshLambertMaterial({
-        side: THREE.DoubleSide,
-        color: 0x123488
-    }));
-// new THREE.MeshLambertMaterial({
-//     side: THREE.DoubleSide,
-//     map: texture
-// }));
-geometry.computeBoundingBox();
-var yScale = 7 / (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
-terrain.scale.set(30 / (geometry.boundingBox.max.x - geometry.boundingBox.min.x),
-    yScale,
-    30 / (geometry.boundingBox.max.z - geometry.boundingBox.min.z));
-terrain.position.y = 0;
+    function getPixel(imagedata, x, y) {
+        var position = (x + imagedata.width * y) * 4,
+            data = imagedata.data;
+        return {
+            r: data[position],
+            g: data[position + 1],
+            b: data[position + 2],
+            a: data[position + 3]
+        };
+    }
 
-geometry.computeFaceNormals();
-geometry.computeVertexNormals();
+    var geometry = new THREE.PlaneBufferGeometry(7500, 7500, worldWidth - 1, worldDepth - 1);
+    geometry.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
+    var vertices = geometry.attributes.position.array;
 
-scene.add(terrain);
+    var imageData;
+
+    function generateHeight(width, height) {
+        var size = width * height;
+        var texture = THREE.ImageUtils.loadTexture('flask_examples/images/terrain5.png', THREE.UVMapping,
+            function(texture) {
+                imageData = getImageData(texture.image);
+                for (var i = 0, k = 0; i < texture.image.width; i++) {
+                    for (var j = 0; j < texture.image.height; ++j, k += 3) {
+                        vertices[k + 1] = getPixel(imageData, i, j).r + 256*getPixel(imageData, i, j).g + 256*256*getPixel(imageData, i, j).b;
+                    }
+                }
+                var material = new THREE.MeshLambertMaterial({
+                        side: THREE.DoubleSide,
+                        color: 0xffffff,
+                        map: texture
+                    });
+
+                var terrain = new THREE.Mesh(
+                    geometry,
+                    material);
+
+                geometry.computeBoundingBox();
+                var yScale = 7 / (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
+                terrain.scale.set(30 / (geometry.boundingBox.max.x - geometry.boundingBox.min.x),
+                    yScale,
+                    30 / (geometry.boundingBox.max.z - geometry.boundingBox.min.z));
+                terrain.position.y = 0;
+
+                geometry.computeFaceNormals();
+                geometry.computeVertexNormals();
+
+                scene.add(new THREE.DirectionalLight(0xffffff, 1, 20, 3));
+
+                scene.add(terrain);
+
+                var shape = CANNON.Heightfield(imageData, {
+                    elementSize: 30 / worldWidth
+                });
+                var body = CANNON.Body({mass: 0});
+                body.addShape(shape);
+                world.add(body);
+            });
+        return texture;
+    }
+
+    var texture = generateHeight(worldWidth, worldDepth);
 })();
-
-// function generateTexture(data, width, height) {
-//     var canvas, canvasScaled, context, image, imageData,
-//         level, diff, vector3, sun, shade;
-//     vector3 = new THREE.Vector3(0, 0, 0);
-//     sun = new THREE.Vector3(1, 1, 1);
-//     sun.normalize();
-//     canvas = document.createElement('canvas');
-//     canvas.width = width;
-//     canvas.height = height;
-//     context = canvas.getContext('2d');
-//     context.fillStyle = '#000';
-//     context.fillRect(0, 0, width, height);
-//     image = context.getImageData(0, 0, canvas.width, canvas.height);
-//     imageData = image.data;
-//     for (var i = 0, j = 0, l = imageData.length; i < l; i += 4, j++) {
-//         vector3.x = data[j - 2] - data[j + 2];
-//         vector3.y = 2;
-//         vector3.z = data[j - width * 2] - data[j + width * 2];
-//         vector3.normalize();
-//         shade = vector3.dot(sun);
-//         imageData[i] = (96 + shade * 128) * (0.5 + data[j] * 0.007);
-//         imageData[i + 1] = (32 + shade * 96) * (0.5 + data[j] * 0.007);
-//         imageData[i + 2] = (shade * 96) * (0.5 + data[j] * 0.007);
-//     }
-//     context.putImageData(image, 0, 0);
-
-//     var scale = 1;
-//     canvasScaled = document.createElement('canvas');
-//     canvasScaled.width = width * scale;
-//     canvasScaled.height = height * scale;
-//     context = canvasScaled.getContext('2d');
-//     context.scale(scale, scale);
-//     context.drawImage(canvas, 0, 0);
-//     image = context.getImageData(0, 0, canvasScaled.width, canvasScaled.height);
-//     imageData = image.data;
-//     for (var i = 0, l = imageData.length; i < l; i += 4) {
-//         var v = ~~ (Math.random() * 5);
-//         imageData[i] += v;
-//         imageData[i + 1] += v;
-//         imageData[i + 2] += v;
-//     }
-//     context.putImageData(image, 0, 0);
-//     return canvasScaled;
-// }
