@@ -1,6 +1,9 @@
 var DEBUG_APP = $.QueryString['debug']; //1;
 
-var sceneModel = $.QueryString['sceneModel'] || "flask_examples/models/scene2.json";
+var walkSpeed = 3;
+var avatarHeight = 3;
+
+var sceneModel = $.QueryString['sceneModel'] || "flask_examples/models/ConfigUtilDeskScene.json";
 
 var skyBoxTexture = $.QueryString['skyBoxTexture'] || "flask_examples/images/bg4.jpg"; //beach3.jpg";
 var skyBoxPosition = qd['skyBoxPosition'];
@@ -19,17 +22,16 @@ var skyBox;
 //     shell(300, 12, 7, Math.PI * 2, Math.PI / 1.666),
 //     skyBoxTexture, true);
 
+
 // from http://stemkoski.github.io/Three.js/#skybox
 var imagePrefix = "flask_examples/images/dawnmountain-";
 var directions  = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
-var imageSuffix = "b.png";
+var imageSuffix = ".png";
 var images = directions.map(function (dir) { return imagePrefix + dir + imageSuffix; });
 var textureCube = THREE.ImageUtils.loadTextureCube( images );
 
 // see http://stackoverflow.com/q/16310880
 
-// var skyMaterial = new THREE.MeshBasicMaterial( {map: texture, side: THREE.BackSide} );
-// skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
 var skyGeometry = new THREE.CubeGeometry( 800,800,800 );
 var shader = THREE.ShaderLib[ "cube" ];
 shader.uniforms[ "tCube" ].value = textureCube;
@@ -50,10 +52,10 @@ var h = 2;
 var fogColor = 0x2122ee; //0x000110;
 
 var options = {
-    //fog: new THREE.FogExp2(fogColor, 0.02, 10, 600),
+    //fog: new THREE.FogExp2(fogColor, 0.015, 20, 800),
     backgroundColor: fogColor,
-    gravity: 9.8,
-    drawDistance: 1000,
+    gravity: 0, //9.8,
+    drawDistance: 2000,
     dtNetworkUpdate: 10,
     skyBox: skyBox,
     skyBoxPosition: skyBoxPosition,
@@ -100,7 +102,7 @@ function StartDemo() {
             colorPressed: 0x007f00,
             toggle: true
         },
-        3, 1.1,
+        avatarHeight, walkSpeed,
         options
     );
     log = application.log;

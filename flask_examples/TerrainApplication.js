@@ -135,7 +135,9 @@ var TerrainApplication = (function() {
 
                 this.scene.traverse(function (obj) {
                     if (obj.name === "Desk") {
-                        obj.scale.set(0.05, 0.05, 0.05);
+                        obj.scale.set(0.01, 0.01, 0.01);
+                        obj.position.z += 4;
+                        obj.position.y -= 2;
                     }
                 });
 

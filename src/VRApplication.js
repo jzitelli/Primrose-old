@@ -42,7 +42,7 @@ Primrose.VRApplication = (function() {
             update: []
         };
         this.avatarHeight = avatarHeight;
-        this.walkSpeed = walkSpeed * 10;
+        this.walkSpeed = walkSpeed || 3;
         this.qRoll = new THREE.Quaternion();
         this.qPitch = new THREE.Quaternion();
         this.qRift = new THREE.Quaternion();
@@ -338,9 +338,10 @@ Primrose.VRApplication = (function() {
             return addPhysicsBody.call(this, obj, body, shape);
         }
 
-        function makeBall(obj, radius, skipObj) {
+        function makeBall(obj, radius, skipObj, mass) {
+            if (mass === undefined) mass = 1;
             var body = new CANNON.Body({
-                mass: 1,
+                mass: mass,
                 material: this.bodyMaterial,
                 fixedRotation: true
             });
@@ -447,13 +448,13 @@ Primrose.VRApplication = (function() {
             }
         };
 
-        // this.currentUser = makeBall.call(
-        //     this,
-        //     new THREE.Vector3(0, 3, 5),
-        //     this.avatarHeight / 2, true);
-
         this.currentUser = makeBall.call(
-            this, this.rugMesh, this.avatarHeight / 2, false);
+            this,
+            new THREE.Vector3(0, 3, 5),
+            this.avatarHeight / 2, true, 0.01);
+
+        // this.currentUser = makeBall.call(
+        //     this, this.rugMesh, this.avatarHeight / 2, false);
 
         this.ctrls.goRegular.addEventListener("click", function() {
             requestFullScreen(this.ctrls.frontBuffer);
@@ -657,6 +658,7 @@ Primrose.VRApplication = (function() {
         if (this.gamepad.inputState.buttons[11]) {
           this.currentUser.velocity.y = this.currentUser.velocity.y * 0.1;
           v = new CANNON.Vec3(Math.cos(pitch) * Math.sin(heading), -Math.sin(pitch), Math.cos(pitch) * Math.cos(heading));
+          floatup = 0;
         } else {
           v = new CANNON.Vec3(Math.sin(heading), 0, Math.cos(heading));
           var floatSpeed = 0.75 * this.walkSpeed;
