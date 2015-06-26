@@ -1,93 +1,28 @@
 var TerrainApplication = (function() {
-    var logMaterial = new THREE.MeshBasicMaterial({
-        color: 0x22ff00,
-        side: THREE.DoubleSide
-    });
     var scene;
     var camera;
     var hudGroup;
 
-    var log_msgs = [];
-    var log_meshes = [];
-    var log_displayed = [];
-    var buffsize = 10;
+    var butmap = {
+        'A': 1,
+        'B': 2,
+        'X': 3,
+        'Y': 4,
+        'leftBumper': 5,
+        'rightBumper': 6,
+        'leftTrigger': 7,
+        'rightTrigger': 8,
+        'back': 9,
+        'start': 10,
+        'leftStick': 11,
+        'rightStick': 12,
+        'up': 13,
+        'down': 14,
+        'left': 15,
+        'right': 16
+    };
 
-    function log(msg) {
-        if (scene) {
-            if (msg === "") return;
-            var mesh;
-            var size = 0.5;
-            log_msgs.push(msg);
-            if (log_msgs.slice(0, -1).indexOf(msg) > -1) {
-                mesh = log_meshes[log_msgs.indexOf(msg)].clone();
-            } else {
-                var height = 0.0; //height || size / 17;
-                var font = 'droid sans'; //'janda manatee solid';
-                var weight = 'normal';
-                var options = {
-                    size: size,
-                    height: height,
-                    font: font,
-                    weight: weight,
-                    curveSegments: 3
-                };
-                var geometry = new THREE.TextGeometry(msg, options);
-                mesh = new THREE.Mesh(geometry, logMaterial);
-            }
-            log_meshes.push(mesh);
-            log_displayed.push(mesh);
-/*            if (hudGroup) {
-                hudGroup.add(mesh);
-            }*/
-            scene.add(mesh);
-            if (log_displayed.length > buffsize) {
-                mesh = log_displayed.shift();
-                // if (hudGroup) {
-                //     hudGroup.remove(mesh);
-                // }
-                scene.remove(mesh);
-            }
-            for (var i = 0; i < log_displayed.length; ++i) {
-                mesh = log_displayed[i];
-                mesh.position.x = camera.position.x - 10.0;
-                mesh.position.z = camera.position.z - 10.0;
-                mesh.position.y = 10 + (log_displayed.length - i - 1) * 1.75 * size;
-            }
-        }
-    }
-
-    var butmap = {'A': 1, 'B': 2, 'X': 3, 'Y': 4,
-    'rt': 5, 'rb': 6, 'lt': 7, 'lb': 8, 'back': 9, 'start': 10};
-    var xbox = [];
-    xbox[1]  = 'A';
-    xbox[2]  = 'B';
-    xbox[3]  = 'X';
-    xbox[4]  = 'Y';
-    xbox[5]  = 'left trigger';
-    xbox[6]  = 'right trigger';
-    xbox[7]  = 'left bumper';
-    xbox[8]  = 'right bumper';
-    xbox[9]  = 'back';
-    xbox[10] = 'start';
-    xbox[13] = 'up pad';
-    xbox[14] = 'down pad';
-    xbox[15] = 'left pad';
-    xbox[16] = 'right pad';
-
-    var instructions = ["XBOX Instructions:",
-        "down pad: exit editor",
-        "left pad: enter previous editor",
-        "right pad: enter next editor", 
-        "A: select nearest object",
-        "B: evaluate/execute current editor",
-        "start: toggle HUD",
-        "Y: toggle log",
-        "right bumper: new object",
-        "right trigger: new editor",
-        "left trigger: undo",
-        "right trigger: redo",
-        "back: zero VR sensor"
-        ];
+    var instructions = [];
 
     function TerrainApplication(name, sceneModel, buttonModel, buttonOptions,
         avatarHeight, walkSpeed, options) {
@@ -95,182 +30,132 @@ var TerrainApplication = (function() {
         Primrose.VRApplication.call(this, name, sceneModel, buttonModel, buttonOptions,
             avatarHeight, walkSpeed, options);
 
+        var settings = this.settings = {
+            stepFrequency: 60,
+            quatNormalizeSkip: 2,
+            quatNormalizeFast: true,
+            gx: 0,
+            gy: 0,
+            gz: 0,
+            iterations: 3,
+            tolerance: 0.0001,
+            k: 1e6,
+            d: 3,
+            scene: 0,
+            paused: false,
+            rendermode: "solid",
+            constraints: false,
+            contacts: false, // Contact points
+            cm2contact: false, // center of mass to contact points
+            normals: false, // contact normals
+            axes: false, // "local" frame axes
+            particleSize: 0.1,
+            shadows: false,
+            aabbs: false,
+            profiling: false,
+            maxSubSteps: 20
+        };
+
+        this.currentMaterial = new THREE.MeshLambertMaterial({
+            color: 0xfedcba,
+            side: THREE.DoubleSide
+        });
+
+        this.fog = options.fog;
+
         this.editors = [];
         this.hudEditors = [];
         this.currentEditor;
+        this.textGeomLog;
 
         var audio3d = new Primrose.Output.Audio3D();
-        function playSound(buffer, time) {
-            var source = audio3d.context.createBufferSource();
-            source.buffer = buffer;
-            source.connect(audio3d.context.destination);
-            source[source.start ? 'start' : 'noteOn'](time);
-        }
-        if (options.backgroundSound) {
-            audio3d.loadBuffer(
-                options.backgroundSound,
-                null,
-                function(buffer) {
-                    playSound(buffer, 0);
-                }
-            );
-        }
 
-        this.keyboard.addCommand({
-            name: "toggleMenu", buttons: [ Primrose.Input.Keyboard.M ],
-            commandDown: this.toggleMenu.bind( this ), dt: 0.25});
-        this.keyboard.addCommand({
-            name: "toggleHUD", buttons: [ Primrose.Input.Keyboard.Q ],
-            commandDown: this.toggleHUD.bind( this ), dt: 0.25});
-
-        function printInstructions() {
-            for (var i = 0; i < instructions.length; ++i) {
-                log(instructions[i]);
-            }
-        }
-
-        this.gamepad.addCommand({
-            name: "selectNextObj", buttons: [ 1 ], //{toggle: false} ], //{index: 0, toggle: false}
-            commandDown: this.selectNextObj.bind( this ), dt: 0.5 });
-
-        this.gamepad.addCommand({
-            name: "blurEditor", buttons: [ 14 ],
-            commandDown: this.blurEditor.bind( this ), dt: 0.25});
-
-        this.gamepad.addCommand({
-            name: "focusNextEditor", buttons: [ 16 ],
-            commandDown: this.focusNextEditor.bind( this ), dt: 0.25});
-
-        this.gamepad.addCommand({
-            name: "focusPrevEditor", buttons: [ 15 ],
-            commandDown: this.focusPrevEditor.bind( this ), dt: 0.25});
-
-        this.gamepad.addCommand({
-            name: "evalEditor", buttons: [ 2 ], //{toggle: false} ], //{index: 0, toggle: false}
-            commandDown: this.evalEditor.bind( this ), dt: 1.0 });
-
-        this.gamepad.addCommand({
-            name: "toggleHUD", buttons: [ 10 ],
-            commandDown: this.toggleHUD.bind( this ), dt: 0.25});
-
-        this.gamepad.addCommand({
-            name: "zeroSensor", buttons: [ 9 ],
-            commandDown: this.zero.bind( this ), dt: 1});
-
-        this.gamepad.addCommand({
-            name: "newEditor", buttons: [ 8 ],
-            commandDown: this.newEditor.bind( this ), dt: 1});
-
-        this.gamepad.addCommand({
-            name: "newObject", buttons: [ 6 ],
-            commandDown: this.newObject.bind( this ), dt: 1});
-
-
-        var pointerX, pointerY;
-        // do more things...
-        this.setPointer = function (x, y) {
-            pointerX = x;
-            pointerY = ctrls.output.height - y;
-            mouse.set(2 * (x / ctrls.output.width) - 1, -2 * (y /
-                ctrls.output.height) + 1);
-            raycaster.setFromCamera(mouse, camera);
-            currentObject = null;
-            currentEditor = null;
-            var objects = raycaster.intersectObject(scene, true);
-            var firstObj = objects.length > 0 && objects[0].object;
-            if (firstObj === sky || firstObj === floor) {
-                pointer.position.copy(raycaster.ray.direction);
-                pointer.position.multiplyScalar(3);
-                pointer.position.add(raycaster.ray.origin);
+        var that = this;
+        function log(msg) {
+            if (this.textGeomLog) {
+                this.textGeomLog.log(msg);
             } else {
-                for (var i = 0; i < objects.length; ++i) {
-                    var obj = objects[i];
-                    if (obj.object !== pointer) {
-                        try {
-                            pointer.position.set(0, 0, 0);
-                            pointer.lookAt(obj.face.normal);
-                            pointer.position.copy(obj.point);
-                            currentObject = obj.object;
-                            for (var j = 0; j < editor_geoms.length; ++j) {
-                                if (currentObject === editor_geoms[j]) {
-                                    currentEditor = editors[j];
-                                    break;
-                                }
-                            }
-                            break;
-                        } catch (exp) {}
-                    }
-                }
+                console.log(msg);
             }
         }
-        this.addPhysicsBody = function ( obj, body, shape, radius, skipObj ) {
-      body.addShape( shape );
-      body.linearDamping = body.angularDamping = 0.05;
-      if ( skipObj ) {
-        body.position.set( obj.x, obj.y + radius / 2, obj.z );
-      }
-      else {
-        obj.physics = body;
-        body.graphics = obj;
-        body.position.copy( obj.position );
-        body.quaternion.copy( obj.quaternion );
-      }
-      this.world.add( body );
-      return body;
-    };
+        this.log = log.bind(this);
+        var log = log.bind(this);
+        
+        this.manaTexture = THREE.ImageUtils.loadTexture( "flask_examples/images/mana5.png" );
 
-        this.makeBall = function ( obj, radius, skipObj ) {
-          var body = new CANNON.Body( { mass: 1, material: this.bodyMaterial,
-            fixedRotation: true } );
-          var shape = new CANNON.Sphere( radius ||
-              obj.geometry.boundingSphere.radius );
-          body = this.addPhysicsBody( obj, body, shape, radius, skipObj );
-          body.velocity.copy(this.currentUser.velocity);
-        };
 
         function waitForResources(t) {
             this.lt = t;
-            if (this.camera && this.scene && this.currentUser &&
-                this.buttonFactory.template) {
+            if (this.camera && this.scene && this.currentUser && this.buttonFactory.template) {
                 this.setSize();
+
+                this.textGeomLog = new TextGeomLog(this.scene, 10, this.camera);
 
                 scene = this.scene;
                 camera = this.camera;
                 hudGroup = this.hudGroup;
+                world = this.world;
+
+                var dodeca = new THREE.Mesh(
+                    new THREE.DodecahedronGeometry(),
+                    new THREE.MeshPhongMaterial({shading: THREE.FlatShading, color: 0x1122ee, shininess: 50, specular: 0xffeeee}));
+                dodeca.position.y += 5;
+                dodeca.position.z += 5;
+                this.scene.add(dodeca);
+
+                var sunColor = 0xffde99;
+                var directionalLight = new THREE.DirectionalLight(sunColor, 1, 2, 3);
+                this.scene.add(directionalLight);
+        
+                // Load textures        
+                var waterNormals = new THREE.ImageUtils.loadTexture('flask_examples/images/waternormals.jpg');
+                waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping; 
+                
+                // Create the water effect
+                this.ms_Water = new THREE.Water(this.renderer, this.camera, this.scene, {
+                    textureWidth: 512,
+                    textureHeight: 512,
+                    waterNormals: waterNormals,
+                    alpha:  1, //0.75,
+                    sunDirection: directionalLight.position.normalize(),
+                    sunColor: sunColor,
+                    waterColor: 0x001e1f,
+                    distortionScale: 2.0,
+                    fog: true
+                });
+                var aMeshMirror = new THREE.Mesh(
+                    new THREE.PlaneBufferGeometry(500, 500, 1, 1), 
+                    this.ms_Water.material
+                );
+                aMeshMirror.add(this.ms_Water);
+                aMeshMirror.rotation.x = - Math.PI / 2;
+                aMeshMirror.position.y -= 3;
+                this.scene.add(aMeshMirror);
+    
+
+                this.scene.traverse(function (obj) {
+                    if (obj.name === "Desk") {
+                        obj.scale.set(0.05, 0.05, 0.05);
+                    }
+                });
+
+                this.scene.add(this.rugMesh);
 
                 if (this.skyBox) {
                     this.scene.add(this.skyBox);
                 }
-
-                if (this.fog) {
-                    this.scene.fog = this.fog;
-                }
-
-                if (this.passthrough) {
-                    this.camera.add(this.passthrough.mesh);
-                }
-
                 if (this.floor) {
                     this.scene.add(this.floor);
                 }
-                if (this.terrain) {
-                    this.scene.add(this.terrain);
+                if (this.fog) {
+                    this.scene.fog = this.fog;
                 }
-                if (this.pointer) {
-                    this.scene.add(this.pointer);
+                if (this.passthrough) {
+                    this.camera.add(this.passthrough.mesh);
                 }
                 if (this.hudGroup) {
                     this.scene.add(this.hudGroup);
                 }
-
-
-
-
-
-
-
-
-
 
                 this.options.editors = this.options.editors || [];
                 this.options.editors.push({
@@ -279,12 +164,13 @@ var TerrainApplication = (function() {
                     rx: 0, ry: -Math.PI / 4, rz: 0,
                     options: {
                         file: instructions.join('\n'),
-                        onlyHUD: true
+                        onlyHUD: true,
+                        readOnly: true,
+                        showLineNumbers: false,
+                        opacity: 0.8
                     },
                     scale: 2,
-                    hudx: 4,
-                    hudy: 0,
-                    hudz: -3
+                    hudx: 4, hudy: 0, hudz: -3
                 });
 
                 if (this.options.editors) {
@@ -292,10 +178,9 @@ var TerrainApplication = (function() {
                         var editorConfig = this.options.editors[i];
                         editorConfig.options = editorConfig.options || {};
                         editorConfig.options.autoBindEvents = true;
-                        //editorConfig.options.keyEventSource = window;
                         var mesh = makeEditor(this.scene, this.pickingScene,
                             editorConfig.id,
-                            editorConfig.w || 3, editorConfig.h || 2,
+                            editorConfig.w || 2, editorConfig.h || 2,
                             editorConfig.x || 0, editorConfig.y || 3, editorConfig.z || -2,
                             editorConfig.rx || 0, editorConfig.ry || 0, editorConfig.rz || 0,
                             editorConfig.options);
@@ -312,11 +197,11 @@ var TerrainApplication = (function() {
                                 url: "/read?filename=" + editorConfig.options.filename
                             }).
                             done(function(data) {
-                                console.log("loaded " + data.args.filename);
+                                log("loaded " + data.args.filename);
                                 this.value = '' + data.value;
                             }.bind(editor)).
-                            fail(function() {
-                                console.log("problem!");
+                            fail(function(msg) {
+                                log("problem: " + msg);
                             });
                         }
                         if (editorConfig.options.onlyHUD === true) {
@@ -334,15 +219,20 @@ var TerrainApplication = (function() {
                         }
                     }
                 }
-                printInstructions();
+                
+                // load the terrain:
+                $.ajax({
+                    url: "/read?filename=terrain.js"
+                }).
+                done(function(data) {
+                    log("loaded " + data.args.filename);
+                    eval(data.value);
+                }).
+                fail(function() {
+                    log("problem loading terrain!");
+                });
 
-
-
-
-
-
-
-
+                this.printInstructions();
 
                 this.animate = this.animate.bind(this);
                 this.fire("ready");
@@ -352,13 +242,182 @@ var TerrainApplication = (function() {
                 requestAnimationFrame(waitForResources.bind(this));
             }
         }
+
+        this.printInstructions = function () {
+            for (var i = 0; i < instructions.length; ++i) {
+                log(instructions[i]);
+            }
+        }.bind(this);
+
+        function playSound(buffer, time) {
+            var source = audio3d.context.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audio3d.context.destination);
+            source[source.start ? 'start' : 'noteOn'](time);
+        }
+        if (options.backgroundSound) {
+            audio3d.loadBuffer(
+                options.backgroundSound,
+                null,
+                function(buffer) {
+                    playSound(buffer, 0);
+                }
+            );
+        }
+
+        this.addPhysicsBody = function(obj, body, shape, radius, skipObj) {
+            body.addShape(shape);
+            body.linearDamping = body.angularDamping = 0.15;
+            if (skipObj) {
+                body.position.set(obj.x, obj.y + radius / 2, obj.z);
+            } else {
+                obj.physics = body;
+                body.graphics = obj;
+                body.position.copy(obj.position);
+                body.quaternion.copy(obj.quaternion);
+            }
+            this.world.add(body);
+            return body;
+        };
+
+        this.makeBall = function(obj, radius, skipObj) {
+            var body = new CANNON.Body({
+                mass: 1,
+                material: this.bodyMaterial
+            });
+            var shape = new CANNON.Sphere(radius ||
+                obj.geometry.boundingSphere.radius);
+            body = this.addPhysicsBody(obj, body, shape, radius, skipObj);
+            body.velocity.copy(this.currentUser.velocity);
+        };
+
         this.start = function() {
             requestAnimationFrame(waitForResources.bind(this));
         };
+
+
+        instructions.push("Keyboard controls");
+        instructions.push("-----------------");
+
+        instructions.push("Q: toggle HUD");
+        this.keyboard.addCommand({
+            name: "toggleHUD",
+            buttons: [Primrose.Input.Keyboard.Q],
+            commandDown: this.toggleHUD.bind(this),
+            dt: 0.25
+        });
+
+
+        instructions.push("");
+        instructions.push("XBOX gamepad controls");
+        instructions.push("---------------------");
+
+        instructions.push('A: select next object');
+        this.gamepad.addCommand({
+            name: "selectNextObj",
+            buttons: [butmap.A], //{toggle: false} ], //{index: 0, toggle: false}
+            commandDown: this.selectNextObj.bind(this),
+            dt: 0.5
+        });
+        instructions.push('down: exit current editor');
+        this.gamepad.addCommand({
+            name: "blurEditor",
+            buttons: [butmap.down],
+            commandDown: this.blurEditor.bind(this),
+            dt: 0.25
+        });
+        instructions.push('right: focus next editor');
+        this.gamepad.addCommand({
+            name: "focusNextEditor",
+            buttons: [butmap.right],
+            commandDown: this.focusNextEditor.bind(this),
+            dt: 0.25
+        });
+        instructions.push('left: focus previous editor');
+        this.gamepad.addCommand({
+            name: "focusPrevEditor",
+            buttons: [butmap.left],
+            commandDown: this.focusPrevEditor.bind(this),
+            dt: 0.25
+        });
+        instructions.push('B: evaluate / execute editor contents');
+        this.gamepad.addCommand({
+            name: "evalEditor",
+            buttons: [butmap.B],
+            commandDown: this.evalEditor.bind(this),
+            dt: 1.0
+        });
+        instructions.push('start: toggle HUD');
+        this.gamepad.addCommand({
+            name: "toggleHUD",
+            buttons: [butmap.start],
+            commandDown: this.toggleHUD.bind(this),
+            dt: 0.25
+        });
+        instructions.push('back: zero VR sensor');
+        this.gamepad.addCommand({
+            name: "zeroSensor",
+            buttons: [butmap.back],
+            commandDown: this.zero.bind(this),
+            dt: 0.25
+        });
+        instructions.push('left trigger: create new editor');
+        this.gamepad.addCommand({
+            name: "newEditor",
+            buttons: [butmap.leftTrigger],
+            commandDown: this.newEditor.bind(this),
+            dt: 1
+        });
+        instructions.push('right trigger: create new object');
+        this.gamepad.addCommand({
+            name: "newObject",
+            buttons: [butmap.rightTrigger],
+            commandDown: this.newObject.bind(this),
+            dt: 0.15
+        });
+        instructions.push('left stick: reset position');
+        this.gamepad.addCommand({
+            name: "resetPosition",
+            buttons: [butmap.leftStick],
+            commandDown: this.resetPosition.bind(this),
+            dt: 0.25
+        });
     }
+
+
+
+
+
+
+
     inherit(TerrainApplication, Primrose.VRApplication);
 
-    TerrainApplication.prototype.selectNextObj = function () {
+    TerrainApplication.prototype.shape2mesh = CANNON.Demo.prototype.shape2mesh;
+
+    TerrainApplication.prototype.addVisual = CANNON.Demo.prototype.addVisual;
+
+    TerrainApplication.prototype.newObject = function() {
+        if (this.scene) {
+            //this.log("adding object");
+
+            // var mesh = new THREE.Mesh(new THREE.SphereGeometry(0.5),
+            //     new THREE.MeshLambertMaterial({
+            //         color: 0xee3321
+            //     }));
+
+            var material = new THREE.SpriteMaterial( { map: this.manaTexture, color: 0xffffff, fog: true } );
+            var sprite = new THREE.Sprite( material );
+            var mesh = sprite;
+
+            mesh.position.copy(this.currentUser.position);
+            mesh.position.y += 4;
+            mesh.position.z -= 4;
+            this.scene.add(mesh);
+            var body = this.makeBall(mesh, 0.5);
+        }
+    };
+
+    TerrainApplication.prototype.selectNextObj = function() {
         function selectables() {
             var objs = [];
             for (var i = 0; i < scene.children.length; ++i) {
@@ -376,8 +435,8 @@ var TerrainApplication = (function() {
             if (this.currentObject === obj) {
                 if (i == objs.length - 1) {
                     this.currentObject = objs[0];
-                } else{
-                    this.currentObject = objs[i+1];
+                } else {
+                    this.currentObject = objs[i + 1];
                 }
                 break;
             }
@@ -386,7 +445,7 @@ var TerrainApplication = (function() {
     }
 
     TerrainApplication.prototype.selectNearestObj = function() {
-        log("selected nothing");
+        log("TODO: selectNearestObj");
     }
 
     TerrainApplication.prototype.evalEditor = function() {
@@ -395,18 +454,19 @@ var TerrainApplication = (function() {
             console.log("editor contents to eval:");
             console.log(this.currentEditor.getLines().join(''));
             try {
-                console.log("trying javascript eval...");
+                log("trying javascript eval...");
                 // TODO: more robust comment stripping
-                eval(this.currentEditor.getLines().map( function (item) {
-                return item.split('//')[0] } ).join(''));
+                eval(this.currentEditor.getLines().map(function(item) {
+                    return item.split('//')[0]
+                }).join(''));
             } catch (exp) {
-                console.log("caught javascript exception:");
-                console.log(exp.message);
-                console.log("trying python exec...");
+                log("caught javascript exception:");
+                log(exp.message);
+                log("trying python exec...");
                 $.ajax({
                     url: '/python_eval?pystr=' + this.currentEditor.getLines().join('%0A')
                 })
-                .done(function(data) {
+                    .done(function(data) {
                         var lines = data.out.split('\n');
                         for (var i = 0; i < lines.length; ++i) {
                             log(lines[i]);
@@ -415,137 +475,117 @@ var TerrainApplication = (function() {
                         log(data.value);
                     })
                     .fail(function(jqXHR, textStatus) {
-                        console.log(textStatus);
+                        log(textStatus);
                     });
             }
         }
     };
 
-  TerrainApplication.prototype.blurEditor = function () {
-    if (this.currentEditor) {
-      this.currentEditor.blur();
-    }
-  };
-
-  TerrainApplication.prototype.focusNearestEditor = function () {
-    if (this.currentEditor) {
-      if (this.currentEditor.focused) {
-        this.currentEditor.blur();
-      } else {
-        this.currentEditor.focus();
-        this.currentUser.velocity.set(0,0,0);
-      }
-    }
-    // for (var i = 0; i < this.editors.length; ++i) {
-    // }
-  };
-
-  TerrainApplication.prototype.focusNextEditor = function () {
-    if (this.currentEditor) {
-      this.currentEditor.blur();
-    }
-    for (var i = 0; i < this.editors.length; ++i) {
-      var editor = this.editors[i];
-      if (editor === this.currentEditor) {
-        if (i === this.editors.length - 1) {
-          this.currentEditor = this.editors[0];
-        } else {
-          this.currentEditor = this.editors[i+1];
+    TerrainApplication.prototype.blurEditor = function() {
+        if (this.currentEditor) {
+            this.currentEditor.blur();
         }
-        break;
-      }
-    }
-    this.focusNearestEditor();
-  };
+    };
 
-  TerrainApplication.prototype.focusPrevEditor = function () {
-    if (this.currentEditor) {
-      this.currentEditor.blur();
-    }
-    for (var i = 0; i < this.editors.length; ++i) {
-      var editor = this.editors[i];
-      if (editor === this.currentEditor) {
-        if (i === 0) {
-          this.currentEditor = this.editors[this.editors.length-1];
-        } else {
-          this.currentEditor = this.editors[i-1];
+    TerrainApplication.prototype.focusNearestEditor = function() {
+        if (this.currentEditor) {
+            if (this.currentEditor.focused) {
+                this.currentEditor.blur();
+            } else {
+                this.currentEditor.focus();
+                this.currentUser.velocity.set(0, 0, 0);
+            }
         }
-        break;
-      }
-    }
-    this.focusNearestEditor();
-  };
+    };
 
-  TerrainApplication.prototype.toggleHUD = function () {
-    if (this.hudGroup) {
-      this.hudGroup.visible = !this.hudGroup.visible;
-      if (this.hudGroup.visible) {
-        $("#main").hide();
-      }
-    }
-  };
+    TerrainApplication.prototype.focusNextEditor = function() {
+        if (this.currentEditor) {
+            this.currentEditor.blur();
+        }
+        for (var i = 0; i < this.editors.length; ++i) {
+            var editor = this.editors[i];
+            if (editor === this.currentEditor) {
+                if (i === this.editors.length - 1) {
+                    this.currentEditor = this.editors[0];
+                } else {
+                    this.currentEditor = this.editors[i + 1];
+                }
+                break;
+            }
+        }
+        this.focusNearestEditor();
+    };
 
-  TerrainApplication.prototype.newEditor = function () {
-    var hud = false;
-    if (this.scene) {
-        var id = "editor" + this.editors.length;
-        var mesh = makeEditor(this.scene, this.pickingScene,
-            id, 2, 2,
-            0, 0, 0,
-            0, 0, 0,
-            {autoBindEvents: true});
-        var editor = mesh.editor;
-        $.ajax({
-            url: "/read?filename=newEditor.js"
-        }).
-        done(function(data) {
-            console.log("loaded " + data.args.filename);
-            this.value = '' + data.value;
-        }.bind(editor)).
-        fail(function() {
-            console.log("problem!");
-        });
+    TerrainApplication.prototype.focusPrevEditor = function() {
+        if (this.currentEditor) {
+            this.currentEditor.blur();
+        }
+        for (var i = 0; i < this.editors.length; ++i) {
+            var editor = this.editors[i];
+            if (editor === this.currentEditor) {
+                if (i === 0) {
+                    this.currentEditor = this.editors[this.editors.length - 1];
+                } else {
+                    this.currentEditor = this.editors[i - 1];
+                }
+                break;
+            }
+        }
+        this.focusNearestEditor();
+    };
 
-        var scale = 2;
-        mesh.scale.x *= scale;
-        mesh.scale.y *= scale;
-        mesh.scale.z *= scale;
-        mesh.position.copy(this.currentUser.position);
-        mesh.position.z -= 3;
-        mesh.position.y += 2;
-        this.editors.push(editor);
-        this.currentEditor = editor;
-        this.currentEditor.focus();
-    }
-  };
+    TerrainApplication.prototype.toggleHUD = function() {
+        if (this.hudGroup) {
+            this.hudGroup.visible = !this.hudGroup.visible;
+            if (this.hudGroup.visible) {
+                $("#main").hide();
+            }
+        }
+    };
 
-  TerrainApplication.prototype.newObject = function () {
-    if (this.scene) {
-        log("adding object");
-        var mesh = new THREE.Mesh(new THREE.SphereGeometry(0.5),
-                new THREE.MeshLambertMaterial({color: 0xee3321}));
-        mesh.position.copy(this.currentUser.position);
-        mesh.position.y += 4;
-        mesh.position.z -= 4;
-        this.scene.add(mesh);
-        var body = this.makeBall(mesh);
-    }
-  };
+    TerrainApplication.prototype.newEditor = function() {
+        var hud = false;
+        if (this.scene) {
+            var id = "editor" + this.editors.length;
+            var mesh = makeEditor(this.scene, this.pickingScene,
+                id, 2, 2,
+                0, 0, 0,
+                0, 0, 0, {
+                    autoBindEvents: true
+                });
+            var editor = mesh.editor;
+            $.ajax({
+                url: "/read?filename=newEditor.js"
+            }).
+            done(function(data) {
+                console.log("loaded " + data.args.filename);
+                this.value = '' + data.value;
+            }.bind(editor)).
+            fail(function() {
+                console.log("problem!");
+            });
 
-  TerrainApplication.prototype.toggleMenu = function () {
-    $("#main").toggle();
-  };
+            var scale = 2;
+            mesh.scale.x *= scale;
+            mesh.scale.y *= scale;
+            mesh.scale.z *= scale;
+            mesh.position.copy(this.currentUser.position);
+            mesh.position.z -= 3;
+            mesh.position.y += 2;
+            this.editors.push(editor);
+            this.currentEditor = editor;
+            this.currentEditor.focus();
+        }
+    };
 
-  TerrainApplication.prototype.spawn = function () {
-  };
+    TerrainApplication.prototype.animate = function (t) {
+        if (this.ms_Water) {
+            this.ms_Water.render();
+            var dt = (t - this.lt) * 0.0008;
+            this.ms_Water.material.uniforms.time.value += dt;
+        }
+        Primrose.VRApplication.prototype.animate.call(this, t);
+    };
 
-
-  TerrainApplication.prototype.enterVR = function () {
-    log("TODO: enterVR via gamepad");
-    // requestFullScreen( this.ctrls.frontBuffer, this.vrDisplay );
-    // this.inVR = true;
-    // this.setSize();
-  };
-
-  return TerrainApplication;
+    return TerrainApplication;
 })();
