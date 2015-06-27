@@ -27,6 +27,17 @@ var TerrainApplication = (function() {
     function TerrainApplication(name, sceneModel, buttonModel, buttonOptions,
         avatarHeight, walkSpeed, options) {
 
+        this.rugMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1.23, 12, 16), new THREE.MeshLambertMaterial({
+            color: 0x998700,
+            side: THREE.DoubleSide
+        }));
+        this.rugMesh.geometry.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
+        this.rugMesh.scale.x = 3;
+        this.rugMesh.scale.z = 3;
+        this.rugMesh.position.y += 2.5;
+        // this.rugMesh.position.z -= 3;
+        this.avatarMesh = this.rugMesh;
+
         Primrose.VRApplication.call(this, name, sceneModel, buttonModel, buttonOptions,
             avatarHeight, walkSpeed, options);
 
@@ -70,7 +81,6 @@ var TerrainApplication = (function() {
 
         var audio3d = new Primrose.Output.Audio3D();
 
-        var that = this;
         function log(msg) {
             if (this.textGeomLog) {
                 this.textGeomLog.log(msg);
@@ -82,7 +92,6 @@ var TerrainApplication = (function() {
         var log = log.bind(this);
         
         this.manaTexture = THREE.ImageUtils.loadTexture( "flask_examples/images/mana5.png" );
-
 
         function waitForResources(t) {
             this.lt = t;
@@ -132,7 +141,6 @@ var TerrainApplication = (function() {
                 aMeshMirror.position.y -= 3;
                 this.scene.add(aMeshMirror);
     
-
                 this.scene.traverse(function (obj) {
                     if (obj.name === "Desk") {
                         obj.scale.set(0.01, 0.01, 0.01);
@@ -141,7 +149,9 @@ var TerrainApplication = (function() {
                     }
                 });
 
-                this.scene.add(this.rugMesh);
+                if (this.rugMesh) {
+                    this.scene.add(this.rugMesh);
+                }
 
                 if (this.skyBox) {
                     this.scene.add(this.skyBox);
@@ -158,6 +168,13 @@ var TerrainApplication = (function() {
                 if (this.hudGroup) {
                     this.scene.add(this.hudGroup);
                 }
+
+                var dir = new THREE.Vector3(0, 0, -1);
+                var origin = new THREE.Vector3(0, 0, 0);
+                var length = 1;
+                var hex = 0xffff00;
+                this.arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex);
+                this.scene.add(this.arrowHelper);
 
                 this.options.editors = this.options.editors || [];
                 this.options.editors.push({
@@ -266,6 +283,7 @@ var TerrainApplication = (function() {
                 }
             );
         }
+
 
         this.addPhysicsBody = function(obj, body, shape, radius, skipObj) {
             body.addShape(shape);
@@ -455,30 +473,35 @@ var TerrainApplication = (function() {
             this.currentEditor.blur();
             console.log("editor contents to eval:");
             console.log(this.currentEditor.getLines().join(''));
-            try {
-                log("trying javascript eval...");
-                // TODO: more robust comment stripping
-                eval(this.currentEditor.getLines().map(function(item) {
-                    return item.split('//')[0]
-                }).join(''));
-            } catch (exp) {
-                log("caught javascript exception:");
-                log(exp.message);
+            if (this.currentEditor.getTokenizer() === Primrose.Text.Grammars.JavaScript) {
+                try {
+                    log("trying javascript eval...");
+                    // TODO: more robust comment stripping
+                    eval(this.currentEditor.getLines().map(function(item) {
+                        return item.split('//')[0]
+                    }).join(''));
+                    log("javascript success!");
+                } catch (exp) {
+                    log("caught javascript exception:");
+                    log(exp.message);
+                }
+            } else if (this.currentEditor.getTokenizer() === Primrose.Text.Grammars.Python) {
                 log("trying python exec...");
                 $.ajax({
                     url: '/python_eval?pystr=' + this.currentEditor.getLines().join('%0A')
                 })
-                    .done(function(data) {
-                        var lines = data.out.split('\n');
-                        for (var i = 0; i < lines.length; ++i) {
-                            log(lines[i]);
-                        }
-                        log("python returned:");
-                        log(data.value);
-                    })
-                    .fail(function(jqXHR, textStatus) {
-                        log(textStatus);
-                    });
+                .done(function(data) {
+                    log("python success!");
+                    var lines = data.out.split('\n');
+                    for (var i = 0; i < lines.length; ++i) {
+                        log(lines[i]);
+                    }
+                    log("python returned:");
+                    log(data.value);
+                })
+                .fail(function(jqXHR, textStatus) {
+                    log("there was a problem evaluating Python code");
+                });
             }
         }
     };
@@ -586,6 +609,14 @@ var TerrainApplication = (function() {
             var dt = (t - this.lt) * 0.0008;
             this.ms_Water.material.uniforms.time.value += dt;
         }
+
+        // this.arrowHelper.position.copy(this.currentUser.position);
+        // this.arrowHelper.position.z += 1;
+        // var refdir = new CANNON.Vec3(0, 0, -1);
+        // var dir = new CANNON.Vec3();
+        // this.currentUser.vectorToWorldFrame(refdir, dir);
+        // this.arrowHelper.setDirection(dir);
+
         Primrose.VRApplication.prototype.animate.call(this, t);
     };
 

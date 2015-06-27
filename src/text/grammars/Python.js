@@ -1,5 +1,5 @@
 /* global Primrose */
-Primrose.Text.Grammars.PlainText = (function () {
+Primrose.Text.Grammars.Python = (function () {
   "use strict";
 
 return new Primrose.Text.Grammar( "Python", [

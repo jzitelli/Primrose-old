@@ -1,9 +1,8 @@
 (function() {
-
-    var worldWidth = 1024,
-        worldDepth = 1024,
-        worldHalfWidth = worldWidth / 2,
-        worldHalfDepth = worldDepth / 2;
+    var imageurl = $.QueryString['terrainImage'] ||
+        'flask_examples/images/terrain4.png';
+        // 'flask_examples/images/diffrac0.png');
+        // 'flask_examples/images/terrain5.png');
 
     function generateHeight(width, height) {
         var size = width * height,
@@ -14,7 +13,7 @@
         for (var j = 0; j < 4; j++) {
             for (var i = 0; i < size; i++) {
                 var x = i % width,
-                    y = ~~ (i / width);
+                    y = ~~(i / width);
                 data[i] += Math.abs(perlin.noise(x / quality, y / quality, z) * quality * 1.75);
             }
             quality *= 5;
@@ -22,14 +21,7 @@
         return data;
     }
 
-    var geometry = new THREE.PlaneBufferGeometry(7500, 7500, worldWidth - 1, worldDepth - 1);
-    geometry.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
-
-    var vertices = geometry.attributes.position.array;
-
-    function generateHeightFromImage(width, height, url) {
-        var size = width * height;
-
+    function generateHeightFromImage(url) {
         // TODO: stackexchange reference
         function getImageData(image) {
             var canvas = document.createElement('canvas');
@@ -50,10 +42,19 @@
                 a: data[position + 3]
             };
         }
+
         var texture;
         if (url) {
+            // TODO: avoid callback, does loadTexture block if no callback?
             texture = THREE.ImageUtils.loadTexture(url, THREE.UVMapping, function(texture) {
                 var imageData = getImageData(texture.image);
+                var worldWidth = texture.image.width,
+                    worldDepth = texture.image.height,
+                    worldHalfWidth = worldWidth / 2,
+                    worldHalfDepth = worldDepth / 2;
+                var geometry = new THREE.PlaneBufferGeometry(7500, 7500, worldWidth - 1, worldDepth - 1);
+                geometry.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
+                var vertices = geometry.attributes.position.array;
                 for (var i = 0, k = 0; i < texture.image.width; i++) {
                     for (var j = 0; j < texture.image.height; ++j, k += 3) {
                         //vertices[k + 1] = getPixel(imageData, i, j).r + 256*getPixel(imageData, i, j).g + 256*256*getPixel(imageData, i, j).b;
@@ -76,9 +77,9 @@
 
                 geometry.computeBoundingBox();
                 var yScale = 14 / (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
-                terrain.scale.set(3*30 / (geometry.boundingBox.max.x - geometry.boundingBox.min.x),
+                terrain.scale.set(3 * 30 / (geometry.boundingBox.max.x - geometry.boundingBox.min.x),
                     yScale,
-                    3*30 / (geometry.boundingBox.max.z - geometry.boundingBox.min.z));
+                    3 * 30 / (geometry.boundingBox.max.z - geometry.boundingBox.min.z));
                 terrain.position.y = -14;
 
                 geometry.computeFaceNormals();
@@ -88,19 +89,19 @@
 
                 scene.add(terrain);
 
-                var shape = CANNON.Heightfield(data, {
-                    elementSize: 30 / worldWidth
-                });
+                // var shape = CANNON.Heightfield(data, {
+                //     elementSize: 30 / worldWidth
+                // });
 
-                var body = CANNON.Body({
-                    mass: 0
-                });
-                body.addShape(shape);
-                world.add(body);
+                // var body = CANNON.Body({
+                //     mass: 0
+                // });
+                // body.addShape(shape);
+                // world.add(body);
             });
         }
         return texture;
     }
 
-    var texture = generateHeightFromImage(worldWidth, worldDepth, 'flask_examples/images/terrain6.png'); //'flask_examples/images/diffrac0.png'); //'flask_examples/images/terrain5.png');
+    var texture = generateHeightFromImage(imageurl);
 })();

@@ -3,9 +3,14 @@ var DEBUG_APP = $.QueryString['debug']; //1;
 var walkSpeed = 3;
 var avatarHeight = 3;
 
+// TODO: learn javascript debugging skills
+var currentUser;
+
 var sceneModel = $.QueryString['sceneModel'] || "flask_examples/models/ConfigUtilDeskScene.json";
 
-var skyBoxTexture = $.QueryString['skyBoxTexture'] || "flask_examples/images/bg4.jpg"; //beach3.jpg";
+var skyBoxTexture = $.QueryString['skyBoxTexture'] ||
+    "flask_examples/images/bg4.jpg";
+
 var skyBoxPosition = qd['skyBoxPosition'];
 if (skyBoxPosition) {
     skyBoxPosition = skyBoxPosition.map(
@@ -18,12 +23,13 @@ if (skyBoxPosition) {
 }
 
 var skyBox;
+
 // skyBox = textured(
 //     shell(300, 12, 7, Math.PI * 2, Math.PI / 1.666),
 //     skyBoxTexture, true);
 
-
 // from http://stemkoski.github.io/Three.js/#skybox
+
 var imagePrefix = "flask_examples/images/dawnmountain-";
 var directions  = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
 var imageSuffix = ".png";
@@ -31,7 +37,6 @@ var images = directions.map(function (dir) { return imagePrefix + dir + imageSuf
 var textureCube = THREE.ImageUtils.loadTextureCube( images );
 
 // see http://stackoverflow.com/q/16310880
-
 var skyGeometry = new THREE.CubeGeometry( 800,800,800 );
 var shader = THREE.ShaderLib[ "cube" ];
 shader.uniforms[ "tCube" ].value = textureCube;
@@ -44,7 +49,6 @@ var skyMaterial = new THREE.ShaderMaterial( {
 } );
 
 skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
-
 
 var w = 2;
 var h = 2;
@@ -64,7 +68,8 @@ var options = {
         w: w, h: h, x: 0, y: 8, z: -3,
         rx: 0, ry: 0, rz: 0,
         options: {
-            filename: "editor0.js"
+            filename: "editor0.js",
+            tokenizer: Primrose.Text.Grammars.JavaScript
         },
         scale: 3
     }, {
@@ -72,18 +77,11 @@ var options = {
         w: w, h: h, x: -8, y: 4, z: -2,
         rx: 0, ry: Math.PI / 4, rz: 0,
         options: {
-            filename: "editor1.py"
+            filename: "editor1.py",
+            tokenizer: Primrose.Text.Grammars.Python
         },
         scale: 3,
-    }] //, {
-    //     id: 'editor2',
-    //     w: w, h: h, x: 8, y: 7, z: -3,
-    //     rx: 0, ry: -Math.PI / 4, rz: 0,
-    //     options: {
-    //         filename: "terrain.js"
-    //     },
-    //     scale: 3
-    // }]
+    }]
 };
 
 /* global isOSX, Primrose, THREE, isMobile, requestFullScreen */
@@ -113,6 +111,8 @@ function StartDemo() {
     });
 
     application.start();
+    currentUser = application.currentUser;
+    
     if (DEBUG_APP) {
         $("#main").hide();
     }

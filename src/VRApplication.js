@@ -72,13 +72,6 @@ Primrose.VRApplication = (function() {
         this.hudEditors = [];
         this.currentEditor;
 
-        this.rugMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1.4), new THREE.MeshBasicMaterial({color: 0xffff00, side: THREE.DoubleSide}));
-        this.rugMesh.rotation.x -= Math.PI / 2;
-        this.rugMesh.scale.x = 4;
-        this.rugMesh.scale.z = 4;
-        this.rugMesh.position.y += 0.5;
-        this.rugMesh.position.z -= 1;
-
         this.stats = new Stats();
         this.stats.setMode(0); // 0: fps, 1: ms, 2: mb
         // align top-left
@@ -86,6 +79,7 @@ Primrose.VRApplication = (function() {
         this.stats.domElement.style.left = '0px';
         this.stats.domElement.style.top = '0px';
         document.body.appendChild(this.stats.domElement);
+
 
 
         //
@@ -166,7 +160,7 @@ Primrose.VRApplication = (function() {
         function checkForVR() {
             findVR(function(display, sensor) {
                 if (display && (display.deviceName !== "Mockulus Rift" ||
-                    DEBUG_VR)) {
+                        DEBUG_VR)) {
                     this.vrDisplay = display;
                     this.vrSensor = sensor;
                 }
@@ -216,16 +210,16 @@ Primrose.VRApplication = (function() {
         this.gamepad = new Primrose.Input.Gamepad("gamepad", [{
             name: "strafe",
             axes: [Primrose.Input.Gamepad.LSX],
-            deadzone: 0.3
+            deadzone: 0.25
         }, {
             name: "drive",
             axes: [Primrose.Input.Gamepad.LSY],
-            deadzone: 0.3
+            deadzone: 0.2
         }, {
             name: "heading",
             axes: [-Primrose.Input.Gamepad.RSX],
             integrate: true,
-            deadzone: 0.3
+            deadzone: 0.2
         }, {
             name: "dheading",
             commands: ["heading"],
@@ -234,14 +228,14 @@ Primrose.VRApplication = (function() {
             name: "pitch",
             axes: [Primrose.Input.Gamepad.RSY],
             buttons: [11],
-            deadzone: 0.3,
+            deadzone: 0.2,
             integrate: true,
             min: -Math.PI * 0.5,
             max: Math.PI * 0.5
         }, {
             name: "floatup",
             axes: [Primrose.Input.Gamepad.RSY],
-            deadzone: 0.3
+            deadzone: 0.13
         }]);
 
         this.gamepad.addEventListener("gamepadconnected",
@@ -364,6 +358,11 @@ Primrose.VRApplication = (function() {
             this.lt = t;
             if (this.camera && this.scene && this.currentUser &&
                 this.buttonFactory.template) {
+
+                // if (DEBUG_APP) {
+                currentUser = this.currentUser;
+                // }
+
                 this.setSize();
 
                 if (this.passthrough) {
@@ -405,6 +404,15 @@ Primrose.VRApplication = (function() {
                 }
             }.bind(this));
             this.camera = this.scene.Camera;
+
+            this.currentUser = makeBall.call(
+                this, this.avatarMesh || new THREE.Vector3(0, 3, 5), this.avatarHeight / 2, this.avatarMesh === undefined);
+
+            // this.currentUser = makeBall.call(
+            //     this,
+            //     new THREE.Vector3(0, 3, 5),
+            //     this.avatarHeight / 2, true);
+
         }.bind(this));
 
         window.addEventListener("resize", this.setSize.bind(this), false);
@@ -433,8 +441,8 @@ Primrose.VRApplication = (function() {
             }
             if (this.hudGroup) {
                 this.hudGroup.position.copy(this.camera.position);
+                //this.hudGroup.rotation.copy(this.camera.rotation);
             }
-
 
             if (this.inVR) {
                 if (this.vrEffect) {
@@ -447,14 +455,6 @@ Primrose.VRApplication = (function() {
                 this.renderer.render(s, this.camera, rt, fc);
             }
         };
-
-        this.currentUser = makeBall.call(
-            this,
-            new THREE.Vector3(0, 3, 5),
-            this.avatarHeight / 2, true, 0.01);
-
-        // this.currentUser = makeBall.call(
-        //     this, this.rugMesh, this.avatarHeight / 2, false);
 
         this.ctrls.goRegular.addEventListener("click", function() {
             requestFullScreen(this.ctrls.frontBuffer);
@@ -651,25 +651,26 @@ Primrose.VRApplication = (function() {
         }
 
         heading = this.gamepad.getValue("heading"); // + this.mouse.getValue("heading");
-        pitch = -this.gamepad.getValue("pitch");
-        //this.currentUser.quaternion.setFromAxisAngle(UP, heading);
-        var v;
+        this.currentUser.quaternion.setFromAxisAngle(UP, heading);
 
-        if (this.gamepad.inputState.buttons[11]) {
-          this.currentUser.velocity.y = this.currentUser.velocity.y * 0.1;
-          v = new CANNON.Vec3(Math.cos(pitch) * Math.sin(heading), -Math.sin(pitch), Math.cos(pitch) * Math.cos(heading));
-          floatup = 0;
-        } else {
-          v = new CANNON.Vec3(Math.sin(heading), 0, Math.cos(heading));
-          var floatSpeed = 0.75 * this.walkSpeed;
-          floatup = -floatSpeed * this.gamepad.getValue("floatup");
-          this.currentUser.velocity.y = this.currentUser.velocity.y * 0.1 + floatup * 0.9;
-          if (this.onground && this.currentUser.velocity.y < 0) {
+        pitch = -this.gamepad.getValue("pitch");
+
+        // var v;
+        // if (this.gamepad.inputState.buttons[11]) {
+        //   this.currentUser.velocity.y = this.currentUser.velocity.y * 0.1;
+        //   v = new CANNON.Vec3(Math.cos(pitch) * Math.sin(heading), -Math.sin(pitch), Math.cos(pitch) * Math.cos(heading));
+        //   floatup = 0;
+        // } else {
+        //   v = new CANNON.Vec3(Math.sin(heading), 0, Math.cos(heading));
+        var floatSpeed = 0.6 * this.walkSpeed;
+        floatup = -floatSpeed * this.gamepad.getValue("floatup");
+        this.currentUser.velocity.y = this.currentUser.velocity.y * 0.1 + floatup * 0.9;
+        if (this.onground && this.currentUser.velocity.y < 0) {
             this.currentUser.velocity.y = 0;
-          }
         }
+        // }
         // v = new CANNON.Vec3(Math.cos(pitch) * Math.sin(heading), -Math.sin(pitch), Math.cos(pitch) * Math.cos(heading));
-        this.currentUser.quaternion.setFromVectors(u, v);
+        // this.currentUser.quaternion.setFromVectors(u, v);
 
         if (strafe || drive) {
             len = this.walkSpeed * Math.min(1, 1 / Math.sqrt(drive * drive +
@@ -754,7 +755,6 @@ Primrose.VRApplication = (function() {
         this.stats.begin();
         this.renderScene(this.scene);
         this.stats.end();
-
     };
 
     return VRApplication;
