@@ -1,9 +1,9 @@
 var deskScale = 0.011;
-var water = false;
+var water = true;
 var avatarScale = 3;
+var scene;
 
 var TerrainApplication = (function() {
-    var scene;
     var camera;
     var hudGroup;
 
@@ -35,6 +35,7 @@ var TerrainApplication = (function() {
             color: 0x998700,
             side: THREE.DoubleSide
         }));
+        this.rugMesh.name = "rugMesh";
         this.rugMesh.geometry.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
         this.rugMesh.scale.x = avatarScale;
         this.rugMesh.scale.y = avatarScale;
@@ -43,6 +44,7 @@ var TerrainApplication = (function() {
         // this.rugMesh.position.z -= 3;
         this.avatarMesh = this.rugMesh;
 
+        console.log("calling VRApplication constructor...");
         Primrose.VRApplication.call(this, name, sceneModel, buttonModel, buttonOptions,
             avatarHeight, walkSpeed, options);
 
@@ -87,10 +89,9 @@ var TerrainApplication = (function() {
         var audio3d = new Primrose.Output.Audio3D();
 
         function log(msg) {
+            console.log(msg);
             if (this.textGeomLog) {
                 this.textGeomLog.log(msg);
-            } else {
-                console.log(msg);
             }
         }
         this.log = log.bind(this);
@@ -98,9 +99,36 @@ var TerrainApplication = (function() {
         
         this.manaTexture = THREE.ImageUtils.loadTexture( "flask_examples/images/mana3.png" );
 
+        // console.log("doing particle stuff...");
+        // this.particleGroup = new SPE.Group({
+        //         texture: THREE.ImageUtils.loadTexture('flask_examples/images/smokeparticle.png'),
+        //         maxAge: 200
+        //     });
+        // this.emitter = new SPE.Emitter({
+        //         position: new THREE.Vector3(0, 2, 0),
+        //         positionSpread: new THREE.Vector3( 0, 0, 0 ),
+
+        //         acceleration: new THREE.Vector3(0, -10, 0),
+        //         accelerationSpread: new THREE.Vector3( 10, 0, 10 ),
+
+        //         velocity: new THREE.Vector3(0, 15, 0),
+        //         velocitySpread: new THREE.Vector3(10, 7.5, 10),
+
+        //         colorStart: new THREE.Color('white'),
+        //         colorEnd: new THREE.Color('red'),
+
+        //         sizeStart: 1,
+        //         sizeEnd: 1,
+
+        //         particleCount: 2000
+        //     });
+        // this.particleGroup.addEmitter( this.emitter );
+
         function waitForResources(t) {
             this.lt = t;
             if (this.camera && this.scene && this.currentUser && this.buttonFactory.template) {
+                console.log("TerrainApplication::waitForResources: resources ready...");
+
                 this.setSize();
 
                 this.textGeomLog = new TextGeomLog(this.scene, 10, this.camera);
@@ -113,13 +141,18 @@ var TerrainApplication = (function() {
                 var dodeca = new THREE.Mesh(
                     new THREE.DodecahedronGeometry(),
                     new THREE.MeshPhongMaterial({shading: THREE.FlatShading, color: 0x1122ee, shininess: 50, specular: 0xffeeee}));
-                dodeca.position.y += 5;
-                dodeca.position.z += 5;
+                dodeca.position.y += 4;
+                dodeca.position.z -= 2.5;
                 this.scene.add(dodeca);
 
                 var sunColor = 0xffde99;
-                var directionalLight = new THREE.DirectionalLight(sunColor, 1, 2, 3);
+                var directionalLight = new THREE.DirectionalLight(sunColor, 1.2);
+                directionalLight.position.set(1, 4, 3);
                 this.scene.add(directionalLight);
+                // var ambientLight = new THREE.AmbientLight( 0x404040 ); // soft white light
+                // scene.add( ambientLight );
+                // var pointLight = new THREE.PointLight( 0x402010 , 2);
+                // scene.add( pointLight );
 
                 if (water) {
                     // Load textures        
@@ -154,30 +187,46 @@ var TerrainApplication = (function() {
                         //obj.position.z += 4;
                         //obj.position.y -= 2;
                     }
+                    if (obj.name) {
+                        console.log(obj.name);
+                        console.log(obj);
+                    }
+                    if (obj instanceof THREE.Mesh && obj.material === undefined) {
+                        console.log("material not defined, adding new material...");
+                        this.scene.remove(obj);
+                        var material = new THREE.MeshLambertMaterial({color: 0x0000ee, shading: THREE.FlatShading});
+                        this.scene.add(new THREE.Mesh(obj.geometry, material));
+                    }
                 });
 
                 if (this.rugMesh) {
+                    console.log("adding rugMesh...");
                     this.scene.add(this.rugMesh);
                 }
-
                 if (this.skyBox) {
                     this.scene.add(this.skyBox);
                 }
                 if (this.floor) {
+                    console.log("adding floor...");
                     this.scene.add(this.floor);
                 }
                 if (this.fog) {
+                    console.log("adding fog...");
                     this.scene.fog = this.fog;
                 }
                 if (this.passthrough) {
                     this.camera.add(this.passthrough.mesh);
                 }
                 if (this.hudGroup) {
+                    console.log("adding hudGroup...");
                     this.scene.add(this.hudGroup);
                 }
 
+                var axisHelper = new THREE.AxisHelper( 10 );
+                scene.add( axisHelper );
+
                 var dir = new THREE.Vector3(0, 0, -1);
-                var origin = new THREE.Vector3(0, 0, 0);
+                var origin = new THREE.Vector3(0, 0, -1);
                 var length = 1;
                 var hex = 0xffff00;
                 this.arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex);
@@ -198,7 +247,7 @@ var TerrainApplication = (function() {
                     scale: 2,
                     hudx: 4, hudy: 0, hudz: -3
                 });
-
+                //this.options.editors = null;
                 if (this.options.editors) {
                     for (var i = 0; i < this.options.editors.length; ++i) {
                         var editorConfig = this.options.editors[i];
@@ -245,7 +294,7 @@ var TerrainApplication = (function() {
                         }
                     }
                 }
-                
+
                 // load the terrain:
                 $.ajax({
                     url: "/read?filename=terrain.js"
@@ -257,6 +306,13 @@ var TerrainApplication = (function() {
                 fail(function() {
                     log("problem loading terrain!");
                 });
+
+                // console.log("adding particles to scene...");
+                // scene.add( this.particleGroup.mesh );
+                // this.particleGroup.mesh.name = "particleMesh";
+                // this.particleGroup.mesh.position.y = 3;
+                // //scene.add( this.particleGroup.mesh );
+                // console.log(this.particleGroup.mesh);
 
                 this.printInstructions();
 
@@ -611,11 +667,16 @@ var TerrainApplication = (function() {
     };
 
     TerrainApplication.prototype.animate = function (t) {
+        var dt = (t - this.lt);
         if (water && this.ms_Water) {
             this.ms_Water.render();
-            var dt = (t - this.lt) * 0.0003;
-            this.ms_Water.material.uniforms.time.value += dt;
+            this.ms_Water.material.uniforms.time.value += dt * 0.0003;
         }
+        if (this.particleGroup) {
+            this.particleGroup.tick( dt*0.0003 );
+        }
+
+        Primrose.VRApplication.prototype.animate.call(this, t);
 
         // this.arrowHelper.position.copy(this.currentUser.position);
         // this.arrowHelper.position.z += 1;
@@ -624,7 +685,6 @@ var TerrainApplication = (function() {
         // this.currentUser.vectorToWorldFrame(refdir, dir);
         // this.arrowHelper.setDirection(dir);
 
-        Primrose.VRApplication.prototype.animate.call(this, t);
     };
 
     return TerrainApplication;

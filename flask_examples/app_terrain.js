@@ -1,4 +1,4 @@
-var DEBUG_APP = $.QueryString['debug']; //1;
+var DEBUG_APP = $.QueryString['debug'];
 
 var walkSpeed = 3;
 var avatarHeight = 3;
@@ -23,13 +23,11 @@ if (skyBoxPosition) {
 }
 
 var skyBox;
-
 // skyBox = textured(
 //     shell(300, 12, 7, Math.PI * 2, Math.PI / 1.666),
 //     skyBoxTexture, true);
 
 // from http://stemkoski.github.io/Three.js/#skybox
-
 var imagePrefix = "flask_examples/images/dawnmountain-";
 var directions  = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
 var imageSuffix = ".png";
@@ -71,7 +69,7 @@ var options = {
             filename: "editor0.js",
             tokenizer: Primrose.Text.Grammars.JavaScript
         },
-        scale: 3
+        scale: 2
     }, {
         id: 'editor1',
         w: w, h: h, x: -8, y: 4, z: -2,
@@ -80,7 +78,7 @@ var options = {
             filename: "editor1.py",
             tokenizer: Primrose.Text.Grammars.Python
         },
-        scale: 3,
+        scale: 2,
     }]
 };
 
@@ -88,6 +86,7 @@ var options = {
 var DEBUG_VR = false;
 var application;
 var log;
+var scene;
 function StartDemo() {
     "use strict";
     application = new TerrainApplication(

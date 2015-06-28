@@ -8,7 +8,7 @@ flask_examples/models/animated/flamingo.js
 flask_examples/models/animated/parrot.js
 flask_examples/models/animated/stork.js
 renders
-
+wings_data
 
 # Logs
 logs
@@ -92,3 +92,4 @@ lib/Heather.min.js
 src/VRApplication - Copy.js
 flask_examples/TerrainApplication - Copy.js
 *.wings~
+flask_examples/images/mana.xcf

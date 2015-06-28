@@ -4,7 +4,8 @@ Primrose.ModelLoader = ( function () {
   var COLLADA = new THREE.ColladaLoader(),
       JSON = new THREE.ObjectLoader();
   COLLADA.options.convertUpAxis = true;
-
+  COLLADA.setPreferredShading(THREE.FlatShading);
+  
   function fixColladaScene ( collada ) {
     return collada.scene;
   }

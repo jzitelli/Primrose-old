@@ -1,5 +1,6 @@
 /* global Primrose, CANNON, THREE, io, CryptoJS, fmt, Notification, requestFullScreen */
 Primrose.VRApplication = (function() {
+    var DEBUG_MODE;
     /*
    Create a new VR Application!
 
@@ -358,7 +359,7 @@ Primrose.VRApplication = (function() {
             this.lt = t;
             if (this.camera && this.scene && this.currentUser &&
                 this.buttonFactory.template) {
-
+                console.log("VRApplication::waitForResources: resources ready...");
                 // if (DEBUG_APP) {
                 currentUser = this.currentUser;
                 // }
@@ -392,26 +393,44 @@ Primrose.VRApplication = (function() {
             requestAnimationFrame(waitForResources.bind(this));
         };
 
-        Primrose.ModelLoader.loadScene(sceneModel, function(sceneGraph) {
-            this.scene = sceneGraph;
-            this.scene.traverse(function(obj) {
-                if (obj.isSolid) {
-                    if (obj.name === "Terrain" || obj.name.startsWith("Plane")) {
-                        makePlane.call(this, obj);
-                    } else {
-                        // makeBall.call( this, obj );
-                    }
-                }
-            }.bind(this));
-            if (this.scene.Camera) {
-                this.camera = this.scene.Camera;
-            } else {
-                this.camera = new THREE.PerspectiveCamera( 45, 1.6, 1, 1000 );
-            }
 
+        if (DEBUG_MODE) {
+            console.log("creating bare scene....");
+            this.scene = new THREE.Scene();
+            //this.scene.overrideMaterial = new THREE.MeshLambertMaterial({color: 0xffee00});
+            this.camera = new THREE.PerspectiveCamera( 75, 1.77778, 1, 1000 );
+            this.scene.add(this.camera);
+            console.log("adding currentUser...");
             this.currentUser = makeBall.call(
                 this, this.avatarMesh || new THREE.Vector3(0, 3, 5), this.avatarHeight / 2, this.avatarMesh === undefined);
-        }.bind(this));
+            console.log(this.currentUser);
+        } else {
+            console.log("loading scene " + sceneModel);
+            Primrose.ModelLoader.loadScene(sceneModel, function(sceneGraph) {
+                console.log("loaded " + sceneModel);
+                this.scene = sceneGraph;
+                console.log("traversing scene...");
+                this.scene.traverse(function(obj) {
+                    if (obj.isSolid) {
+                        if (obj.name === "Terrain" || obj.name.startsWith("Plane")) {
+                            makePlane.call(this, obj);
+                        } else {
+                            // makeBall.call( this, obj );
+                        }
+                    }
+                }.bind(this));
+                console.log("adding camera...");
+                if (this.scene.Camera) {
+                    this.camera = this.scene.Camera;
+                } else {
+                    this.camera = new THREE.PerspectiveCamera( 35, 1.77778, 1, 1000 );
+                }
+                console.log("adding currentUser...");
+                this.currentUser = makeBall.call(
+                    this, this.avatarMesh || new THREE.Vector3(0, 3, 5), this.avatarHeight / 2, this.avatarMesh === undefined);
+                console.log(this.currentUser);
+            }.bind(this));
+        }
 
         window.addEventListener("resize", this.setSize.bind(this), false);
 
@@ -439,7 +458,7 @@ Primrose.VRApplication = (function() {
             }
             if (this.hudGroup) {
                 this.hudGroup.position.copy(this.camera.position);
-                //this.hudGroup.rotation.copy(this.camera.rotation);
+                //this.hudGroup.quaternion.copy(this.camera.quaternion);
             }
 
             if (this.inVR) {
