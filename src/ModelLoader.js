@@ -100,14 +100,9 @@ Primrose.ModelLoader = ( function () {
     };
 
     if ( src.endsWith( ".dae" ) ) {
-      // console.error( "COLLADA seems to be broken right now" );
-      // if ( false ) {
-
       COLLADA.load( src, function ( collada ) {
         done( fixColladaScene( collada ) );
       } );
-
-      // }
     }
     else if ( src.endsWith( ".json" ) ) {
       JSON.load( src, function (json){

@@ -1,7 +1,4 @@
 dist
-flask_examples/sounds
-flask_examples/shaders
-flask_examples/textures
 *.py~
 *.pyc
 flask_examples/models/ConfigUtilDeskScene.tga
@@ -10,7 +7,7 @@ flask_examples/models/ConfigUtilDeskScene.xml
 flask_examples/models/animated/flamingo.js
 flask_examples/models/animated/parrot.js
 flask_examples/models/animated/stork.js
-
+renders
 
 
 # Logs
@@ -94,3 +91,4 @@ lib/jquery.js
 lib/Heather.min.js
 src/VRApplication - Copy.js
 flask_examples/TerrainApplication - Copy.js
+*.wings~

@@ -403,16 +403,14 @@ Primrose.VRApplication = (function() {
                     }
                 }
             }.bind(this));
-            this.camera = this.scene.Camera;
+            if (this.scene.Camera) {
+                this.camera = this.scene.Camera;
+            } else {
+                this.camera = new THREE.PerspectiveCamera( 45, 1.6, 1, 1000 );
+            }
 
             this.currentUser = makeBall.call(
                 this, this.avatarMesh || new THREE.Vector3(0, 3, 5), this.avatarHeight / 2, this.avatarMesh === undefined);
-
-            // this.currentUser = makeBall.call(
-            //     this,
-            //     new THREE.Vector3(0, 3, 5),
-            //     this.avatarHeight / 2, true);
-
         }.bind(this));
 
         window.addEventListener("resize", this.setSize.bind(this), false);
@@ -739,7 +737,10 @@ Primrose.VRApplication = (function() {
             if (state.position) {
                 this.pRift.copy(state.position);
             }
-            this.camera.position.add(this.pRift);
+            var dRift = this.currentUser.graphics.localToWorld(this.pRift);
+            dRift.x /= avatarScale; dRift.y /= avatarScale; dRift.z /= avatarScale;
+            this.camera.position.add(dRift);
+
 
             // if( state.linearVelocity ){
             //   this.currentUser.velocity.copy( state.linearVelocity );

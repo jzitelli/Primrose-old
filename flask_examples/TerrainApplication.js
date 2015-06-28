@@ -1,3 +1,7 @@
+var deskScale = 0.011;
+var water = false;
+var avatarScale = 3;
+
 var TerrainApplication = (function() {
     var scene;
     var camera;
@@ -32,9 +36,10 @@ var TerrainApplication = (function() {
             side: THREE.DoubleSide
         }));
         this.rugMesh.geometry.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
-        this.rugMesh.scale.x = 3;
-        this.rugMesh.scale.z = 3;
-        this.rugMesh.position.y += 2.5;
+        this.rugMesh.scale.x = avatarScale;
+        this.rugMesh.scale.y = avatarScale;
+        this.rugMesh.scale.z = avatarScale;
+        this.rugMesh.position.y += 3;
         // this.rugMesh.position.z -= 3;
         this.avatarMesh = this.rugMesh;
 
@@ -91,7 +96,7 @@ var TerrainApplication = (function() {
         this.log = log.bind(this);
         var log = log.bind(this);
         
-        this.manaTexture = THREE.ImageUtils.loadTexture( "flask_examples/images/mana5.png" );
+        this.manaTexture = THREE.ImageUtils.loadTexture( "flask_examples/images/mana3.png" );
 
         function waitForResources(t) {
             this.lt = t;
@@ -115,37 +120,39 @@ var TerrainApplication = (function() {
                 var sunColor = 0xffde99;
                 var directionalLight = new THREE.DirectionalLight(sunColor, 1, 2, 3);
                 this.scene.add(directionalLight);
-        
-                // Load textures        
-                var waterNormals = new THREE.ImageUtils.loadTexture('flask_examples/images/waternormals.jpg');
-                waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping; 
-                
-                // Create the water effect
-                this.ms_Water = new THREE.Water(this.renderer, this.camera, this.scene, {
-                    textureWidth: 512,
-                    textureHeight: 512,
-                    waterNormals: waterNormals,
-                    alpha:  1, //0.75,
-                    sunDirection: directionalLight.position.normalize(),
-                    sunColor: sunColor,
-                    waterColor: 0x001e1f,
-                    distortionScale: 2.0,
-                    fog: true
-                });
-                var aMeshMirror = new THREE.Mesh(
-                    new THREE.PlaneBufferGeometry(500, 500, 1, 1), 
-                    this.ms_Water.material
-                );
-                aMeshMirror.add(this.ms_Water);
-                aMeshMirror.rotation.x = - Math.PI / 2;
-                aMeshMirror.position.y -= 3;
-                this.scene.add(aMeshMirror);
-    
+
+                if (water) {
+                    // Load textures        
+                    var waterNormals = new THREE.ImageUtils.loadTexture('flask_examples/images/waternormals.jpg');
+                    waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping; 
+                    
+                    // Create the water effect
+                    this.ms_Water = new THREE.Water(this.renderer, this.camera, this.scene, {
+                        textureWidth: 512,
+                        textureHeight: 512,
+                        waterNormals: waterNormals,
+                        alpha:  1, //0.75,
+                        sunDirection: directionalLight.position.normalize(),
+                        sunColor: sunColor,
+                        waterColor: 0x001e1f,
+                        distortionScale: 8.0,
+                        fog: true
+                    });
+                    var aMeshMirror = new THREE.Mesh(
+                        new THREE.PlaneBufferGeometry(1000, 1000, 1, 1), 
+                        this.ms_Water.material
+                    );
+                    aMeshMirror.add(this.ms_Water);
+                    aMeshMirror.rotation.x = - Math.PI / 2;
+                    aMeshMirror.position.y -= 3;
+                    this.scene.add(aMeshMirror);
+                }
+
                 this.scene.traverse(function (obj) {
                     if (obj.name === "Desk") {
-                        obj.scale.set(0.01, 0.01, 0.01);
-                        obj.position.z += 4;
-                        obj.position.y -= 2;
+                        obj.scale.set(deskScale, deskScale, deskScale);
+                        //obj.position.z += 4;
+                        //obj.position.y -= 2;
                     }
                 });
 
@@ -604,9 +611,9 @@ var TerrainApplication = (function() {
     };
 
     TerrainApplication.prototype.animate = function (t) {
-        if (this.ms_Water) {
+        if (water && this.ms_Water) {
             this.ms_Water.render();
-            var dt = (t - this.lt) * 0.0008;
+            var dt = (t - this.lt) * 0.0003;
             this.ms_Water.material.uniforms.time.value += dt;
         }
 

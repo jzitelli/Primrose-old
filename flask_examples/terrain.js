@@ -76,11 +76,11 @@
                     material);
 
                 geometry.computeBoundingBox();
-                var yScale = 14 / (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
-                terrain.scale.set(3 * 30 / (geometry.boundingBox.max.x - geometry.boundingBox.min.x),
+                var yScale = 6 / (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
+                terrain.scale.set(30 / (geometry.boundingBox.max.x - geometry.boundingBox.min.x),
                     yScale,
-                    3 * 30 / (geometry.boundingBox.max.z - geometry.boundingBox.min.z));
-                terrain.position.y = -14;
+                    30 / (geometry.boundingBox.max.z - geometry.boundingBox.min.z));
+                terrain.position.y = -7;
 
                 geometry.computeFaceNormals();
                 geometry.computeVertexNormals();
