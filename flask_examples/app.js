@@ -322,13 +322,13 @@ Primrose.VRApp = (function() {
             commandDown: this.newObject.bind(this),
             dt: 0.15
         });
-        instructions.push('left stick: reset position');
-        this.gamepad.addCommand({
-            name: "resetPosition",
-            buttons: [butmap.leftStick],
-            commandDown: this.resetPosition.bind(this),
-            dt: 0.25
-        });
+        // instructions.push('left stick: reset position');
+        // this.gamepad.addCommand({
+        //     name: "resetPosition",
+        //     buttons: [butmap.leftStick],
+        //     commandDown: this.resetPosition.bind(this),
+        //     dt: 0.25
+        // });
 
 
         var DEBUG_VR = false,
@@ -625,7 +625,7 @@ Primrose.VRApp = (function() {
                         opacity: 0.8
                     },
                     scale: 2,
-                    hudx: 4,
+                    hudx: 1.25,
                     hudy: 0,
                     hudz: -3
                 });
@@ -1030,8 +1030,11 @@ Primrose.VRApp = (function() {
             mesh.position.y += 3;
             mesh.position.z -= 4;
             this.scene.add(mesh);
-            var body = this.makeBall(mesh, 1, 1, false, {fixedRotation: false});
-            body.velocity = this.currentUser.velocity;
+            var radius = 0.5;
+            var mass = 1;
+            var skipObj = false;
+            var body = this.makeBall(mesh, mass, radius, skipObj, {fixedRotation: false});
+            body.velocity.copy(this.currentUser.velocity);
         }
     };
 
@@ -1377,7 +1380,7 @@ options.editors = [{
 
 var walkSpeed = 3;
 var floatSpeed = walkSpeed * 0.666;
-var water = false;
+var water = true;
 var sceneModel = $.QueryString['sceneModel'] || "flask_examples/models/ConfigUtilDeskScene.json";
 var deskScale = 0.011;
 
