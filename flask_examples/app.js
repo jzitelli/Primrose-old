@@ -81,6 +81,13 @@ Primrose.VRApp = (function() {
         this.stats.domElement.style.top = '0px';
         document.body.appendChild(this.stats.domElement);
 
+        this.manaTexture = THREE.ImageUtils.loadTexture("flask_examples/images/mana3.png");
+        this.manaSprite = new THREE.SpriteMaterial({
+            map: this.manaTexture,
+            color: 0xffffff,
+            fog: true
+        });
+
         // for cannon.demo.js:
         this.currentMaterial = new THREE.MeshLambertMaterial({
             color: 0xfedcba,
@@ -137,8 +144,6 @@ Primrose.VRApp = (function() {
         });
         this.particleGroup.addEmitter(this.emitter);
 
-
-        this.manaTexture = THREE.ImageUtils.loadTexture("flask_examples/images/mana3.png");
 
 
         //
@@ -474,17 +479,15 @@ Primrose.VRApp = (function() {
             return addPhysicsBody.call(this, obj, body, shape);
         }
 
-        function makeBall(obj, radius, skipObj, mass) {
-            if (mass === undefined) mass = 1;
-            var body = new CANNON.Body({
-                mass: mass,
-                material: this.bodyMaterial,
-                fixedRotation: true
-            });
-            var shape = new CANNON.Sphere(radius ||
-                obj.geometry.boundingSphere.radius);
-            return addPhysicsBody.call(this, obj, body, shape, radius, skipObj);
+        function makeBall ( obj, mass, radius, skipObj, options ) {
+          options = options || {fixedRotation: true};
+          var body = new CANNON.Body( { mass: mass, material: this.bodyMaterial,
+            fixedRotation: options.fixedRotation } );
+          var shape = new CANNON.Sphere( radius ||
+              obj.geometry.boundingSphere.radius );
+          return addPhysicsBody.call( this, obj, body, shape, radius, skipObj );
         }
+        this.makeBall = makeBall.bind(this);
 
         function waitForResources(t) {
             this.lt = t;
@@ -606,6 +609,7 @@ Primrose.VRApp = (function() {
 
 
                 this.options.editors = this.options.editors || [];
+                // default HUD editor
                 this.options.editors.push({
                     id: 'hudEditor',
                     w: 2,
@@ -652,8 +656,8 @@ Primrose.VRApp = (function() {
                             app.log("loaded " + data.args.filename);
                             this.value = '' + data.value;
                         }.bind(editor)).
-                        fail(function(msg) {
-                            app.log("problem: " + msg);
+                        fail(function(jqXHR, textStatus) {
+                            app.log("problem loading file: " + textStatus);
                         });
                     }
                     if (editorConfig.options.onlyHUD === true) {
@@ -741,16 +745,20 @@ Primrose.VRApp = (function() {
 
         window.addEventListener("resize", this.setSize.bind(this), false);
 
+        function addUser() {
+            this.log("adding currentUser...");
+            this.currentUser = makeBall.call(
+                this, this.avatarMesh, 1, this.avatarHeight / 2, false);
+            console.log(this.currentUser);
+        }
+
         if (DEBUG_MODE) {
-            console.log("creating bare scene....");
+            console.log("DEBUG_MODE: creating bare scene...");
             this.scene = new THREE.Scene();
             // this.scene.overrideMaterial = new THREE.MeshLambertMaterial({color: 0xffee00});
             this.camera = new THREE.PerspectiveCamera(75, 1.77778, 1, 1000);
             this.scene.add(this.camera);
-            console.log("adding currentUser...");
-            this.currentUser = makeBall.call(
-                this, this.avatarMesh || new THREE.Vector3(0, 3, 5), this.avatarHeight / 2, this.avatarMesh === undefined);
-            console.log(this.currentUser);
+            addUser.call(this);
         } else {
             console.log("loading scene " + sceneModel);
             Primrose.ModelLoader.loadScene(sceneModel, function(sceneGraph) {
@@ -766,7 +774,6 @@ Primrose.VRApp = (function() {
                         }
                     }
                 }.bind(this));
-
                 console.log("adding camera...");
                 if (this.scene.Camera) {
                     this.camera = this.scene.Camera;
@@ -774,11 +781,7 @@ Primrose.VRApp = (function() {
                     this.camera = new THREE.PerspectiveCamera(75, 1.77778, 1, 1000);
                 }
                 console.log(this.camera);
-
-                console.log("adding currentUser...");
-                this.currentUser = makeBall.call(
-                    this, this.avatarMesh, this.avatarHeight / 2, false);
-                console.log(this.currentUser);
+                addUser.call(this);
             }.bind(this));
         }
 
@@ -800,7 +803,7 @@ Primrose.VRApp = (function() {
             }
             if (this.hudGroup) {
                 this.hudGroup.position.copy(this.camera.position);
-                //this.hudGroup.quaternion.copy(this.camera.quaternion);
+                this.hudGroup.quaternion.copy(this.camera.quaternion);
             }
 
             if (this.inVR) {
@@ -969,7 +972,7 @@ Primrose.VRApp = (function() {
 
 
     VRApplication.prototype.resetPosition = function() {
-        this.currentUser.position.set(0, 2, 0);
+        this.currentUser.position.set(0, 0, 0);
         this.currentUser.velocity.set(0, 0, 0);
     };
 
@@ -987,30 +990,30 @@ Primrose.VRApp = (function() {
     };
 
     VRApplication.prototype.selectNextObj = function() {
-        // function selectables() {
-        //     var objs = [];
-        //     for (var i = 0; i < scene.children.length; ++i) {
-        //         var obj = scene.children[i];
-        //         if (obj instanceof THREE.Mesh) {
-        //             objs.push(obj);
-        //         }
-        //     }
-        //     return objs;
-        // }
-        // var objs = selectables();
-        // this.currentObject = this.currentObject || objs[0];
-        // for (var i = 0; i < objs.length; ++i) {
-        //     var obj = objs[i];
-        //     if (this.currentObject === obj) {
-        //         if (i == objs.length - 1) {
-        //             this.currentObject = objs[0];
-        //         } else {
-        //             this.currentObject = objs[i + 1];
-        //         }
-        //         break;
-        //     }
-        // }
-        // log("currentObject: " + this.currentObject.name);
+        function selectables() {
+            var objs = [];
+            for (var i = 0; i < this.scene.children.length; ++i) {
+                var obj = this.scene.children[i];
+                if (obj instanceof THREE.Mesh) {
+                    objs.push(obj);
+                }
+            }
+            return objs;
+        }
+        var objs = selectables.call(this);
+        this.currentObject = this.currentObject || objs[0];
+        for (var i = 0; i < objs.length; ++i) {
+            var obj = objs[i];
+            if (this.currentObject === obj) {
+                if (i == objs.length - 1) {
+                    this.currentObject = objs[0];
+                } else {
+                    this.currentObject = objs[i + 1];
+                }
+                break;
+            }
+        }
+        this.log("currentObject: " + this.currentObject.name);
     };
 
     /* 
@@ -1021,19 +1024,14 @@ Primrose.VRApp = (function() {
 
     VRApplication.prototype.newObject = function() {
         if (this.scene) {
-            var material = new THREE.SpriteMaterial({
-                map: this.manaTexture,
-                color: 0xffffff,
-                fog: true
-            });
-            var sprite = new THREE.Sprite(material);
+            var sprite = new THREE.Sprite(this.manaSprite);
             var mesh = sprite;
-
             mesh.position.copy(this.currentUser.position);
-            mesh.position.y += 4;
+            mesh.position.y += 3;
             mesh.position.z -= 4;
             this.scene.add(mesh);
-            var body = makeBall.call(this, mesh, 0.5);
+            var body = this.makeBall(mesh, 1, 1, false, {fixedRotation: false});
+            body.velocity = this.currentUser.velocity;
         }
     };
 
@@ -1066,7 +1064,7 @@ Primrose.VRApp = (function() {
                     this.log(data.value);
                 }.bind(this))
                     .fail(function(jqXHR, textStatus) {
-                        this.log("there was a problem evaluating Python code");
+                        this.log("problem: " + textStatus);
                     }.bind(this));
             }
         }
@@ -1145,15 +1143,16 @@ Primrose.VRApp = (function() {
                     autoBindEvents: true
                 });
             var editor = mesh.editor;
+            var that = this;
             $.ajax({
                 url: "/read?filename=newEditor.js"
             }).
             done(function(data) {
-                console.log("loaded " + data.args.filename);
+                that.log("loaded " + data.args.filename);
                 this.value = '' + data.value;
             }.bind(editor)).
-            fail(function() {
-                console.log("problem!");
+            fail(function(jqXHR, textStatus) {
+                that.log("problem loading file: " + textStatus);
             });
 
             var scale = 2;
@@ -1163,6 +1162,7 @@ Primrose.VRApp = (function() {
             mesh.position.copy(this.currentUser.position);
             mesh.position.z -= 3;
             mesh.position.y += 2;
+            mesh.quaternion.copy(this.currentUser.quaternion);
             this.editors.push(editor);
             this.currentEditor = editor;
             this.currentEditor.focus();
@@ -1265,10 +1265,10 @@ Primrose.VRApp = (function() {
 
         if (water && this.ms_Water) {
             this.ms_Water.render();
-            this.ms_Water.material.uniforms.time.value += dt * 0.0003;
+            this.ms_Water.material.uniforms.time.value += dt;
         }
         if (this.particleGroup) {
-            this.particleGroup.tick(dt * 0.0003);
+            this.particleGroup.tick(dt);
         }
 
         //
