@@ -23,6 +23,7 @@ var TextGeomLog = (function () {
     }
 
     TextGeomLog.prototype.log = function (msg) {
+        if (msg == "") return;
         this.logMsgs.push(msg);
         var mesh;
         var index = this.logMsgs.slice(0, -1).indexOf(msg);

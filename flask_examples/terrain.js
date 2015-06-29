@@ -1,8 +1,6 @@
 (function() {
     var imageurl = $.QueryString['terrainImage'] ||
         'flask_examples/images/terrain4.png';
-        // 'flask_examples/images/diffrac0.png');
-        // 'flask_examples/images/terrain5.png');
 
     function generateHeight(width, height) {
         var size = width * height,
@@ -45,7 +43,6 @@
 
         var texture;
         if (url) {
-            // TODO: avoid callback, does loadTexture block if no callback?
             texture = THREE.ImageUtils.loadTexture(url, THREE.UVMapping, function(texture) {
                 var imageData = getImageData(texture.image);
                 var worldWidth = texture.image.width,
@@ -85,10 +82,11 @@
                 geometry.computeFaceNormals();
                 geometry.computeVertexNormals();
 
-                scene.add(new THREE.DirectionalLight(0xffff33, -1, 2, 3));
+                //scene.add(new THREE.DirectionalLight(0xffff33, -1, 2, 3));
 
-                scene.add(terrain);
-
+                //this.scene.add(terrain);
+                application.scene.add(terrain);
+                
                 // var shape = CANNON.Heightfield(data, {
                 //     elementSize: 30 / worldWidth
                 // });

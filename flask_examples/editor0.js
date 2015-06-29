@@ -1,4 +1,4 @@
-log("editor0 demo");
+application.log("editor0 demo");
 
 var L = 30;
 
@@ -14,4 +14,4 @@ mesh.position.x -= L / 2;
 mesh.position.z -= L / 2;
 mesh.position.y -= 2.5;
 
-scene.add(mesh);
+application.scene.add(mesh);

@@ -93,3 +93,4 @@ src/VRApplication - Copy.js
 flask_examples/TerrainApplication - Copy.js
 *.wings~
 flask_examples/images/mana.xcf
+lib/VRControls.js

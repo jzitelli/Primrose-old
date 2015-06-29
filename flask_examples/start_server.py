@@ -13,16 +13,13 @@ PRIMROSE_ROOT = os.getenv("PRIMROSE_ROOT",
 app = Flask(__name__, static_folder=PRIMROSE_ROOT, static_url_path='')
 
 @app.route("/")
-def simple_app():
-    return render_template("app_terrain.html", title="Simple Demo")
+def new_app():
+    return render_template("app.html")
+
 
 @app.route("/terrain")
 def terrain_demo():
     return render_template("app_terrain.html", title="Terrain Demo")
-
-@app.route("/cannon")
-def cannon_demo():
-    return render_template("app_terrain.html", title="CANNON Demo")
 
 
 @app.route("/read")

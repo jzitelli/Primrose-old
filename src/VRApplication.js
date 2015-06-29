@@ -151,6 +151,7 @@ Primrose.VRApplication = (function() {
 
         function setTrans(m, t) {
             m.makeTranslation(t.x, t.y, t.z);
+            m.multiplyScalar(5);
         }
 
         function setView(b, r) {
@@ -359,11 +360,6 @@ Primrose.VRApplication = (function() {
             this.lt = t;
             if (this.camera && this.scene && this.currentUser &&
                 this.buttonFactory.template) {
-                console.log("VRApplication::waitForResources: resources ready...");
-                // if (DEBUG_APP) {
-                currentUser = this.currentUser;
-                // }
-
                 this.setSize();
 
                 if (this.passthrough) {
@@ -389,6 +385,7 @@ Primrose.VRApplication = (function() {
             }
         }
 
+// <<<<<<< HEAD
         this.start = function() {
             requestAnimationFrame(waitForResources.bind(this));
         };
@@ -462,12 +459,9 @@ Primrose.VRApplication = (function() {
             }
 
             if (this.inVR) {
-                if (this.vrEffect) {
-                    this.vrEffect.render(s, this.camera);
-                } else {
-                    this.renderer.renderStereo(s, this.camera, rt, fc, translations,
-                        viewports);
-                }
+                this.vrEffect.render(s, this.camera);
+                // this.renderer.renderStereo(s, this.camera, rt, fc, translations,
+                //     viewports);
             } else {
                 this.renderer.render(s, this.camera, rt, fc);
             }
@@ -475,9 +469,6 @@ Primrose.VRApplication = (function() {
 
         this.ctrls.goRegular.addEventListener("click", function() {
             requestFullScreen(this.ctrls.frontBuffer);
-            //   this.inVR = false;
-            //   this.setSize();
-            // }.bind(this));
             this.setSize();
         }.bind(this));
         this.ctrls.goVR.addEventListener("click", function() {
@@ -485,6 +476,14 @@ Primrose.VRApplication = (function() {
             this.inVR = true;
             this.setSize();
         }.bind(this));
+// =======
+    // function makeBall ( obj, mass, radius, skipObj ) {
+    //   var body = new CANNON.Body( { mass: mass, material: this.bodyMaterial,
+    //     fixedRotation: true } );
+    //   var shape = new CANNON.Sphere( radius ||
+    //       obj.geometry.boundingSphere.radius );
+    //   return addPhysicsBody.call( this, obj, body, shape, radius, skipObj );
+// >>>>>>> upstream/master
     }
 
     inherit(VRApplication, Primrose.Application);
@@ -504,6 +503,7 @@ Primrose.VRApplication = (function() {
         }
     };
 
+//<<<<<<< HEAD
     VRApplication.prototype.fire = function(name, arg1, arg2, arg3, arg4) {
         for (var i = 0; i < this.listeners[name].length; ++i) {
             this.listeners[name][i](arg1, arg2, arg3, arg4);
@@ -517,6 +517,21 @@ Primrose.VRApplication = (function() {
         var cell = document.createElement("td");
         cell.appendChild(elem);
         row.appendChild(cell);
+// =======
+//         this.animate = this.animate.bind( this );
+
+//         this.glove = new Primrose.Output.HapticGlove( {
+//           scene: this.scene,
+//           camera: this.camera
+//         }, 2, 5, 5, 9080 );
+        
+//         this.fire( "ready" );
+//         requestAnimationFrame( this.animate );
+//       }
+//       else {
+//         requestAnimationFrame( waitForResources.bind( this ) );
+//       }
+// >>>>>>> upstream/master
     }
 
     VRApplication.prototype.setupModuleEvents = function(container, module,
@@ -577,14 +592,28 @@ Primrose.VRApplication = (function() {
             r.colspan = 2;
         }
 
+//<<<<<<< HEAD
         module.enable(e.checked);
         module.transmit(t.checked);
         module.receive(r.checked);
         t.disabled = !e.checked;
         if (t.checked && t.disabled) {
             t.checked = false;
+// =======
+//     Primrose.ModelLoader.loadScene( sceneModel, function ( sceneGraph ) {
+//       this.scene = sceneGraph;
+//       this.scene.traverse( function ( obj ) {
+//         if ( obj.isSolid ) {
+//           if ( obj.name === "Terrain" || obj.name.startsWith( "Plane" ) ) {
+//             makePlane.call( this, obj );
+//           }
+//           else {
+//             makeBall.call( this, obj, 1 );
+//           }
+// >>>>>>> upstream/master
         }
     };
+
 
     VRApplication.prototype.setSize = function() {
         var styleWidth = this.ctrls.outputContainer.clientWidth,
@@ -594,14 +623,26 @@ Primrose.VRApplication = (function() {
             canvasWidth = styleWidth * ratio,
             canvasHeight = styleHeight * ratio,
             aspectWidth = canvasWidth;
+        var aspect = canvasWidth / canvasHeight;
+
         if (this.inVR) {
             canvasWidth = this.vrParams.left.renderRect.width +
-                this.vrParams.right.renderRect.width;
+                          this.vrParams.right.renderRect.width;
             canvasHeight = Math.max(this.vrParams.left.renderRect.height,
-                this.vrParams.right.renderRect.height);
+                                    this.vrParams.right.renderRect.height);
             aspectWidth = canvasWidth / 2;
             fieldOfView = (this.vrParams.left.recommendedFieldOfView.leftDegrees +
                 this.vrParams.left.recommendedFieldOfView.rightDegrees);
+
+            var DEG2RAD = Math.PI / 180.0;
+            var fovPort = {
+                upTan: Math.tan( this.vrParams.left.recommendedFieldOfView.upDegrees * DEG2RAD ),
+                downTan: Math.tan( this.vrParams.left.recommendedFieldOfView.downDegrees * DEG2RAD ),
+                leftTan: Math.tan( this.vrParams.left.recommendedFieldOfView.leftDegrees * DEG2RAD ),
+                rightTan: Math.tan( this.vrParams.left.recommendedFieldOfView.rightDegrees * DEG2RAD )
+            };
+            aspect = (fovPort.leftTan + fovPort.rightTan) / (fovPort.upTan + fovPort.downTan);
+            //aspect = aspectWidth / canvasHeight;
         }
         this.renderer.domElement.style.width = px(styleWidth);
         this.renderer.domElement.style.height = px(styleHeight);
@@ -609,19 +650,64 @@ Primrose.VRApplication = (function() {
         this.renderer.domElement.height = canvasHeight;
         this.renderer.setViewport(0, 0, canvasWidth, canvasHeight);
         this.camera.fov = fieldOfView;
-        this.camera.aspect = aspectWidth / canvasHeight;
+        this.camera.aspect = aspect;
         this.camera.updateProjectionMatrix();
+
+        console.log("field of view:");
+        console.log(this.camera.fov);
+        console.log("aspect:");
+        console.log(this.camera.aspect);
+        console.log("zoom:");
+        console.log(this.camera.zoom);
 
         if (this.vrEffect) {
             this.vrEffect.setSize(canvasWidth, canvasHeight);
         }
     };
 
+//<<<<<<< HEAD
     VRApplication.prototype.connectGamepad = function(id) {
         if (!this.gamepad.isGamepadSet()) {
             this.gamepad.setGamepad(id);
         }
     };
+// =======
+//     this.currentUser = makeBall.call(
+//         this,
+//         new THREE.Vector3( 0, 3, 5 ),
+//         1,
+//         this.avatarHeight / 2,
+//         true );
+
+//     this.ctrls.goRegular.addEventListener( "click", function () {
+//       requestFullScreen( this.ctrls.frontBuffer );
+//       this.setSize();
+//     }.bind( this ) );
+
+//     this.ctrls.goVR.addEventListener( "click", function ( ) {
+//       requestFullScreen( this.ctrls.frontBuffer, this.vrDisplay );
+//       this.inVR = true;
+//       this.setSize();
+//     }.bind( this ) );
+//   }
+
+//   inherit( VRApplication, Primrose.Application );
+
+//   VRApplication.DEFAULTS = {
+//     gravity: 9.8, // the acceleration applied to falling objects
+//     backgroundColor: 0x000000,
+//     // the color that WebGL clears the background with before drawing
+//     drawDistance: 500, // the far plane of the camera
+//     chatTextSize: 0.25, // the size of a single line of text, in world units
+//     dtNetworkUpdate: 0.125 // the amount of time to allow to elapse between sending state to teh server
+//   };
+
+//   VRApplication.prototype.addEventListener = function ( event, thunk ) {
+//     if ( this.listeners[event] ) {
+//       this.listeners[event].push( thunk );
+//     }
+//   };
+// >>>>>>> upstream/master
 
     VRApplication.prototype.resetPosition = function() {
         this.currentUser.position.set(0, 2, 0);
@@ -760,15 +846,22 @@ Primrose.VRApplication = (function() {
             dRift.x /= avatarScale; dRift.y /= avatarScale; dRift.z /= avatarScale;
             this.camera.position.add(dRift);
 
-
-            // if( state.linearVelocity ){
-            //   this.currentUser.velocity.copy( state.linearVelocity );
-            // }
-
-            // if( state.linearAcceleration ){
-            //   this.currentUser.force.copy( state.linearAcceleration );
-            // }
+// <<<<<<< HEAD
+//             // if( state.linearVelocity ){
+//             //   this.currentUser.velocity.copy( state.linearVelocity );
+//             // }
+//             // if( state.linearAcceleration ){
+//             //   this.currentUser.force.copy( state.linearAcceleration );
+//             // }
         }
+// =======
+    //   if ( state.position ) {
+    //     this.pRift.copy( state.position ).multiplyScalar(5);
+    //   }
+
+    //   this.camera.position.add( this.pRift );
+    // }
+//>>>>>>> upstream/master
 
         this.camera.position.y += this.avatarHeight;
 
