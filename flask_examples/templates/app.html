@@ -16,11 +16,22 @@ ShaderParticles.js compatibility:
   lib/three.js: no ()
   lib/three-r71.min.js: yes, but doesn't support renderer.getSize for VREffect.js
 
- -->
+ --> 
+
     <script src="{{ url_for('static', filename='lib/three.js') }}"></script>
+
+<!-- 
+    <script src="{{ url_for('static', filename='lib/three-r72dev.js') }}"></script>
+ -->
 <!-- 
     <script src="{{ url_for('static', filename='lib/three-r71.min.js') }}"></script>
  -->
+
+
+<!--
+
+STATS.JS
+-->
     <script src="{{ url_for('static', filename='lib/stats.js') }}"></script>  
 <!--
 COLLADALOADER.JS
@@ -83,7 +94,8 @@ FONTS
 -->
     <script src="{{ url_for('static', filename='lib/janda_manatee_solid_regular.typeface.js') }}"></script>
     <script src="{{ url_for('static', filename='lib/droid_sans_regular.typeface.js') }}"></script>
-
+    <script src="{{ url_for('static', filename='lib/Liberation_Mono_Regular.js') }}"></script>
+    <script src="{{ url_for('static', filename='lib/Liberation_Mono_Bold.js') }}"></script>
 
 <!--
 OTHER DEPENDENCIES

@@ -1,25 +1,28 @@
 var TextGeomLog = (function () {
 
     var options = {
-        size: 0.5,
+        size: 0.666,
         height: 0,
-        font: 'droid sans',
-        weight: 'normal',
+        font: 'liberation mono', //'droid sans',
+        weight: 'bold', //'normal',
         curveSegments: 2
     };
-    var logMaterial = new THREE.MeshBasicMaterial({
-        color: 0x22ff11,
-        side: THREE.DoubleSide
-    });
 
-    function TextGeomLog(scene, maxLines, camera) {
+    function TextGeomLog(scene, maxLines, camera, hud, color) {
         this.scene = scene;
         this.maxLines = maxLines || 10;
         this.camera = camera;
-
+        this.hud = hud;
         this.logMsgs = [];
         this.logMeshes = [];
         this.logDisplayed = [];
+        this.hudMeshes = [];
+        this.hudDisplayed = [];
+        color = color || 0x22ff11;
+        this.logMaterial = new THREE.MeshBasicMaterial({
+            color: color,
+            side: THREE.DoubleSide
+        });
     }
 
     TextGeomLog.prototype.log = function (msg) {
@@ -31,21 +34,40 @@ var TextGeomLog = (function () {
             mesh = this.logMeshes[index].clone();
         } else {
             var geometry = new THREE.TextGeometry(msg, options);
-            mesh = new THREE.Mesh(geometry, logMaterial);
+            mesh = new THREE.Mesh(geometry, this.logMaterial);
         }
         this.logMeshes.push(mesh);
-        this.logDisplayed.push(mesh);
-        this.scene.add(mesh);
-        if (this.logDisplayed.length > this.maxLines) {
-            mesh = this.logDisplayed.shift();
-            this.scene.remove(mesh);
+        if (this.hud) {
+            var hudMesh = mesh;
+            hudMesh.position.z = -20;
+            hudMesh.position.x = -15;
+            hudMesh.position.y = 0;
+            this.hud.add(hudMesh);
+            this.hudMeshes.push(hudMesh);
+            this.hudDisplayed.push(hudMesh);
+            if (this.hudDisplayed.length > this.maxLines) {
+                hudMesh = this.hudDisplayed.shift();
+                this.hud.remove(hudMesh);
+            }
+            for (var i = 0; i < this.hudDisplayed.length; ++i) {
+                hudMesh = this.hudDisplayed[i];
+                hudMesh.position.y = (this.hudMeshes.length - i - 1) * 1.75 * options.size;
+            }
+        } else {
+            this.logMeshes.push(mesh);
+            this.logDisplayed.push(mesh);
+            this.scene.add(mesh);
+            if (this.logDisplayed.length > this.maxLines) {
+                mesh = this.logDisplayed.shift();
+                this.scene.remove(mesh);
+            }
+            for (var i = 0; i < this.logDisplayed.length; ++i) {
+                mesh = this.logDisplayed[i];
+                mesh.position.x = this.camera.position.x - 10.0;
+                mesh.position.z = this.camera.position.z - 10.0;
+                mesh.position.y = 10 + (this.logDisplayed.length - i - 1) * 1.75 * options.size;
+            }
         }
-        for (var i = 0; i < this.logDisplayed.length; ++i) {
-            mesh = this.logDisplayed[i];
-            mesh.position.x = this.camera.position.x - 10.0;
-            mesh.position.z = this.camera.position.z - 10.0;
-            mesh.position.y = 10 + (this.logDisplayed.length - i - 1) * 1.75 * options.size;
-        }    
     };
 
     return TextGeomLog;

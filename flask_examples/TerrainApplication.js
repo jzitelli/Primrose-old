@@ -99,30 +99,30 @@ var TerrainApplication = (function() {
         
         this.manaTexture = THREE.ImageUtils.loadTexture( "flask_examples/images/mana3.png" );
 
-        // console.log("doing particle stuff...");
-        // this.particleGroup = new SPE.Group({
-        //         texture: THREE.ImageUtils.loadTexture('flask_examples/images/smokeparticle.png'),
-        //         maxAge: 200
-        //     });
-        // this.emitter = new SPE.Emitter({
-        //         position: new THREE.Vector3(0, 2, 0),
-        //         positionSpread: new THREE.Vector3( 0, 0, 0 ),
+        console.log("doing particle stuff...");
+        this.particleGroup = new SPE.Group({
+                texture: THREE.ImageUtils.loadTexture('flask_examples/images/smokeparticle.png'),
+                maxAge: 200
+            });
+        this.emitter = new SPE.Emitter({
+                position: new THREE.Vector3(0, 2, 0),
+                positionSpread: new THREE.Vector3( 0, 0, 0 ),
 
-        //         acceleration: new THREE.Vector3(0, -10, 0),
-        //         accelerationSpread: new THREE.Vector3( 10, 0, 10 ),
+                acceleration: new THREE.Vector3(0, -10, 0),
+                accelerationSpread: new THREE.Vector3( 10, 0, 10 ),
 
-        //         velocity: new THREE.Vector3(0, 15, 0),
-        //         velocitySpread: new THREE.Vector3(10, 7.5, 10),
+                velocity: new THREE.Vector3(0, 15, 0),
+                velocitySpread: new THREE.Vector3(10, 7.5, 10),
 
-        //         colorStart: new THREE.Color('white'),
-        //         colorEnd: new THREE.Color('red'),
+                colorStart: new THREE.Color('white'),
+                colorEnd: new THREE.Color('red'),
 
-        //         sizeStart: 1,
-        //         sizeEnd: 1,
+                sizeStart: 1,
+                sizeEnd: 1,
 
-        //         particleCount: 2000
-        //     });
-        // this.particleGroup.addEmitter( this.emitter );
+                particleCount: 2000
+            });
+        this.particleGroup.addEmitter( this.emitter );
 
         function waitForResources(t) {
             this.lt = t;
@@ -307,12 +307,12 @@ var TerrainApplication = (function() {
                     log("problem loading terrain!");
                 });
 
-                // console.log("adding particles to scene...");
-                // scene.add( this.particleGroup.mesh );
-                // this.particleGroup.mesh.name = "particleMesh";
-                // this.particleGroup.mesh.position.y = 3;
-                // //scene.add( this.particleGroup.mesh );
-                // console.log(this.particleGroup.mesh);
+                console.log("adding particles to scene...");
+                this.scene.add( this.particleGroup.mesh );
+                this.particleGroup.mesh.name = "particleMesh";
+                this.particleGroup.mesh.position.y = 3;
+                //scene.add( this.particleGroup.mesh );
+                console.log(this.particleGroup.mesh);
 
                 this.printInstructions();
 

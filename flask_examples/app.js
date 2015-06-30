@@ -4,25 +4,6 @@ Primrose.VRApp = (function() {
         UP = new THREE.Vector3(0, 1, 0),
         FORWARD = new THREE.Vector3(0, 0, 1);
 
-    var butmap = {
-        'A': 1,
-        'B': 2,
-        'X': 3,
-        'Y': 4,
-        'leftBumper': 5,
-        'rightBumper': 6,
-        'leftTrigger': 7,
-        'rightTrigger': 8,
-        'back': 9,
-        'start': 10,
-        'leftStick': 11,
-        'rightStick': 12,
-        'up': 13,
-        'down': 14,
-        'left': 15,
-        'right': 16
-    };
-
     var instructions = [];
 
     function VRApplication(name, sceneModel, avatarMesh, avatarHeight, walkSpeed, floatSpeed, options) {
@@ -72,7 +53,7 @@ Primrose.VRApp = (function() {
         this.vrParams = null;
         this.vrDisplay = null;
         this.vrSensor = null;
-        this.inVR = false;
+        this.inVR = VR_MODE || false;
 
         this.stats = new Stats();
         this.stats.setMode(0); // 0: fps, 1: ms, 2: mb
@@ -80,6 +61,13 @@ Primrose.VRApp = (function() {
         this.stats.domElement.style.left = '0px';
         this.stats.domElement.style.top = '0px';
         document.body.appendChild(this.stats.domElement);
+
+        this.brushTexture = THREE.ImageUtils.loadTexture($.QueryString['brushTexture'] || "flask_examples/images/mana5.png");
+        this.brushSprite = new THREE.SpriteMaterial({
+            map: this.brushTexture,
+            color: 0xffffff,
+            fog: true
+        });
 
         this.manaTexture = THREE.ImageUtils.loadTexture("flask_examples/images/mana3.png");
         this.manaSprite = new THREE.SpriteMaterial({
@@ -119,31 +107,25 @@ Primrose.VRApp = (function() {
             maxSubSteps: 20
         };
 
-        console.log("doing particle stuff...");
-        this.particleGroup = new SPE.Group({
-            texture: THREE.ImageUtils.loadTexture('flask_examples/images/smokeparticle.png'),
-            maxAge: 200
-        });
-        this.emitter = new SPE.Emitter({
-            position: new THREE.Vector3(0, 2, 0),
-            positionSpread: new THREE.Vector3(0, 0, 0),
-
-            acceleration: new THREE.Vector3(0, -10, 0),
-            accelerationSpread: new THREE.Vector3(10, 0, 10),
-
-            velocity: new THREE.Vector3(0, 15, 0),
-            velocitySpread: new THREE.Vector3(10, 7.5, 10),
-
-            colorStart: new THREE.Color('white'),
-            colorEnd: new THREE.Color('red'),
-
-            sizeStart: 1,
-            sizeEnd: 1,
-
-            particleCount: 2000
-        });
-        this.particleGroup.addEmitter(this.emitter);
-
+        // console.log("doing particle stuff...");
+        // this.particleGroup = new SPE.Group({
+        //     texture: THREE.ImageUtils.loadTexture('flask_examples/images/smokeparticle.png'),
+        //     maxAge: 100
+        // });
+        // this.emitter = new SPE.Emitter({
+        //     position: new THREE.Vector3(0, 0, -2),
+        //     positionSpread: new THREE.Vector3(0, 0, 0),
+        //     acceleration: new THREE.Vector3(0, -10, 0),
+        //     accelerationSpread: new THREE.Vector3(10, 0, 10),
+        //     velocity: new THREE.Vector3(0, 15, 0),
+        //     velocitySpread: new THREE.Vector3(10, 7.5, 10),
+        //     colorStart: new THREE.Color('white'),
+        //     colorEnd: new THREE.Color('red'),
+        //     sizeStart: 1,
+        //     sizeEnd: 1,
+        //     particleCount: 2000
+        // });
+        // this.particleGroup.addEmitter(this.emitter);
 
 
         //
@@ -262,70 +244,84 @@ Primrose.VRApp = (function() {
         instructions.push('A: select next object');
         this.gamepad.addCommand({
             name: "selectNextObj",
-            buttons: [butmap.A],
+            buttons: [Primrose.Input.Gamepad.XBOX_BUTTONS.A],
             commandDown: this.selectNextObj.bind(this),
             dt: 0.5
+        });
+        instructions.push('up: ?');
+        this.gamepad.addCommand({
+            name: "mystery",
+            buttons: [Primrose.Input.Gamepad.XBOX_BUTTONS.up],
+            commandDown: this.mystery.bind(this),
+            dt: 0.25
         });
         instructions.push('down: exit current editor');
         this.gamepad.addCommand({
             name: "blurEditor",
-            buttons: [butmap.down],
+            buttons: [Primrose.Input.Gamepad.XBOX_BUTTONS.down],
             commandDown: this.blurEditor.bind(this),
             dt: 0.25
         });
         instructions.push('right: focus next editor');
         this.gamepad.addCommand({
             name: "focusNextEditor",
-            buttons: [butmap.right],
+            buttons: [Primrose.Input.Gamepad.XBOX_BUTTONS.right],
             commandDown: this.focusNextEditor.bind(this),
             dt: 0.25
         });
         instructions.push('left: focus previous editor');
         this.gamepad.addCommand({
             name: "focusPrevEditor",
-            buttons: [butmap.left],
+            buttons: [Primrose.Input.Gamepad.XBOX_BUTTONS.left],
             commandDown: this.focusPrevEditor.bind(this),
             dt: 0.25
         });
         instructions.push('B: evaluate / execute editor contents');
         this.gamepad.addCommand({
             name: "evalEditor",
-            buttons: [butmap.B],
+            buttons: [Primrose.Input.Gamepad.XBOX_BUTTONS.B],
             commandDown: this.evalEditor.bind(this),
             dt: 1.0
         });
         instructions.push('start: toggle HUD');
         this.gamepad.addCommand({
             name: "toggleHUD",
-            buttons: [butmap.start],
+            buttons: [Primrose.Input.Gamepad.XBOX_BUTTONS.start],
             commandDown: this.toggleHUD.bind(this),
             dt: 0.25
         });
         instructions.push('back: zero VR sensor');
         this.gamepad.addCommand({
             name: "zeroSensor",
-            buttons: [butmap.back],
+            buttons: [Primrose.Input.Gamepad.XBOX_BUTTONS.back],
             commandDown: this.zero.bind(this),
             dt: 0.25
         });
-        instructions.push('left trigger: create new editor');
+        // instructions.push('left trigger: create new editor');
+        // this.gamepad.addCommand({
+        //     name: "newEditor",
+        //     buttons: [Primrose.Input.Gamepad.XBOX_BUTTONS.leftTrigger],
+        //     commandDown: this.newEditor.bind(this),
+        //     dt: 1
+        // });
+        instructions.push('left trigger: brush down');
         this.gamepad.addCommand({
-            name: "newEditor",
-            buttons: [butmap.leftTrigger],
-            commandDown: this.newEditor.bind(this),
-            dt: 1
+            name: "brushDown",
+            buttons: [Primrose.Input.Gamepad.XBOX_BUTTONS.leftTrigger],
+            commandDown: this.brushDown.bind(this),
+            dt: 0.04
         });
         instructions.push('right trigger: create new object');
         this.gamepad.addCommand({
             name: "newObject",
-            buttons: [butmap.rightTrigger],
+            buttons: [Primrose.Input.Gamepad.XBOX_BUTTONS.rightTrigger],
             commandDown: this.newObject.bind(this),
             dt: 0.15
         });
         // instructions.push('left stick: reset position');
         // this.gamepad.addCommand({
         //     name: "resetPosition",
-        //     buttons: [butmap.leftStick],
+        //     buttons: [Primrose.Input.Gamepad.XBOX_BUTTONS.leftStick],
         //     commandDown: this.resetPosition.bind(this),
         //     dt: 0.25
         // });
@@ -404,7 +400,6 @@ Primrose.VRApp = (function() {
         //
         // Setup THREE.js
         //
-        this.glove = null;
         this.scene = null;
         this.renderer = new THREE.WebGLRenderer({
             antialias: true,
@@ -443,7 +438,7 @@ Primrose.VRApp = (function() {
 
         function addPhysicsBody(obj, body, shape, radius, skipObj) {
             body.addShape(shape);
-            body.linearDamping = body.angularDamping = 0.25;
+            body.linearDamping = body.angularDamping = 0.15;
             if (skipObj) {
                 body.position.set(obj.x, obj.y + radius / 2, obj.z);
             } else {
@@ -479,32 +474,38 @@ Primrose.VRApp = (function() {
             return addPhysicsBody.call(this, obj, body, shape);
         }
 
-        function makeBall ( obj, mass, radius, skipObj, options ) {
-          options = options || {fixedRotation: true};
-          var body = new CANNON.Body( { mass: mass, material: this.bodyMaterial,
-            fixedRotation: options.fixedRotation } );
-          var shape = new CANNON.Sphere( radius ||
-              obj.geometry.boundingSphere.radius );
-          return addPhysicsBody.call( this, obj, body, shape, radius, skipObj );
+        function makeBall(obj, mass, radius, skipObj, options) {
+            options = options || {
+                fixedRotation: true
+            };
+            var body = new CANNON.Body({
+                mass: mass,
+                material: this.bodyMaterial,
+                fixedRotation: options.fixedRotation
+            });
+            var shape = new CANNON.Sphere(radius ||
+                obj.geometry.boundingSphere.radius);
+            return addPhysicsBody.call(this, obj, body, shape, radius, skipObj);
         }
         this.makeBall = makeBall.bind(this);
 
         function waitForResources(t) {
             this.lt = t;
             if (this.camera && this.scene && this.currentUser) {
+
                 this.setSize();
 
                 if (this.passthrough) {
                     this.camera.add(this.passthrough.mesh);
                 }
 
-                this.textGeomLog = new TextGeomLog(this.scene, 10, this.camera);
+                this.textGeomLog = new TextGeomLog(this.scene, 20, this.camera, this.hudGroup, 0xff0123);
 
                 /*
                 default lights:
                 */
                 var sunColor = 0xffde99;
-                var directionalLight = new THREE.DirectionalLight(sunColor, 1.1);
+                var directionalLight = new THREE.DirectionalLight(sunColor, 1);
                 directionalLight.position.set(1, 4, 3);
                 this.scene.add(directionalLight);
 
@@ -527,7 +528,7 @@ Primrose.VRApp = (function() {
                 dodeca.position.z += 5;
                 this.scene.add(dodeca);
 
-                if (water) {
+                if (WATER_MODE) {
                     // Load textures        
                     var waterNormals = new THREE.ImageUtils.loadTexture('flask_examples/images/waternormals.jpg');
                     waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping;
@@ -545,7 +546,7 @@ Primrose.VRApp = (function() {
                         fog: true
                     });
                     var aMeshMirror = new THREE.Mesh(
-                        new THREE.PlaneBufferGeometry(1000, 1000, 1, 1),
+                        new THREE.PlaneBufferGeometry(500, 500, 1, 1),
                         this.ms_Water.material
                     );
                     aMeshMirror.add(this.ms_Water);
@@ -555,14 +556,12 @@ Primrose.VRApp = (function() {
                 }
 
                 this.scene.traverse(function(obj) {
-                    if (obj.name === "Desk") {
-                        obj.scale.set(deskScale, deskScale, deskScale);
-                        //obj.position.z += 4;
-                        //obj.position.y -= 2;
-                    }
                     if (obj.name) {
                         console.log(obj.name);
                         console.log(obj);
+                    }
+                    if (obj.name == "Desk") {
+                        obj.geometry.applyMatrix(new THREE.Matrix4().makeScale(deskScale, deskScale, deskScale));
                     }
                     if (obj instanceof THREE.Mesh && obj.material === undefined) {
                         console.log("material not defined, adding new material...");
@@ -613,22 +612,24 @@ Primrose.VRApp = (function() {
                 this.options.editors.push({
                     id: 'hudEditor',
                     w: 2,
-                    h: 2,
+                    h: 1,
                     rx: 0,
-                    ry: -Math.PI / 4,
+                    ry: -Math.PI / 8,
                     rz: 0,
                     options: {
+                        // opacity: 0.8,
                         file: instructions.join('\n'),
                         onlyHUD: true,
                         readOnly: true,
-                        showLineNumbers: false,
-                        opacity: 0.8
+                        hideLineNumbers: true,
+                        hideScrollBars: true
                     },
                     scale: 2,
                     hudx: 1.25,
                     hudy: 0,
-                    hudz: -3
+                    hudz: -7
                 });
+
                 for (var i = 0; i < this.options.editors.length; ++i) {
                     var editorConfig = this.options.editors[i];
                     editorConfig.options = editorConfig.options || {};
@@ -675,25 +676,29 @@ Primrose.VRApp = (function() {
                     }
                 }
 
+                if (TERRAIN_MODE) {
+                    this.log("adding terrain to scene...");
+                    // load the terrain:
+                    $.ajax({
+                        url: "/read?filename=terrain.js"
+                    }).
+                    done(function(data) {
+                        this.log("loaded " + data.args.filename);
+                        eval(data.value);
+                    }.bind(this)).
+                    fail(function(jqXHR, textStatus) {
+                        this.log("problem loading terrain:");
+                        this.log(textStatus);
+                    }.bind(this));
+                }
 
-                // load the terrain:
-                $.ajax({
-                    url: "/read?filename=terrain.js"
-                }).
-                done(function(data) {
-                    this.log("loaded " + data.args.filename);
-                    eval(data.value);
-                }.bind(this)).
-                fail(function(jqXHR, textStatus) {
-                    this.log("problem loading terrain:");
-                    this.log(textStatus);
-                }.bind(this));
-
-                console.log("adding particles to scene...");
-                this.scene.add(this.particleGroup.mesh);
-                this.particleGroup.mesh.name = "particleMesh";
-                this.particleGroup.mesh.position.y = 3;
-                console.log(this.particleGroup.mesh);
+                if (this.particleGroup && this.particleGroup.mesh) {
+                    this.log("adding particles to scene...");
+                    this.scene.add(this.particleGroup.mesh);
+                    this.particleGroup.mesh.name = "particleMesh";
+                    this.particleGroup.mesh.position.y = 3;
+                    console.log(this.particleGroup.mesh);
+                }
 
                 this.printInstructions();
 
@@ -715,35 +720,8 @@ Primrose.VRApp = (function() {
             requestAnimationFrame(waitForResources.bind(this));
         };
 
-
-
-        // this.addPhysicsBody = function(obj, body, shape, radius, skipObj) {
-        //   body.addShape(shape);
-        //   body.linearDamping = body.angularDamping = 0.15;
-        //   if (skipObj) {
-        //     body.position.set(obj.x, obj.y + radius / 2, obj.z);
-        //   } else {
-        //     obj.physics = body;
-        //     body.graphics = obj;
-        //     body.position.copy(obj.position);
-        //     body.quaternion.copy(obj.quaternion);
-        //   }
-        //   this.world.add(body);
-        //   return body;
-        // };
-
-        // this.makeBall = function(obj, radius, skipObj) {
-        //   var body = new CANNON.Body({
-        //     mass: 1,
-        //     material: this.bodyMaterial
-        //   });
-        //   var shape = new CANNON.Sphere(radius ||
-        //     obj.geometry.boundingSphere.radius);
-        //   body = this.addPhysicsBody(obj, body, shape, radius, skipObj);
-        //   body.velocity.copy(this.currentUser.velocity);
-        // };
-
         window.addEventListener("resize", this.setSize.bind(this), false);
+
 
         function addUser() {
             this.log("adding currentUser...");
@@ -752,8 +730,8 @@ Primrose.VRApp = (function() {
             console.log(this.currentUser);
         }
 
-        if (DEBUG_MODE) {
-            console.log("DEBUG_MODE: creating bare scene...");
+        if (EMPTY_MODE) {
+            console.log("creating empty scene...");
             this.scene = new THREE.Scene();
             // this.scene.overrideMaterial = new THREE.MeshLambertMaterial({color: 0xffee00});
             this.camera = new THREE.PerspectiveCamera(75, 1.77778, 1, 1000);
@@ -1010,10 +988,10 @@ Primrose.VRApp = (function() {
                 } else {
                     this.currentObject = objs[i + 1];
                 }
+                this.log("currentObject: " + this.currentObject.name + " (" + (i + 1) + " of " + objs.length + ")");
                 break;
             }
         }
-        this.log("currentObject: " + this.currentObject.name);
     };
 
     /* 
@@ -1033,8 +1011,25 @@ Primrose.VRApp = (function() {
             var radius = 0.5;
             var mass = 1;
             var skipObj = false;
-            var body = this.makeBall(mesh, mass, radius, skipObj, {fixedRotation: false});
+            var body = this.makeBall(mesh, mass, radius, skipObj, {
+                fixedRotation: false
+            });
             body.velocity.copy(this.currentUser.velocity);
+        }
+    };
+
+
+    VRApplication.prototype.brushDown = function() {
+        if (this.scene) {
+            var sprite = new THREE.Sprite(this.brushSprite);
+            sprite.position.copy(this.currentUser.position);
+            var local = new THREE.Vector3(0, 0, -1);
+            sprite.position.add(this.currentUser.graphics.localToWorld(local));
+            this.scene.add(sprite);
+            var radius = 0.5;
+            var mass = 0;
+            var skipObj = false;
+            var body = this.makeBall(sprite, mass, radius, skipObj);
         }
     };
 
@@ -1056,16 +1051,17 @@ Primrose.VRApp = (function() {
                 }
             } else if (this.currentEditor.getTokenizer() === Primrose.Text.Grammars.Python) {
                 this.log("trying python exec...");
-                $.ajax({url: '/python_eval?pystr=' + this.currentEditor.getLines().join('%0A')
-                }).done(function(data) {
-                    this.log("python success!");
-                    var lines = data.out.split('\n');
-                    for (var i = 0; i < lines.length; ++i) {
-                        this.log(lines[i]);
-                    }
-                    this.log("python returned:");
-                    this.log(data.value);
-                }.bind(this))
+                $.ajax({
+                        url: '/python_eval?pystr=' + this.currentEditor.getLines().join('%0A')
+                    }).done(function(data) {
+                        this.log("python success!");
+                        var lines = data.out.split('\n');
+                        for (var i = 0; i < lines.length; ++i) {
+                            this.log(lines[i]);
+                        }
+                        this.log("python returned:");
+                        this.log(data.value);
+                    }.bind(this))
                     .fail(function(jqXHR, textStatus) {
                         this.log("problem: " + textStatus);
                     }.bind(this));
@@ -1077,6 +1073,21 @@ Primrose.VRApp = (function() {
         if (this.currentEditor) {
             this.currentEditor.blur();
         }
+    };
+
+    VRApplication.prototype.mystery = function() {
+        console.log("mystery");
+
+        this.log('backgroundColor: ' + this.options.backgroundColor);
+        this.log('waterColor: ' + this.options.waterColor);
+        this.log('Primrose version: ' + Primrose.VERSION);
+
+        // this.hudAlert.call(this, JSON.stringify(this.options));
+        // var keys = ['backgroundColor', 'waterColor'];
+        // var lines = JSON.stringify(this.options.backgroundColor, this.options.waterColor).split('\n');
+        // for (var i = 0; i < lines.length; ++i) {
+        //     this.log(lines[i]);
+        // }
     };
 
     VRApplication.prototype.focusNearestEditor = function() {
@@ -1106,6 +1117,36 @@ Primrose.VRApp = (function() {
             }
         }
         this.focusNearestEditor();
+    };
+
+
+    VRApplication.prototype.hudAlert = function(msg) {
+        var options = {
+            size: 0.143,
+            height: 0,
+            font: 'droid sans',
+            weight: 'normal', //'normal',
+            curveSegments: 2
+        };
+        var lines = msg.split('\n');
+        var group = new THREE.Group();
+        for (var i = 0; i < lines.length; ++i) {
+            var geometry = new THREE.TextGeometry(lines[i], options);
+            var material = new THREE.MeshBasicMaterial({
+                color: 0x22ff11,
+                side: THREE.DoubleSide
+            });
+            var mesh = new THREE.Mesh(geometry, material);
+            mesh.position.z = -4;
+            mesh.position.x = 0.666;
+            mesh.position.y = 1.25 * this.avatarHeight + (this.logDisplayed.length - i - 1) * 1.7 * options.size
+            group.add(mesh);
+        }
+        if (this.hudAlert) {
+            this.hudGroup.remove(this.hudAlert);
+        }
+        this.hudGroup.add(group);
+        this.hudAlert = group;
     };
 
     VRApplication.prototype.focusPrevEditor = function() {
@@ -1208,9 +1249,7 @@ Primrose.VRApp = (function() {
         // v = new CANNON.Vec3(Math.cos(pitch) * Math.sin(heading), -Math.sin(pitch), Math.cos(pitch) * Math.cos(heading));
         // this.currentUser.quaternion.setFromVectors(u, v);
 
-
-        var floatSpeed = 0.6 * this.walkSpeed;
-        var floatup = -floatSpeed * this.gamepad.getValue("floatup");
+        var floatup = -this.floatSpeed * this.gamepad.getValue("floatup");
         this.currentUser.velocity.y = this.currentUser.velocity.y * 0.1 + floatup * 0.9;
         if (this.onground && this.currentUser.velocity.y < 0) {
             this.currentUser.velocity.y = 0;
@@ -1264,15 +1303,11 @@ Primrose.VRApp = (function() {
             this.pick("move");
         }
 
-        this.fire("update", dt);
-
-        if (water && this.ms_Water) {
-            this.ms_Water.render();
-            this.ms_Water.material.uniforms.time.value += dt;
-        }
         if (this.particleGroup) {
             this.particleGroup.tick(dt);
         }
+
+        this.fire("update", dt);
 
         //
         // update the camera
@@ -1290,15 +1325,17 @@ Primrose.VRApp = (function() {
 
             if (state.position) {
                 this.pRift.copy(state.position);
+                this.pRift.applyQuaternion(this.currentUser.quaternion);
             }
-            var dRift = this.currentUser.graphics.localToWorld(this.pRift);
-            dRift.x /= avatarScale;
-            dRift.y /= avatarScale;
-            dRift.z /= avatarScale;
-            this.camera.position.add(dRift);
+            this.camera.position.add(this.pRift);
         }
 
         this.camera.position.y += this.avatarHeight;
+
+        if (this.ms_Water) {
+            this.ms_Water.render();
+            this.ms_Water.material.uniforms.time.value += dt;
+        }
 
         this.stats.begin();
         this.renderScene(this.scene);
@@ -1309,17 +1346,23 @@ Primrose.VRApp = (function() {
 })();
 
 
-
 var DEBUG_MODE = $.QueryString['debug'];
+var EMPTY_MODE = $.QueryString['empty'];
+var WATER_MODE = $.QueryString['water'];
+var TERRAIN_MODE = $.QueryString['terrain'];
+var LOG_MODE = $.QueryString['log'] || 1;
+var VR_MODE = $.QueryString['vr'];
 
-var fogColor = 0x2122ee; //0x000110;
+var backgroundColor = $.QueryString['backgroundColor'] || SPE.utils.randomColor(new THREE.Color("#ffeebb"),
+    new THREE.Vector3(1.1, 1.2, 1.3)).getHex(); // 0x2122ee; // 0x000110;
+// 16768917; // pale mars/creamy sandish
+var fogColor = $.QueryString['fogColor'] || backgroundColor;
 var options = {
     backgroundColor: fogColor,
     gravity: 0, // 9.8,
     drawDistance: 2000,
     dtNetworkUpdate: 10
 };
-
 //options.fog = new THREE.FogExp2(fogColor, 0.015, 20, 800);
 
 function makeSkyBox() {
@@ -1345,7 +1388,8 @@ function makeSkyBox() {
     return new THREE.Mesh(skyGeometry, skyMaterial);
 }
 
-options.skyBox = makeSkyBox();
+//options.skyBox = makeSkyBox();
+
 options.editors = [{
     id: 'editor0',
     w: 2,
@@ -1380,24 +1424,33 @@ options.editors = [{
 
 var walkSpeed = 3;
 var floatSpeed = walkSpeed * 0.666;
-var water = true;
 var sceneModel = $.QueryString['sceneModel'] || "flask_examples/models/ConfigUtilDeskScene.json";
-var deskScale = 0.011;
+var deskScale = 0.01;
 
-var skyBox = makeSkyBox();
-
-var avatarScale = 3;
 var avatarHeight = 3;
-var avatarMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1.23, 12, 16), new THREE.MeshLambertMaterial({
+var nw = 12,
+    nh = 16;
+var planeWidth = 1,
+    planeHeight = 1.23;
+
+var avatarMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(planeWidth, planeHeight, nw - 1, nh - 1), new THREE.MeshLambertMaterial({
     color: 0x998700,
     side: THREE.DoubleSide
 }));
 avatarMesh.name = "avatarMesh";
 avatarMesh.geometry.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
-avatarMesh.scale.x = avatarScale;
-avatarMesh.scale.y = avatarScale;
-avatarMesh.scale.z = avatarScale;
+var avatarScale = 3;
+avatarMesh.geometry.applyMatrix(new THREE.Matrix4().makeScale(avatarScale, avatarScale, avatarScale));
+avatarMesh.geometry.verticesNeedUpdate = true;
 
+// var avatarVertices = avatarMesh.geometry.getAttribute('position');
+// for (var i = 0; i < nw; ++i) {
+//     var x = planeWidth * (i / nw);
+//     for (var j = 0; j < nh; ++j) {
+//         var y = planeHeight * (j / nh);
+//         avatarVertices.setY(i*nh + j, Math.sin(2*y))
+//     }
+// }
 
 /* global isOSX, Primrose, THREE, isMobile, requestFullScreen */
 var application;
