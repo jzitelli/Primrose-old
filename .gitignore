@@ -94,3 +94,9 @@ flask_examples/TerrainApplication - Copy.js
 *.wings~
 flask_examples/images/mana.xcf
 lib/VRControls.js
+flask_examples/models/car.xml
+flask_examples/models/ConfigUtilDeskScene.png
+flask_examples/models/door.xml
+lib/three-r71.min.js
+lib/hilbert3D.js
+lib/three-r72dev.js

@@ -828,8 +828,8 @@ Primrose.VRApplication = (function() {
         //
         // update the camera
         //
-        this.camera.quaternion.copy(this.currentUser.quaternion);
-        this.camera.position.copy(this.currentUser.position);
+        this.camera.quaternion.copy(this.avatarMesh.quaternion);
+        this.camera.position.copy(this.avatarMesh.position);
 
         if (this.inVR) {
             var state = this.vrSensor.getState();
@@ -842,9 +842,12 @@ Primrose.VRApplication = (function() {
             if (state.position) {
                 this.pRift.copy(state.position);
             }
-            var dRift = this.currentUser.graphics.localToWorld(this.pRift);
-            dRift.x /= avatarScale; dRift.y /= avatarScale; dRift.z /= avatarScale;
-            this.camera.position.add(dRift);
+            this.pRift.applyQuaternion(this.currentUser.graphics.quaternion);
+            this.camera.position.add(this.pRift);
+
+            // var dRift = this.currentUser.graphics.localToWorld(this.pRift);
+            // dRift.x /= avatarScale; dRift.y /= avatarScale; dRift.z /= avatarScale;
+            // this.camera.position.add(dRift);
 
 // <<<<<<< HEAD
 //             // if( state.linearVelocity ){

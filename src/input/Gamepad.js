@@ -16,9 +16,6 @@ Primrose.Input.Gamepad = ( function () {
       var i;
       for ( i = 0; i < pad.buttons.length; ++i ) {
         this.setButton( i, pad.buttons[i].pressed );
-        if (pad.buttons[i].pressed) {
-          console.log("pressed button " + i);
-        }
       }
       for ( i = 0; i < pad.axes.length; ++i ) {
         this.setAxis( GamepadInput.AXES[i], pad.axes[i] );

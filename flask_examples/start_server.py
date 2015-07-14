@@ -13,9 +13,12 @@ PRIMROSE_ROOT = os.getenv("PRIMROSE_ROOT",
 app = Flask(__name__, static_folder=PRIMROSE_ROOT, static_url_path='')
 
 @app.route("/")
+def webvr_app():
+    return render_template("webvr_app.html")
+
+@app.route("/app")
 def new_app():
     return render_template("app.html")
-
 
 @app.route("/terrain")
 def terrain_demo():

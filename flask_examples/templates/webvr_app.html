@@ -116,7 +116,11 @@ APP DEPENDENCIES
 <!--
 APP
 -->
-    <script src="{{ url_for('static', filename='flask_examples/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='flask_examples/WebVRApplication.js') }}"></script>
+    <script src="{{ url_for('static', filename='flask_examples/webvr_controls.js') }}"></script>
+    <script src="{{ url_for('static', filename='flask_examples/webvr_physics.js') }}"></script>
+    <script src="{{ url_for('static', filename='flask_examples/webvr_terrain.js') }}"></script>
+    <script src="{{ url_for('static', filename='flask_examples/webvr_app.js') }}"></script>
 
     <link href="{{ url_for('static', filename='flask_examples/style.css') }}" type="text/css" rel="stylesheet">
 
@@ -124,7 +128,7 @@ APP
 
   <body onload="{{ onload if onload else 'StartDemo()' }}">
 
-      <script type="x-shader/x-vertex" id="vertexshader">
+  <script type="x-shader/x-vertex" id="vertexshader">
 
       attribute float size;
       attribute vec3 ca;

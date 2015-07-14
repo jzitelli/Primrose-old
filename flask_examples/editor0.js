@@ -12,6 +12,6 @@ var mesh = new THREE.Mesh(geom, new THREE.MeshLambertMaterial({side: THREE.Doubl
 mesh.rotation.x += Math.PI / 2;
 mesh.position.x -= L / 2;
 mesh.position.z -= L / 2;
-mesh.position.y -= 2.5;
+mesh.position.y -= 3.5;
 
 application.scene.add(mesh);

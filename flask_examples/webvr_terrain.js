@@ -1,4 +1,4 @@
-(function() {
+function webvr_terrain() {
     var imageurl = $.QueryString['terrainImage'] ||
         'flask_examples/images/terrain128.png';
 
@@ -69,16 +69,17 @@
                 // }
                 var color = SPE.utils.randomColor(new THREE.Color("#ffeebb"), new THREE.Vector3(3, 2, 1)).getHex(); //0xffffff;
                 var material = new THREE.MeshLambertMaterial({
-                    side: THREE.DoubleSide,
-                    color: color,
-                    map: texture,
-                    shading: THREE.FlatShading
+                    side: THREE.FrontSide,
+                    color: color
+                    //map: texture,
                 });
-                application.log("terrain color: " + color.toString(16));
+                console.log("terrain color: " + color.toString(16));
                 var terrain = new THREE.Mesh(geometry, material);
-
+                terrain.receiveShadow = true;
+                // terrain.castShadow = true;
+                
                 geometry.computeBoundingBox();
-                var yScale = 8 / (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
+                var yScale = 10 / (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
                 terrain.scale.set(30 / (geometry.boundingBox.max.x - geometry.boundingBox.min.x),
                     yScale,
                     30 / (geometry.boundingBox.max.z - geometry.boundingBox.min.z));
@@ -87,7 +88,7 @@
                 geometry.computeFaceNormals();
                 geometry.computeVertexNormals();
 
-                application.scene.add(terrain);
+                this.scene.add(terrain);
 
                 for (var i = 0; i < data.length; i++) {
                     for (var j = 0; j < data[i].length; ++j) {
@@ -103,19 +104,10 @@
                     mass: 0
                 });
                 body.addShape(shape, new CANNON.Vec3(-15, -10, 15), quaternion);
-
-                // this.currentMaterial = material;
-                // var obj = application.shape2mesh.call(application, body);
-                // application.log("Object3D from shape2mesh:");
-                // console.log(obj);
-                // //obj.children[0].geometry.computeVertexNormals();
-                // obj.children[0].geometry.computeFaceNormals();
-                // application.scene.add(obj);
-                
-                application.world.add(body);
-            });
+                this.world.add(body);
+            }.bind(this));
         }
         return texture;
     }
-    var texture = generateHeightFromImage(imageurl);
-})();
+    var texture = generateHeightFromImage.call(this, imageurl);
+}
