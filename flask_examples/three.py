@@ -40,9 +40,11 @@ if __name__ == "__main__":
 	mesh['material'] = materials[0]['uuid']
 	mesh['uuid'] = unicode(uuid.uuid4())
 	mesh['matrix'] = [0.01,0,0,0,
-	0,0.01,0,0,
-	0,0,0.01,0,
+	0,0.01,0,0.5,
+	0,0,0.01,-1,
 	0,0,0,1]
+
 	with open(filename, 'w') as f:
 		f.write(json.dumps(scene))
+
 	print("wrote ", filename)

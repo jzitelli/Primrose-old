@@ -246,21 +246,9 @@ function WebVRApplication(name, options) {
 
 //        this.scene.add(light);
 
-        // if (options.sceneScale) {
-        //     for (var i = 0; i < sceneGraph.children.length; ++i) {
-        //         if (sceneGraph.children[i] instanceof THREE.Mesh) {
-        //             //sceneGraph.children[i].scale.set(options.sceneScale, options.sceneScale, options.sceneScale);
-        //         }
-        //     }
-        // }
-        // if (options.scenePosition) {
-        //      sceneGraph.position.set(options.scenePosition.x, options.scenePosition.y, options.scenePosition.z);
-        // }
-        //this.scene.add(sceneGraph);
-
-        // if (options.avatarMesh) {
-        // 	this.scene.add(options.avatarMesh);
-        // }
+        if (options.avatarMesh) {
+        	this.scene.add(options.avatarMesh);
+        }
 
         console.log("adding camera...");
         this.camera = new THREE.PerspectiveCamera(75, 1.77778, 0.1, 1000);

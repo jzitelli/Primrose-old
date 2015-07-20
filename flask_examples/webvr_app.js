@@ -27,9 +27,6 @@ options.editors = [];
 
 var avatarModel = $.QueryString['avatarModel'] || "flask_examples/models/avatar.dae";
 var sceneModel = $.QueryString['sceneModel'] || "flask_examples/models/ConfigUtilDeskScene.json";
-options.sceneScale = 0.0116;
-options.scenePosition = new THREE.Vector3(0, -0.67, -2.2);
-
 
 /* global isOSX, Primrose, THREE, isMobile, requestFullScreen */
 var application;
@@ -70,7 +67,7 @@ function StartDemo() {
 
         application.addEventListener("ready", function () {
 
-            webvr_terrain.call(application);
+            // webvr_terrain.call(application);
 
             webvr_mouse();
 
