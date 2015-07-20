@@ -61,10 +61,6 @@ function StartDemo() {
         application = new WebVRApplication("Demo", options);
         var t = 0;
 
-        application.addEventListener("update", function (dt) {
-            t += dt;
-        });
-
         application.addEventListener("ready", function () {
 
             // webvr_terrain.call(application);
@@ -82,14 +78,50 @@ function StartDemo() {
             application.menuMesh.add(new THREE.Mesh(new THREE.TextGeometry("hello", application.textGeometryOptions),
                 new THREE.MeshBasicMaterial({color: 0xff2211})));
             application.menuMesh.position.z -= 3;
-            application.menuMesh.mass = 100.0;
             application.options.avatarMesh.add(application.menuMesh);
             application.menuMesh.visible = false;
+
+                if (WATER_MODE) {
+                    // Load textures        
+                    var waterNormals = new THREE.ImageUtils.loadTexture('flask_examples/images/waternormals.jpg');
+                    waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping;
+
+                    // Create the water effect
+                    application.ms_Water = new THREE.Water(application.renderer, application.camera, application.scene, {
+                        textureWidth: 512,
+                        textureHeight: 512,
+                        waterNormals: waterNormals,
+                        alpha: 1, //0.75,
+                        sunDirection: new THREE.Vector3(0, -1, 0),
+                        sunColor: 0xffffaa,
+                        waterColor: 0x001e1f,
+                        distortionScale: 8.0,
+                        side: THREE.FrontSide,
+                        castShadow: false
+                    });
+                    var aMeshMirror = new THREE.Mesh(
+                        new THREE.PlaneBufferGeometry(500, 500, 1, 1),
+                        application.ms_Water.material
+                    );
+                    aMeshMirror.add(application.ms_Water);
+                    aMeshMirror.rotation.x = -Math.PI / 2;
+                    application.scene.add(aMeshMirror);
+                }
 
             if (options.skyBox) {
                 application.scene.add(options.skyBox);
             }
         });
+
+        application.addEventListener("update", function (dt) {
+            t += dt;
+
+                    if (application.ms_Water) {
+            application.ms_Water.render();
+            application.ms_Water.material.uniforms.time.value += 0.5 * dt;
+        }
+        });
+
 
         application.gamepad.addCommand({
             name: "selectNextObj",
