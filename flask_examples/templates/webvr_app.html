@@ -15,14 +15,13 @@ THREE.JS
 ShaderParticles.js compatibility:
   lib/three.js: no ()
   lib/three-r71.min.js: yes, but doesn't support renderer.getSize for VREffect.js
-
  --> 
-
-    <script src="{{ url_for('static', filename='lib/three.js') }}"></script>
-
 <!-- 
-    <script src="{{ url_for('static', filename='lib/three-r72dev.js') }}"></script>
+    <script src="{{ url_for('static', filename='lib/three.js') }}"></script>
  -->
+
+    <script src="{{ url_for('static', filename='lib/three-r72dev.js') }}"></script>
+
 <!-- 
     <script src="{{ url_for('static', filename='lib/three-r71.min.js') }}"></script>
  -->
@@ -36,7 +35,11 @@ STATS.JS
 <!--
 COLLADALOADER.JS
 -->
+<!-- 
     <script src="{{ url_for('static', filename='lib/ColladaLoader.js') }}"></script>
+ -->
+    <script src="{{ url_for('static', filename='lib/ColladaLoader-r72dev.js') }}"></script>
+
 <!--
 VREFFECT.JS
 -->
@@ -94,24 +97,16 @@ FONTS
 -->
     <script src="{{ url_for('static', filename='lib/janda_manatee_solid_regular.typeface.js') }}"></script>
     <script src="{{ url_for('static', filename='lib/droid_sans_regular.typeface.js') }}"></script>
-    <script src="{{ url_for('static', filename='lib/Liberation_Mono_Regular.js') }}"></script>
-    <script src="{{ url_for('static', filename='lib/Liberation_Mono_Bold.js') }}"></script>
-
-<!--
-OTHER DEPENDENCIES
--->
-    {{ other_dependencies if other_dependencies else "" }}
-    <script src="{{ url_for('static', filename='flask_examples/TextGeomLog.js') }}"></script>
-
 
 <!--
 APP DEPENDENCIES
 -->
-    {{ app_dependencies if app_dependencies else "" }}
+    {{ other_dependencies if other_dependencies else "" }}
+    <script src="{{ url_for('static', filename='flask_examples/TextGeomLog.js') }}"></script>
+    <script src="{{ url_for('static', filename='flask_examples/SkyBox.js') }}"></script>    
     <script src="{{ url_for('static', filename='lib/ImprovedNoise.js') }}"></script>
     <script src="{{ url_for('static', filename='lib/water-material.js') }}"></script>
     <script src="{{ url_for('static', filename='lib/ShaderParticles.js') }}"></script>
-
 
 <!--
 APP
@@ -120,6 +115,7 @@ APP
     <script src="{{ url_for('static', filename='flask_examples/webvr_controls.js') }}"></script>
     <script src="{{ url_for('static', filename='flask_examples/webvr_physics.js') }}"></script>
     <script src="{{ url_for('static', filename='flask_examples/webvr_terrain.js') }}"></script>
+    <script src="{{ url_for('static', filename='flask_examples/webvr_mouse.js') }}"></script>
     <script src="{{ url_for('static', filename='flask_examples/webvr_app.js') }}"></script>
 
     <link href="{{ url_for('static', filename='flask_examples/style.css') }}" type="text/css" rel="stylesheet">
@@ -128,6 +124,7 @@ APP
 
   <body onload="{{ onload if onload else 'StartDemo()' }}">
 
+  {{ vertexshaders if vertexshaders else "" }}
   <script type="x-shader/x-vertex" id="vertexshader">
 
       attribute float size;
@@ -150,6 +147,7 @@ APP
 
     </script>
 
+    {{ fragmentshaders if fragmentshaders else "" }}
     <script type="x-shader/x-fragment" id="fragmentshader">
 
       uniform vec3 color;

@@ -74,36 +74,35 @@ function webvr_terrain() {
                     //map: texture,
                 });
                 console.log("terrain color: " + color.toString(16));
-                var terrain = new THREE.Mesh(geometry, material);
-                terrain.receiveShadow = true;
-                // terrain.castShadow = true;
                 
                 geometry.computeBoundingBox();
-                var yScale = 10 / (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
-                terrain.scale.set(30 / (geometry.boundingBox.max.x - geometry.boundingBox.min.x),
-                    yScale,
-                    30 / (geometry.boundingBox.max.z - geometry.boundingBox.min.z));
-                terrain.position.y = -10;
-
+                var xScale = 15 / (geometry.boundingBox.max.x - geometry.boundingBox.min.x);
+                var yScale = 7 / (geometry.boundingBox.max.y - geometry.boundingBox.min.y);
+                var zScale = 15 / (geometry.boundingBox.max.z - geometry.boundingBox.min.z);
+                geometry.applyMatrix(new THREE.Matrix4().makeScale(xScale, yScale, zScale));
+                geometry.computeBoundingBox();
                 geometry.computeFaceNormals();
                 geometry.computeVertexNormals();
 
+                var terrain = new THREE.Mesh(geometry, material);
+                terrain.receiveShadow = true;
+                // terrain.castShadow = true;
+                terrain.position.y = -7;
                 this.scene.add(terrain);
-
                 for (var i = 0; i < data.length; i++) {
                     for (var j = 0; j < data[i].length; ++j) {
                         data[i][j] *= yScale;
                     }
                 }
                 var shape = new CANNON.Heightfield(data, {
-                    elementSize: 30 / worldWidth
+                    elementSize: 15 / worldWidth
                 });
                 var quaternion = new CANNON.Quaternion();
                 quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
                 var body = new CANNON.Body({
                     mass: 0
                 });
-                body.addShape(shape, new CANNON.Vec3(-15, -10, 15), quaternion);
+                body.addShape(shape, new CANNON.Vec3(-15/2, -7, 15/2), quaternion);
                 this.world.add(body);
             }.bind(this));
         }

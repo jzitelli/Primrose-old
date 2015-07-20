@@ -1,16 +1,13 @@
 WebVRApplication.prototype.displayMenu = function () {
 	this.menuMesh.visible = true;
-}
+};
 WebVRApplication.prototype.hideMenu = function () {
 	this.menuMesh.visible = false;
-}
-
-
+};
 WebVRApplication.prototype.mystery = function () {
 	console.log("mystery");
 
 };
-
 
 WebVRApplication.prototype.shootCube = function() {
     if (this.scene) {
@@ -174,7 +171,7 @@ brushSprite = new THREE.Sprite(brushSprite);
 WebVRApplication.prototype.lastPosition = new THREE.Vector3();
 WebVRApplication.prototype.makeCurve = function () {
 
-}
+};
 
 WebVRApplication.prototype.brushDown = function() {
     if (this.scene) {
@@ -193,13 +190,13 @@ var brushUpSprite = new THREE.SpriteMaterial({
     color: 0xffffff
 });
 WebVRApplication.prototype.brushUp = function() {
-    if (this.scene) {
-        var sprite = new THREE.Sprite(brushUpSprite);
-        sprite.position.z -= 4;
-        sprite.position.applyQuaternion(this.currentUser.quaternion);
-        sprite.position.add(this.currentUser.position);
-        this.scene.add(sprite);
-    }
+    // if (this.scene) {
+    //     var sprite = new THREE.Sprite(brushUpSprite);
+    //     sprite.position.z -= 4;
+    //     sprite.position.applyQuaternion(this.currentUser.quaternion);
+    //     sprite.position.add(this.currentUser.position);
+    //     this.scene.add(sprite);
+    // }
 };
 
 WebVRApplication.prototype.currentIndex = null;

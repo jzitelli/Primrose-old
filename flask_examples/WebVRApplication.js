@@ -30,6 +30,11 @@ function WebVRApplication(name, options) {
     this.world.broadphase = new CANNON.SAPBroadphase(this.world);
     this.audio = new Primrose.Output.Audio3D();
 
+    this.audio.loadSound("examples/audio/click.ogg", true, null, function (snd) {
+        console.log(snd);
+        snd.source.start(0);
+    });
+
     this.walkSpeed = options.walkSpeed || 1;
     this.floatSpeed = options.floatSpeed || this.walkSpeed;
 
@@ -128,7 +133,6 @@ function WebVRApplication(name, options) {
     this.gamepad.addEventListener("gamepadconnected",
         this.connectGamepad.bind(this), false);
 
-
     var DEBUG_VR = false,
         translations = [new THREE.Matrix4(), new THREE.Matrix4()],
         viewports = [new THREE.Box2(), new THREE.Box2()];
@@ -205,7 +209,7 @@ function WebVRApplication(name, options) {
     });
     this.renderer.setClearColor(this.options.backgroundColor);
 	this.renderer.shadowMapEnabled = true;
-	//this.renderer.shadowMapSoft = true;
+	this.renderer.shadowMapSoft = true;
 	//this.renderer.shadowMapWidth = 2048; //1024;
 	//this.renderer.shadowMapHeight = 2048; //1024;
     
@@ -223,34 +227,40 @@ function WebVRApplication(name, options) {
     Primrose.ModelLoader.loadScene(sceneModel, function(sceneGraph) {
         console.log("loaded " + sceneModel);
         console.log(sceneGraph);
-        this.scene = new THREE.Scene();
+        this.scene = sceneGraph;
 
-        var light = new THREE.DirectionalLight(0xffffff);
-        light.position.set(-10, 20, 30);
-		light.target.position.set(0, 0, 0);
-		light.castShadow = true;
-		light.shadowDarkness = 0.8;
-		// light.shadowCameraVisible = true; // only for debugging
-		// these six values define the boundaries of the yellow box seen above
-		light.shadowCameraNear = 15;
-		light.shadowCameraFar = 200;
-		light.shadowCameraLeft = -20;
-		light.shadowCameraRight = 20;
-		light.shadowCameraTop = 20;
-		light.shadowCameraBottom = -20;
-        this.scene.add(light);
+  //       var light = new THREE.DirectionalLight(0xffffff);
+  //       light.position.set(-10, 20, 30);
+		// light.target.position.set(0, 0, 0);
 
-        if (options.sceneScale) {
-            sceneGraph.scale.set(options.sceneScale, options.sceneScale, options.sceneScale);
-        }
-        if (options.scenePosition) {
-            sceneGraph.position.set(options.scenePosition.x, options.scenePosition.y, options.scenePosition.z);
-        }
-        this.scene.add(sceneGraph);
+		// light.castShadow = true;
+		// light.shadowDarkness = 0.8;
+		// // light.shadowCameraVisible = true; // only for debugging
+		// // these six values define the boundaries of the yellow box seen above
+		// light.shadowCameraNear = 15;
+		// light.shadowCameraFar = 200;
+		// light.shadowCameraLeft = -20;
+		// light.shadowCameraRight = 20;
+		// light.shadowCameraTop = 20;
+		// light.shadowCameraBottom = -20;
 
-        if (options.avatarMesh) {
-        	this.scene.add(options.avatarMesh);
-        }
+//        this.scene.add(light);
+
+        // if (options.sceneScale) {
+        //     for (var i = 0; i < sceneGraph.children.length; ++i) {
+        //         if (sceneGraph.children[i] instanceof THREE.Mesh) {
+        //             //sceneGraph.children[i].scale.set(options.sceneScale, options.sceneScale, options.sceneScale);
+        //         }
+        //     }
+        // }
+        // if (options.scenePosition) {
+        //      sceneGraph.position.set(options.scenePosition.x, options.scenePosition.y, options.scenePosition.z);
+        // }
+        //this.scene.add(sceneGraph);
+
+        // if (options.avatarMesh) {
+        // 	this.scene.add(options.avatarMesh);
+        // }
 
         console.log("adding camera...");
         this.camera = new THREE.PerspectiveCamera(75, 1.77778, 0.1, 1000);
@@ -316,6 +326,8 @@ function WebVRApplication(name, options) {
 
     this.ctrls.goVR.addEventListener("click", function() {
         requestFullScreen(this.ctrls.frontBuffer, this.vrDisplay);
+        //this.ctrls.frontBuffer.webkitRequestPointerLock();
+        //this.ctrls.outputContainer.webkitRequestPointerLock();
         this.inVR = true;
         this.setSize();
     }.bind(this));

@@ -68,3 +68,19 @@ WebVRApplication.prototype.makeCube = function (obj, mass, skipObj) {
 	this.scene.add(obj);
     return this.addPhysicsBody(obj, body, shape, radius, skipObj);
 };
+
+WebVRApplication.prototype.constructMesh = function (genotype) {
+
+};
+
+WebVRApplication.prototype.simulateEVC = function (genotype, world, T, dt) {
+    var mesh = this.constructMesh(genotype);
+    var body = this.constructBody(genotype);
+    world.add(body);
+    var t = 0;
+    T = T || 1.0;
+    while (t < T) {
+        world.step(dt);
+        t += dt;
+    }
+};
