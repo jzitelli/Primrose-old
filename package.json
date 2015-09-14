@@ -13,7 +13,8 @@
   "files": [
     "LICENSE",
     "README.md",
-    "dist/",
+    "bin/",
+    "examples/",
     "lib/"
   ],
   "keywords": [
@@ -24,6 +25,13 @@
     "syntax",
     "highlighting"
   ],
+  "dependencies": {
+    "cannon": "schteppe/cannon.js",
+    "leapjs": "^0.6.4",
+    "socket.io": "^1.3.6",
+    "socket.io-client": "^1.3.6",
+    "three.js": "capnmidnight/three.js"
+  },
   "devDependencies": {
     "grunt": "^0.4.5",
     "grunt-contrib-clean": "^0.6.0",

@@ -1,10 +1,10 @@
 /* global isOSX, Primrose, THREE, isMobile, requestFullScreen, put */
 var log = null,
-    GRASS = THREE.ImageUtils.loadTexture("../images/grass.png"),
-    ROCK = THREE.ImageUtils.loadTexture("../images/rock.png"),
-    SAND = THREE.ImageUtils.loadTexture("../images/sand.png"),
-    WATER = THREE.ImageUtils.loadTexture("../images/water.png"),
-    DECK = THREE.ImageUtils.loadTexture("../images/deck.png");
+    GRASS = THREE.ImageUtils.loadTexture( "../images/grass.png" ),
+    ROCK = THREE.ImageUtils.loadTexture( "../images/rock.png" ),
+    SAND = THREE.ImageUtils.loadTexture( "../images/sand.png" ),
+    WATER = THREE.ImageUtils.loadTexture( "../images/water.png" ),
+    DECK = THREE.ImageUtils.loadTexture( "../images/deck.png" );
 
 function fill ( txt, w, h, l ) {
   if ( h === undefined ) {
@@ -17,11 +17,9 @@ function fill ( txt, w, h, l ) {
     }
   }
   var point = hub();
-  for ( var y = 0; y < h; ++y ) {
-      put( brick( txt, w, 1, l ) )
-          .on( point )
-          .at( w / 2, y, l / 2 );
-  }
+  put( brick( txt, w, h, l ) )
+      .on( point )
+      .at( w / 2, h / 2, l / 2 );
   return point;
 }
 
@@ -30,55 +28,25 @@ function testDemo ( scene ) {
       .on( scene )
       .at( -12, -3, -12 );
 
-  put( fill( WATER, 25, 1, 12 ) )
-      .on( start )
-      .at( 0, 0, 12 );
-
-  for ( var z = 0; z < 12; ++z ) {
-    var x = z;
-    var w = 25 - x;
-    put( fill( GRASS, w, 1, 1 ) )
-        .on( start )
-        .at( 0, 0, z );
-
-    put( fill( SAND, x, 1, 1 ) )
-        .on( start )
-        .at( w, 0, z );
-
-    if ( z < 10 ) {
-      for ( var x = 0; x < 10; ++x ) {
-        h = 10 - Math.sqrt( z * z + x * x );
-        put( fill( ROCK, 1, h, 1 ) )
-            .on( start )
-            .at( x, 1, z );
-      }
-    }
-  }
+  put( fill( GRASS, 25, 1, 25 ) )
+      .on( start );
 
   var sun = put( hub() )
       .on( start )
       .at( 10, 10, -3 );
-  function sunBit () {
-    return textured( box( 1 ), 0xffff00, true, 0.125 );
+
+  function sunBit ( x, y, z ) {
+    put( textured( box( 1 ), 0xffff00, true, 0.125 ) )
+        .on( sun )
+        .at( x, y, z );
   }
-  put( sunBit() )
-      .on( sun )
-      .at( 1, 0, 0 );
-  put( sunBit() )
-      .on( sun )
-      .at( -1, 0, 0 );
-  put( sunBit() )
-      .on( sun )
-      .at( 0, 1, 0 );
-  put( sunBit() )
-      .on( sun )
-      .at( 0, -1, 0 );
-  put( sunBit() )
-      .on( sun )
-      .at( 0, 0, 1 );
-  put( sunBit() )
-      .on( sun )
-      .at( 0, 0, -1 );
+
+  sunBit( 1, 0, 0 );
+  sunBit( -1, 0, 0 );
+  sunBit( 0, 1, 0 );
+  sunBit( 0, -1, 0 );
+  sunBit( 0, 0, 1 );
+  sunBit( 0, 0, -1 );
 
   var t = 0;
   function update ( dt ) {
@@ -117,7 +85,7 @@ function PrimroseDemo ( vrDisplay, vrSensor, err ) {
       SPEED = 0.005,
       inVR = false,
       dragging = false,
-      keyState = { },
+      keyState = {},
       modA = isOSX ? "metaKey" : "ctrlKey",
       modB = isOSX ? "altKey" : "shiftKey",
       cmdPre = isOSX ? "CMD+OPT" : "CTRL+SHIFT",
@@ -157,7 +125,7 @@ function PrimroseDemo ( vrDisplay, vrSensor, err ) {
       position = new THREE.Vector3( ),
       src = getSetting( "code", testDemo.toString( ) ),
       translations = [ new THREE.Matrix4(), new THREE.Matrix4() ],
-      viewports = [ new THREE.Box2(), new THREE.Box2() ];
+      viewports = [ ];
 
   function setTrans ( m, t ) {
     m.makeTranslation( t.x, t.y, t.z );
@@ -194,8 +162,8 @@ function PrimroseDemo ( vrDisplay, vrSensor, err ) {
 
     setTrans( translations[0], vrParams.left.eyeTranslation );
     setTrans( translations[1], vrParams.right.eyeTranslation );
-    setView( viewports[0], vrParams.left.renderRect );
-    setView( viewports[1], vrParams.right.renderRect );
+    viewports[0] = vrParams.left.renderRect;
+    viewports[1] = vrParams.right.renderRect;
   }
 
   if ( src === testDemo.toString( ) ) {
@@ -324,21 +292,35 @@ function PrimroseDemo ( vrDisplay, vrSensor, err ) {
     cmdLabels[i].innerHTML = cmdPre;
   }
 
-  setupKeyOption( ctrls.leftKey, "A", 65 );
-  setupKeyOption( ctrls.rightKey, "D", 68 );
-  setupKeyOption( ctrls.forwardKey, "W", 87 );
-  setupKeyOption( ctrls.backKey, "S", 83 );
+  var elems = [ ctrls.leftKey, ctrls.rightKey, ctrls.forwardKey, ctrls.backKey
+  ];
+  setupKeyOption( ctrls.leftKey, elems, 0, "A", 65 );
+  setupKeyOption( ctrls.rightKey, elems, 1, "D", 68 );
+  setupKeyOption( ctrls.forwardKey, elems, 2, "W", 87 );
+  setupKeyOption( ctrls.backKey, elems, 3, "S", 83 );
 
-  ctrls.goRegular.addEventListener( "click", requestFullScreen.bind( window,
-      ctrls.output ) );
+  function onFullScreen ( elem, vrDisplay ) {
+    requestFullScreen( elem, vrDisplay );
+    history.pushState( null, "Primrose > full screen", "#fullscreen" );
+  }
+
+  ctrls.goRegular.addEventListener( "click", onFullScreen.bind( window, ctrls.output ) );
   ctrls.goVR.style.display = !!vrDisplay ? "inline-block" : "none";
   ctrls.goVR.addEventListener( "click", function ( ) {
-    requestFullScreen( ctrls.output, vrDisplay );
+    onFullScreen( ctrls.output, vrDisplay );
     inVR = true;
     camera.fov = ( vrParams.left.recommendedFieldOfView.leftDegrees +
         vrParams.left.recommendedFieldOfView.rightDegrees );
     refreshSize();
   } );
+  
+  window.addEventListener( "popstate", function ( evt ) {
+    if ( isFullScreenMode() ) {
+      inVR = false;
+      exitFullScreen();
+      evt.preventDefault();
+    }
+  }, true );
 
   refreshSize( );
 

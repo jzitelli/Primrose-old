@@ -1,81 +1,62 @@
-var fs = require( "fs" );
+/* global module */
+
+var fs = require( "fs" ),
+    files = [
+      "src/store.js",
+      "obj/Primrose.js",
+      "lib/analytics.js",
+      "lib/ga.js",
+      "lib/mailchimp.js",
+      "node_modules/cannon/build/cannon.js",
+      "node_modules/leapjs/leap-0.6.4.js",
+      "node_modules/socket.io-client/socket.io.js",
+      "node_modules/three.js/build/three.js"
+    ],
+    uglifyFiles = files.map( function ( s ) {
+      return{
+        src: s,
+        dest: s.replace( /.*\/(.*).js/, "bin/$1.min.js" )
+      };
+    } ),
+    copyFiles = files.map( function ( s ) {
+      return {
+        src: s,
+        dest: s.replace( /.*\/(.*).js/, "bin/$1.js" )
+      };
+    } );
+
 
 module.exports = function ( grunt ) {
-  // Project configuration.
-  var banner = "/*\n\
+  grunt.initConfig( {
+    pkg: grunt.file.readJSON( "package.json" ),
+    jshint: { default: "src/**/*.js" },
+    clean: [ "obj", "bin" ],
+    concat: {
+      options: {
+        banner: "/*\n\
   <%= pkg.name %> v<%= pkg.version %> <%= grunt.template.today(\"yyyy-mm-dd\") %>\n\
   <%= pkg.license.type %>\n\
   Copyright (C) 2015 <%= pkg.author %>\n\
   <%= pkg.homepage %>\n\
   <%= pkg.repository.url %>\n\
 */\n",
-      execConfig = { },
-      copyConfig = { };
-
-  var execConfig = { },
-      copyConfig = { };
-
-  function copyFile ( name, fileName ) {
-    if ( fs.existsSync( fileName ) ) {
-      copyConfig["copy_" + name] = {
-        files: [
-          {
-            expand: true,
-            flatten: true,
-            src: [ fileName ],
-            dest: 'lib/',
-            filter: 'isFile'
-          }
-        ]
-      };
-    }
-  }
-
-  function depend ( name, rootDir, buildDir, buildCmd, binDir ) {
-    if ( fs.existsSync( rootDir ) ) {
-      console.log( "including " + name );
-      execConfig["build_" + name] = "cd " + rootDir + "/" + buildDir + " && " +
-          buildCmd;
-      copyFile( name, rootDir + "/" + binDir + "/*" );
-    }
-  }
-
-  depend( "THREE", "../three.js", "utils/build", "build.bat", "build" );
-  depend( "cannon.js", "../cannon.js", "", "grunt", "build" );
-  copyFile( "THREE/ColladaLoader",
-      "../three.js/examples/js/loaders/ColladaLoader.js" );
-
-  grunt.initConfig( {
-    pkg: grunt.file.readJSON( "package.json" ),
-    clean: {
-      default: [ "dist/" ]
-    },
-    exec: execConfig,
-    copy: copyConfig,
-    jshint: {
-      default: [ "core.js", "src/**/*.js" ]
-    },
-    concat: {
-      options: {
-        banner: banner,
         separator: ";",
         footer: "Primrose.VERSION = \"v<%= pkg.version %>\";"
       },
       default: {
         files: {
-          "dist/Primrose.js": [ "core.js", "src/**/*.js" ]
+          "obj/Primrose.js": [ "src/core.js", "src/fx/**/*.js" ]
         }
       }
     },
     uglify: {
-      options: {
-        banner: banner
-      },
       default: {
-        files: [ {
-            src: "dist/Primrose.js",
-            dest: "dist/Primrose.min.js"
-          } ]
+        files: uglifyFiles
+      }
+    },
+    copy: {
+      default: {
+        files: copyFiles
       }
     }
   } );
@@ -87,10 +68,5 @@ module.exports = function ( grunt ) {
   grunt.loadNpmTasks( "grunt-contrib-concat" );
   grunt.loadNpmTasks( "grunt-contrib-uglify" );
 
-  grunt.registerTask( "default",
-      [ "clean", "exec", "copy", "jshint", "concat", "uglify" ] );
-
-  grunt.registerTask( "localonly",
-      [ "clean", "copy", "jshint", "concat", "uglify" ] );
-
+  grunt.registerTask( "default", [ "jshint", "clean", "concat", "uglify", "copy" ] );
 };
