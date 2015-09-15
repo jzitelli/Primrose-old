@@ -64,6 +64,19 @@ def pyexec():
     return jsonify(response)
 
 
+@app.route("/read")
+def read():
+    """Handles requests to read file contents (files are assumed to be in examples/editor3dFlask)"""
+    filename = os.path.join(os.getcwd(), 'examples', 'editor3dFlask', request.args['file'])
+    response = {}
+    try:
+        with open(filename, 'r') as f:
+            response['text'] = f.read()
+    except Exception as err:
+        response['error'] = str(err)
+    return jsonify(response)
+
+
 def main():
     app.run(host='0.0.0.0')
 

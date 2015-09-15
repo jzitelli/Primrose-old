@@ -163,6 +163,24 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
     log(fmt("$1+E to show/hide editor", cmdPre));
     log(fmt("$1+X to execute editor contents", cmdPre));
 
+    (function () {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', "/read?file=test.py");
+        xhr.onload = function () {
+            var response = JSON.parse(xhr.responseText);
+            if (response.text) {
+                editor.editor.value = response.text;
+            }
+            else if (response.error) {
+                console.log(response.error);
+                if (log) {
+                    log(response.error);
+                }
+            }
+        };
+        xhr.send();
+    })();
+
     back.generateMipMaps = false;
 
     light.position.set(5, 5, 5);
