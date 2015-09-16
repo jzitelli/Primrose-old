@@ -1,9 +1,9 @@
 /*
-  Primrose v0.12.3 2015-08-12
+  Primrose v0.12.3 2015-09-16
   
   Copyright (C) 2015 Sean T. McBeth <sean@seanmcbeth.com> (https://www.seanmcbeth.com)
   https://www.primroseeditor.com
-  https://github.com/capnmidnight/Primrose.git
+  https://github.com/jzitelli/Primrose.git
 */
 /*
  * Copyright (C) 2015 Sean T. McBeth <sean@seanmcbeth.com>
@@ -166,16 +166,17 @@ Primrose.ModelLoader = ( function () {
     return function(){};
   }
   var COLLADA = new THREE.ColladaLoader(),
-      JSON = new THREE.ObjectLoader();
+    JSON = new THREE.ObjectLoader();
   COLLADA.options.convertUpAxis = true;
+  COLLADA.setPreferredShading(THREE.FlatShading);
 
-  function fixColladaScene ( collada ) {
+  function fixColladaScene(collada) {
     return collada.scene;
   }
 
-  function fixJSONScene(json){
-    json.traverse(function(obj){
-      if(obj.geometry){
+  function fixJSONScene(json) {
+    json.traverse(function(obj) {
+      if (obj.geometry) {
         obj.geometry.computeBoundingSphere();
         obj.geometry.computeBoundingBox();
       }
@@ -183,103 +184,99 @@ Primrose.ModelLoader = ( function () {
     return json;
   }
 
-  function buildScene ( success, scene ) {
-    scene.buttons = [ ];
-    scene.traverse( function ( child ) {
-      if ( child.isButton ) {
+  function buildScene(success, scene) {
+    scene.buttons = [];
+    scene.traverse(function(child) {
+      if (child.isButton) {
         scene.buttons.push(
-            new Primrose.Button( child.parent, child.name ) );
+          new Primrose.Button(child.parent, child.name));
       }
-      if ( child.name ) {
+      if (child.name) {
         scene[child.name] = child;
       }
-    } );
-    if ( success ) {
-      success( scene );
+    });
+    if (success) {
+      success(scene);
     }
   }
 
   var propertyTests = {
-    isButton: function(obj){
+    isButton: function(obj) {
       return (obj.material && obj.material.name.match(/^button\d+$/));
     },
-    isSolid: function(obj){
+    isSolid: function(obj) {
       return !obj.name.match(/^(water|sky)/);
     }
   };
 
-  function setProperties ( object ) {
-    object.traverse( function ( obj ) {
-      if ( obj instanceof THREE.Mesh ) {
-        for(var prop in propertyTests){
+  function setProperties(object) {
+    object.traverse(function(obj) {
+      if (obj instanceof THREE.Mesh) {
+        for (var prop in propertyTests) {
           obj[prop] = obj[prop] || propertyTests[prop](obj);
         }
       }
-    } );
+    });
   }
 
-  function ModelLoader ( src, success ) {
-    if ( src ) {
-      var done = function ( scene ) {
+  function ModelLoader(src, success) {
+    if (src) {
+      var done = function(scene) {
         this.template = scene;
-        if ( success ) {
-          success( scene );
+        if (success) {
+          success(scene);
         }
-      }.bind( this );
-      ModelLoader.loadObject( src, done );
+      }.bind(this);
+      ModelLoader.loadObject(src, done);
     }
   }
 
-  ModelLoader.prototype.clone = function () {
+  ModelLoader.prototype.clone = function() {
     var obj = this.template.clone();
 
-    obj.traverse( function ( child ) {
-      if ( child instanceof THREE.SkinnedMesh ) {
-        obj.animation = new THREE.Animation( child, child.geometry.animation );
-        if ( !this.template.originalAnimationData && obj.animation.data ) {
+    obj.traverse(function(child) {
+      if (child instanceof THREE.SkinnedMesh) {
+        obj.animation = new THREE.Animation(child, child.geometry.animation);
+        if (!this.template.originalAnimationData && obj.animation.data) {
           this.template.originalAnimationData = obj.animation.data;
         }
-        if ( !obj.animation.data ) {
+        if (!obj.animation.data) {
           obj.animation.data = this.template.originalAnimationData;
         }
       }
-    }.bind( this ) );
+    }.bind(this));
 
-    setProperties( obj );
+    setProperties(obj);
     return obj;
   };
 
 
-  ModelLoader.loadScene = function ( src, success ) {
-    var done = buildScene.bind( window, success );
-    ModelLoader.loadObject( src, done );
+  ModelLoader.loadScene = function(src, success) {
+    var done = buildScene.bind(window, success);
+    ModelLoader.loadObject(src, done);
   };
 
-  ModelLoader.loadObject = function ( src, success ) {
-    var done = function ( scene ) {
-      setProperties( scene );
-      if ( success ) {
-        success( scene );
+  ModelLoader.loadObject = function(src, success) {
+    var done = function(scene) {
+      setProperties(scene);
+      if (success) {
+        success(scene);
       }
     };
 
-    if ( src.endsWith( ".dae" ) ) {
-      console.error( "COLLADA seems to be broken right now" );
-      if ( false ) {
-        COLLADA.load( src, function ( collada ) {
-          done( fixColladaScene( collada ) );
-        } );
-      }
-    }
-    else if ( src.endsWith( ".json" ) ) {
-      JSON.load( src, function (json){
+    if (src.endsWith(".dae")) {
+      COLLADA.load(src, function(collada) {
+        done(fixColladaScene(collada));
+      });
+    } else if (src.endsWith(".json")) {
+      JSON.load(src, function(json) {
         done(fixJSONScene(json));
       });
     }
   };
 
   return ModelLoader;
-} )();
+})();
 ;/* global Primrose */
 
 Primrose.NetworkedInput = ( function () {
@@ -3062,7 +3059,28 @@ Primrose.Input.Gamepad = ( function () {
   }
 
   GamepadInput.AXES = [ "LSX", "LSY", "RSX", "RSY" ];
+
+  GamepadInput.XBOX_BUTTONS = {
+        'A': 1,
+        'B': 2,
+        'X': 3,
+        'Y': 4,
+        'leftBumper': 5,
+        'rightBumper': 6,
+        'leftTrigger': 7,
+        'rightTrigger': 8,
+        'back': 9,
+        'start': 10,
+        'leftStick': 11,
+        'rightStick': 12,
+        'up': 13,
+        'down': 14,
+        'left': 15,
+        'right': 16
+  };
+
   Primrose.Input.ButtonAndAxis.inherit( GamepadInput );
+
   return GamepadInput;
 } )();
 ;/* global Primrose */
@@ -7705,11 +7723,15 @@ Primrose.Text.Controls.TextBox = ( function ( ) {
     //
     // different browsers have different sets of keycodes for less-frequently
     // used keys like.
-    browser = isChrome ? "CHROMIUM" : ( isFirefox ? "FIREFOX" :
-        ( isIE ?
-            "IE" :
-            ( isOpera ? "OPERA" : ( isSafari ? "SAFARI" :
-                "UNKNOWN" ) ) ) );
+    browser = isChrome 
+    ? "CHROMIUM" 
+    : ( isFirefox 
+        ? "FIREFOX" 
+        : ( isIE 
+            ? "IE"
+            : ( isOpera 
+                ? "OPERA" 
+                : ( isSafari ? "SAFARI" : "UNKNOWN" ) ) ) );
 
     //
     // the `surrogate` textarea makes the soft-keyboard appear on mobile devices.
@@ -8461,6 +8483,27 @@ Primrose.Text.Grammars.PlainText = (function () {
     ["newlines", /(?:\r\n|\r|\n)/]
   ]);
 })();
+;/* global Primrose */
+Primrose.Text.Grammars.Python = (function () {
+  "use strict";
+
+return new Primrose.Text.Grammar( "Python", [
+    [ "newlines", /(?:\r\n|\r|\n)/ ],
+    [ "comments", /#.*$/ ],
+    [ "strings", /"(?:\\"|[^"])*"/ ],
+    [ "strings", /'(\\'|[^'])*'/ ],
+    [ "strings", /r"(?:[^"])*"/ ],
+    [ "strings", /r'(?:[^'])*'/ ],
+    [ "strings", /"""(?:[^"""])*"""/ ],
+    [ "strings", /'''(?:[^'''])*'''/ ],
+    [ "numbers", /-?(?:(?:\b\d*)?\.)?\b\d+\b/ ],
+    [ "keywords",
+      /\b(?:and|as|assert|break|class|continue|def|del|elif|else|except|exec|finally|for|from|global|if|import|in|is|lambda|not|or|pass|print|raise|return|try|while|with|yield|self)\b/
+    ],
+    [ "functions", /(?:def\s+)(\w+)(?:\s*\()/ ],
+    [ "members", /(?:(?:\w+\.)+)(\w+)/ ]
+  ] );
+} )();
 ;/* global Primrose */
 Primrose.Text.Grammars.TestResults = (function () {
   "use strict";

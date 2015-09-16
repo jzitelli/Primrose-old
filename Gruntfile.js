@@ -2,7 +2,6 @@
 
 var fs = require( "fs" ),
     files = [
-      "src/store.js",
       "obj/Primrose.js",
       "lib/analytics.js",
       "lib/ga.js",
@@ -10,7 +9,9 @@ var fs = require( "fs" ),
       "node_modules/cannon/build/cannon.js",
       "node_modules/leapjs/leap-0.6.4.js",
       "node_modules/socket.io-client/socket.io.js",
-      "node_modules/three.js/build/three.js"
+      "node_modules/three.js/build/three.js",
+      "node_modules/three.js/examples/js/effects/VREffect.js",
+      "node_modules/three.js/examples/js/loaders/ColladaLoader.js"
     ],
     uglifyFiles = files.map( function ( s ) {
       return{
@@ -69,4 +70,5 @@ module.exports = function ( grunt ) {
   grunt.loadNpmTasks( "grunt-contrib-uglify" );
 
   grunt.registerTask( "default", [ "jshint", "clean", "concat", "uglify", "copy" ] );
+  grunt.registerTask( "quick", [ "concat", "copy" ] );
 };
