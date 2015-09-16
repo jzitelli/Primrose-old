@@ -98,11 +98,6 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         m.makeTranslation(t.x, t.y, t.z);
     }
 
-    function setView(b, r) {
-        b.min.set(r.x, r.y);
-        b.max.set(r.x + r.width, r.y + r.height);
-    }
-
     if (vrDisplay) {
         if (vrDisplay.getEyeParameters) {
             vrParams = {
