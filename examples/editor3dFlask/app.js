@@ -1,22 +1,22 @@
-/* global isOSX, Primrose, THREE, isMobile, requestFullScreen, put */
+/* global isOSX, Primrose, THREE, isMobile, requestFullScreen, CrapLoader */
 var log = null;
 
 function readURLParams() {
-    var URL_PARAMS = {};
+    var params = {};
     location.search.substr(1).split("&").forEach(function(item) {
         var k = item.split("=")[0],
             v = decodeURIComponent(item.split("=")[1]);
-        (k in URL_PARAMS) ? URL_PARAMS[k].push(v) : URL_PARAMS[k] = [v]
+        (k in params) ? params[k].push(v) : params[k] = [v]
     });
-    for (var k in URL_PARAMS) {
-        if (URL_PARAMS[k].length == 1) {
-            URL_PARAMS[k] = URL_PARAMS[k][0];
+    for (var k in params) {
+        if (params[k].length == 1) {
+            params[k] = params[k][0];
         }
     }
-    return URL_PARAMS;
+    return params;
 }
 var URL_PARAMS = readURLParams();
-var USE_VREFFECT = true; //URL_PARAMS['vreffect'];
+var USE_VREFFECT = true;
 
 function pythonExec(src, success) {
     "use strict"

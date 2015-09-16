@@ -4,18 +4,18 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0">
     <title>Primrose: Canvas-based text editor</title>
-    <script type="text/javascript" src="{{ url_for('static', filename='bin/ga.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='bin/three.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='bin/ColladaLoader.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='bin/VREffect.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='bin/cannon.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='bin/Primrose.js') }}"></script>
 
+    <script type="text/javascript" src="{{ url_for('static', filename='examples/editor3dFlask/CrapLoader.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='examples/editor3dFlask/app.js') }}"></script>
 
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='examples/editor3d/style.css') }}">
   </head>
-  <body onload="ga('send', 'pageview');findVR(PrimroseDemo);">
+  <body onload="findVR(PrimroseDemo);">
     <div id="outputContainer">
       <canvas id="output"></canvas>
     </div>

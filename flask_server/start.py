@@ -5,9 +5,6 @@ This script should be executed from the Primrose root directory, i.e. ::
 
     $ python flask_server/start.py
 
-(or you should make appropriate modifications to the
-Flask *static_folder* and *template_folder* arguments).
-
 The server can then be accessed locally at 127.0.0.1:5000."""
 
 import os
@@ -15,8 +12,11 @@ import sys
 import logging
 import StringIO
 import subprocess
+import json
 from flask import Flask, render_template, request, jsonify, Markup
+
 import default_settings
+import three
 
 app = Flask(__name__,
     static_folder=os.path.join(os.getcwd()),
@@ -34,6 +34,8 @@ def editor3d():
     """Serves HTML for a Primrose app based on the editor3d example."""
     if app.debug or app.testing:
         subprocess.call("grunt quick", shell=True)
+    with open(os.path.join(os.getcwd(), 'examples', 'editor3dFlask', 'room.json'), 'w') as f:
+        f.write(json.dumps(three.scene_gen(), indent=2))
     return render_template('index.html')
 
 
@@ -89,5 +91,5 @@ def main():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=(logging.DEBUG if app.debug else None))
     main()
