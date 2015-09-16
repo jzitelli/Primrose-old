@@ -16,7 +16,7 @@ function readURLParams() {
     return URL_PARAMS;
 }
 var URL_PARAMS = readURLParams();
-var USE_VREFFECT = URL_PARAMS['vreffect'];
+var USE_VREFFECT = true; //URL_PARAMS['vreffect'];
 
 function pythonExec(src, success) {
     "use strict"
@@ -107,7 +107,6 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         src = 'print("Hello world!")',
         translations = [new THREE.Matrix4(), new THREE.Matrix4()],
         viewports = [],
-        projectionMatrices,
         vrEffect = new THREE.VREffect(renderer);
 
 
@@ -285,7 +284,6 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
             canvasHeight = Math.max(vrParams.left.renderRect.height,
                 vrParams.right.renderRect.height);
             aspectWidth = canvasWidth / 2;
-            projectionMatrices = vrEffect.getProjectionMatrices(camera);
             renderer.setSize(canvasWidth, canvasHeight);
         }
         renderer.domElement.style.width = px(styleWidth);
@@ -522,11 +520,12 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
     }
 
     function pick(op) {
-        if (lastEditor && lastEditor.focused) {
-            renderScene(pickingScene, back, true);
-            lastEditor[op + "Picking"](gl, pointerX, ctrls.output.height -
-                pointerY);
-        }
+        // TODO
+        // if (lastEditor && lastEditor.focused) {
+        //     renderScene(pickingScene, back, true);
+        //     lastEditor[op + "Picking"](gl, pointerX, ctrls.output.height -
+        //         pointerY);
+        // }
     }
 
     function update(dt) {
