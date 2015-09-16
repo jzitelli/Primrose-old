@@ -1,6 +1,23 @@
 /* global isOSX, Primrose, THREE, isMobile, requestFullScreen, put */
 var log = null;
 
+function readURLParams() {
+    var URL_PARAMS = {};
+    location.search.substr(1).split("&").forEach(function(item) {
+        var k = item.split("=")[0],
+            v = decodeURIComponent(item.split("=")[1]);
+        (k in URL_PARAMS) ? URL_PARAMS[k].push(v) : URL_PARAMS[k] = [v]
+    });
+    for (var k in URL_PARAMS) {
+        if (URL_PARAMS[k].length == 1) {
+            URL_PARAMS[k] = URL_PARAMS[k][0];
+        }
+    }
+    return URL_PARAMS;
+}
+var URL_PARAMS = readURLParams();
+var USE_VREFFECT = URL_PARAMS['vreffect'];
+
 function pythonExec(src, success) {
     "use strict"
     var xhr = new XMLHttpRequest();
@@ -269,6 +286,7 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
                 vrParams.right.renderRect.height);
             aspectWidth = canvasWidth / 2;
             projectionMatrices = vrEffect.getProjectionMatrices(camera);
+            renderer.setSize(canvasWidth, canvasHeight);
         }
         renderer.domElement.style.width = px(styleWidth);
         renderer.domElement.style.height = px(styleHeight);
@@ -492,7 +510,12 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
 
     function renderScene(s, rt, fc) {
         if (inVR) {
-            renderer.renderStereo(s, camera, rt, fc, translations, viewports, projectionMatrices);
+            if (USE_VREFFECT) {
+                vrEffect.render(s, camera);
+            }
+            else {
+                renderer.renderStereo(s, camera, rt, fc, translations, viewports, projectionMatrices);
+            }
         } else {
             renderer.render(s, camera, rt, fc);
         }
