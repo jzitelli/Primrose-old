@@ -19,7 +19,7 @@ UVMapping, CubeReflectionMapping, CubeRefractionMapping = 300, 301, 302
 RepeatWrapping, ClampToEdgeWrapping, MirroredRepeatWrapping = 1000, 1001, 1002
 NearestFilter, NearestMipMapNearestFilter, NearestMipMapLinearFilter, LinearFilter, LinearMipMapNearestFilter, LinearMipMapLinearFilter = 1003, 1004, 1005, 1006, 1007, 1008
 
-
+# TODO: JSON encoder for Three objects
 class Three(object):
     num = 0
     def __init__(self, name=None):
@@ -30,7 +30,11 @@ class Three(object):
         Three.num += 1
     def json(self):
         """Returns a dict which can be JSON serialized (by json.dumps)"""
-        return {"uuid": unicode(self.uuid),
+        try:
+            return {"uuid": unicode(self.uuid),
+                "name": self.name}
+        except NameError:
+            return {"uuid": str(self.uuid),
                 "name": self.name}
 
 
@@ -90,10 +94,10 @@ class Object3D(Three):
         matrix = T.dot(Rz).dot(Ry).dot(Rx).dot(S)
         d = Three.json(self)
         d.update({"type": "Object3D",
-                  "matrix": list(matrix.T.ravel()),
+                  "matrix": matrix.T.ravel().tolist(),
                   'children': [c.json() for c in self.children]})
-        d.update({k: v for k, v in self.__dict__.iteritems()
-            if k not in ['position', 'rotation', 'scale'] + d.keys()})
+        d.update({k: v for k, v in self.__dict__.items()
+            if k not in ['position', 'rotation', 'scale'] + list(d.keys())})
         return d
 
 
@@ -113,9 +117,14 @@ class Mesh(Object3D):
         self.material = material
     def json(self):
         d = Object3D.json(self)
-        d.update({"type": "Mesh",
-                  "material": unicode(self.material.uuid),
-                  "geometry": unicode(self.geometry.uuid)})
+        try:
+            d.update({"type": "Mesh",
+                      "material": unicode(self.material.uuid),
+                      "geometry": unicode(self.geometry.uuid)})
+        except NameError:
+            d.update({"type": "Mesh",
+                      "material": str(self.material.uuid),
+                      "geometry": str(self.geometry.uuid)})            
         return d
 
 
@@ -129,7 +138,7 @@ class Light(Object3D):
             self.distance = distance
     def json(self):
         d = Object3D.json(self)
-        d.update({k: v for k, v in self.__dict__.iteritems() if k in ('color', 'intensity',
+        d.update({k: v for k, v in self.__dict__.items() if k in ('color', 'intensity',
             'distance', 'shadowDarkness', 'shadowCameraNear', 'shadowCameraFar', 'shadowCameraLeft', 'shadowCameraRight', 'shadowCameraTop', 'shadowCameraBottom')})
         return d
 
@@ -157,7 +166,7 @@ class DirectionalLight(Light):
     def json(self):
         d = Light.json(self)
         d['type'] = "DirectionalLight"
-        d['target'] = list(self.target)
+        d['target'] = self.target.tolist()
         return d
 
 
@@ -182,7 +191,7 @@ class Material(Three):
     def json(self):
         d = Three.json(self)
         d['type'] = "Material"
-        d.update({k: v for k, v in self.__dict__.iteritems() if k not in d})
+        d.update({k: v for k, v in self.__dict__.items() if k not in d})
         return d
 
 
@@ -217,9 +226,12 @@ class Texture(Three):
         self.image = image
     def json(self):
         d = Three.json(self)
-        d.update({k: v for k,v in self.__dict__.iteritems() if k in ('minFilter', 'magFilter', 'mapping', 'anisotropy')})
+        d.update({k: v for k, v in self.__dict__.items() if k in ('minFilter', 'magFilter', 'mapping', 'anisotropy')})
         if self.image:
-            d['image'] = unicode(self.image.uuid)
+            try:
+                d['image'] = unicode(self.image.uuid)
+            except NameError:
+                d['image'] = str(self.image.uuid)
         return d
 
 
@@ -249,7 +261,7 @@ class BufferGeometry(Three):
                       "position": {
                         "type": "Float32Array",
                         "itemSize": 3,
-                        "array": list(np.array(self.vertices).ravel())
+                        "array": np.array(self.vertices).ravel().tolist()
                       }
                     }
                   }})
@@ -257,19 +269,19 @@ class BufferGeometry(Three):
             d['data']['attributes']['index'] = {
                 "itemSize": 1,
                 "type": "Uint32Array",
-                "array": list(np.array(self.indices).ravel())
+                "array": np.array(self.indices).ravel().tolist()
             }
         if self.normals:
             d['data']['attributes']['normal'] = {
                 "type": "Float32Array",
                 "itemSize": 3,
-                "array": list(np.array(self.normals).ravel())
+                "array": np.array(self.normals).ravel().tolist()
             }
         if self.uvs:
             d['data']['attributes']['uv'] = {
                 "type": "Float32Array",
                 "itemSize": 2,
-                "array": list(np.array(self.uvs).ravel())
+                "array": np.array(self.uvs).ravel().tolist()
             }
         return d
 
@@ -330,7 +342,7 @@ class Cylinder(Three):
     def json(self):
         d = Three.json(self)
         d['type'] = 'CylinderGeometry'
-        d.update({k: v for k, v in self.__dict__.iteritems() if k not in d and v is not None})
+        d.update({k: v for k, v in self.__dict__.items() if k not in d and v is not None})
         return d
 
 
@@ -344,7 +356,7 @@ class PlaneBufferGeometry(Three):
     def json(self):
         d = Three.json(self)
         d['type'] = 'PlaneBufferGeometry'
-        d.update({k: v for k, v in self.__dict__.iteritems() if k not in d})
+        d.update({k: v for k, v in self.__dict__.items() if k not in d})
         return d
 
 
@@ -358,7 +370,7 @@ class SphereBufferGeometry(Three):
     def json(self):
         d = Three.json(self)
         d['type'] = 'SphereBufferGeometry'
-        d.update({k: v for k, v in self.__dict__.iteritems() if k not in d and v is not None})
+        d.update({k: v for k, v in self.__dict__.items() if k not in d and v is not None})
         return d
 
 
