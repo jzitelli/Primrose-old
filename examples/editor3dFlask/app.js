@@ -16,7 +16,6 @@ function readURLParams() {
     return params;
 }
 var URL_PARAMS = readURLParams();
-var USE_VREFFECT = true;
 
 function pythonExec(src, success) {
     "use strict"
@@ -24,7 +23,7 @@ function pythonExec(src, success) {
     var data = new FormData();
     data.append("src", src);
     xhr.open("POST", '/pyexec');
-    xhr.onload = function () {
+    xhr.onload = function() {
         console.log("python success! python stdout:");
         var response = JSON.parse(xhr.responseText);
         console.log(response.stdout);
@@ -46,8 +45,6 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
     var vrParams,
         lastMouseX,
         lastMouseY,
-        lastTouchX,
-        lastTouchY,
         pointerX,
         pointerY,
         lastPointerX,
@@ -55,12 +52,7 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         currentEditor,
         lastEditor,
         lastScript,
-        scriptUpdateTimeout,
-        scriptAnimate,
         lt = 0,
-        touchCount = 0,
-        touchDrive = 0,
-        touchStrafe = 0,
         heading = 0,
         pitch = 0,
         SPEED = 0.005,
@@ -105,43 +97,50 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         qRift = new THREE.Quaternion(),
         position = new THREE.Vector3(),
         src = 'print("Hello world!")',
-        translations = [new THREE.Matrix4(), new THREE.Matrix4()],
-        viewports = [],
         vrEffect = new THREE.VREffect(renderer);
 
-
-    function setTrans(m, t) {
-        m.makeTranslation(t.x, t.y, t.z);
-    }
-
-    if (vrDisplay) {
-        if (vrDisplay.getEyeParameters) {
-            vrParams = {
-                left: vrDisplay.getEyeParameters("left"),
-                right: vrDisplay.getEyeParameters("right")
-            };
-        } else {
-            vrParams = {
-                left: {
-                    renderRect: vrDisplay.getRecommendedEyeRenderRect("left"),
-                    eyeTranslation: vrDisplay.getEyeTranslation("left"),
-                    recommendedFieldOfView: vrDisplay.getRecommendedEyeFieldOfView(
-                        "left")
-                },
-                right: {
-                    renderRect: vrDisplay.getRecommendedEyeRenderRect("right"),
-                    eyeTranslation: vrDisplay.getEyeTranslation("right"),
-                    recommendedFieldOfView: vrDisplay.getRecommendedEyeFieldOfView(
-                        "right")
-                }
-            };
+    var gamepad = new Primrose.Input.Gamepad("gamepad", [{
+        name: "strafe",
+        axes: [Primrose.Input.Gamepad.LSX]
+    }, {
+        name: "drive",
+        axes: [Primrose.Input.Gamepad.LSY]
+    }, {
+        name: "heading",
+        axes: [-Primrose.Input.Gamepad.RSX],
+        integrate: true
+    }, {
+        name: "dheading",
+        commands: ["heading"],
+        delta: true
+    }, {
+        name: "pitch",
+        axes: [Primrose.Input.Gamepad.RSY],
+        integrate: true
+    }]);
+    gamepad.addEventListener( "gamepadconnected", function (id) {
+        if (!gamepad.isGamepadSet()) {
+            console.log("gamepad connected");
+            gamepad.setGamepad(id);
         }
+    }, false);
 
-        setTrans(translations[0], vrParams.left.eyeTranslation);
-        setTrans(translations[1], vrParams.right.eyeTranslation);
-        viewports[0] = vrParams.left.renderRect;
-        viewports[1] = vrParams.right.renderRect;
-    }
+    var leapInput = new Primrose.Input.LeapMotion("leapInput", []);
+    leapInput.start();
+
+    // var socket = io.connect('ws://' + document.domain + ':8888/gfxtablet')
+    // socket.on('connect', function () {
+    //     //socket.emit('client connect', {data: 'connected from Chromium'});
+    // });
+
+    var socket = new WebSocket('ws://' + document.domain + ':' + location.port + '/gfxtablet');
+    socket.onopen = function () {
+        socket.send("opened WebSocket from Chromium");
+    };
+    socket.onmessage = function (message) {
+        var data = JSON.parse(message.data);
+        console.log(data.x + ' ' + data.y + ' ' + data.p);
+    };
 
     var output = makeEditor(scene, pickingScene, "outputBox",
             1, 0.25, 0, -0.59, 6.09, -Math.PI / 4, 0, 0, {
@@ -174,15 +173,14 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
     log(fmt("$1+E to show/hide editor", cmdPre));
     log(fmt("$1+X to execute editor contents", cmdPre));
 
-    (function () {
+    (function() {
         var xhr = new XMLHttpRequest();
         xhr.open('GET', "/read?file=test.py");
-        xhr.onload = function () {
+        xhr.onload = function() {
             var response = JSON.parse(xhr.responseText);
             if (response.text) {
                 editor.editor.value = response.text;
-            }
-            else if (response.error) {
+            } else if (response.error) {
                 console.log(response.error);
                 if (log) {
                     log(response.error);
@@ -201,7 +199,7 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         X_MIN = -12.5,
         Z_MAX = 12.5,
         Z_MIN = -12.5;
-    var floor = textured( quad(X_MAX - X_MIN, Z_MAX - Z_MIN),
+    var floor = textured(quad(X_MAX - X_MIN, Z_MAX - Z_MIN),
         'images/deck.png', true, 1, X_MAX - X_MIN, Z_MAX - Z_MIN);
     floor.rotation.x -= Math.PI / 2;
     floor.position.y = -1.2;
@@ -229,9 +227,6 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
     window.addEventListener("mousedown", mouseDown);
     window.addEventListener("mousemove", mouseMove);
     window.addEventListener("mouseup", mouseUp);
-    ctrls.output.addEventListener("touchstart", touchStart);
-    ctrls.output.addEventListener("touchmove", touchMove);
-    ctrls.output.addEventListener("touchend", touchEnd);
 
     var cmdLabels = document.querySelectorAll(".cmdLabel");
     for (var i = 0; i < cmdLabels.length; ++i) {
@@ -244,18 +239,40 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
     setupKeyOption(ctrls.forwardKey, elems, 2, "W", 87);
     setupKeyOption(ctrls.backKey, elems, 3, "S", 83);
 
+    if (vrDisplay) {
+        if (vrDisplay.getEyeParameters) {
+            vrParams = {
+                left: vrDisplay.getEyeParameters("left"),
+                right: vrDisplay.getEyeParameters("right")
+            };
+        } else {
+            vrParams = {
+                left: {
+                    renderRect: vrDisplay.getRecommendedEyeRenderRect("left"),
+                    eyeTranslation: vrDisplay.getEyeTranslation("left"),
+                    recommendedFieldOfView: vrDisplay.getRecommendedEyeFieldOfView(
+                        "left")
+                },
+                right: {
+                    renderRect: vrDisplay.getRecommendedEyeRenderRect("right"),
+                    eyeTranslation: vrDisplay.getEyeTranslation("right"),
+                    recommendedFieldOfView: vrDisplay.getRecommendedEyeFieldOfView(
+                        "right")
+                }
+            };
+        }
+    }
+
     function onFullScreen(elem, vrDisplay) {
         requestFullScreen(elem, vrDisplay);
         history.pushState(null, "Primrose > full screen", "#fullscreen");
     }
 
-    ctrls.goRegular.addEventListener("click", onFullScreen.bind(window, ctrls.output));
+    ctrls.goRegular.addEventListener("click", onFullScreen(ctrls.output));
     ctrls.goVR.style.display = !!vrDisplay ? "inline-block" : "none";
     ctrls.goVR.addEventListener("click", function() {
         onFullScreen(ctrls.output, vrDisplay);
         inVR = true;
-        camera.fov = (vrParams.left.recommendedFieldOfView.leftDegrees +
-            vrParams.left.recommendedFieldOfView.rightDegrees);
         refreshSize();
     });
 
@@ -284,7 +301,7 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
             canvasHeight = Math.max(vrParams.left.renderRect.height,
                 vrParams.right.renderRect.height);
             aspectWidth = canvasWidth / 2;
-            renderer.setSize(canvasWidth, canvasHeight);
+            vrEffect.setSize(canvasWidth, canvasHeight);
         }
         renderer.domElement.style.width = px(styleWidth);
         renderer.domElement.style.height = px(styleHeight);
@@ -316,10 +333,6 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
             lastEditor.keyDown(evt);
         }
 
-        if (scriptUpdateTimeout) {
-            clearTimeout(scriptUpdateTimeout);
-            scriptUpdateTimeout = null;
-        }
     }
 
     function setPointer(x, y) {
@@ -450,70 +463,10 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         }
     }
 
-    function touchStart(evt) {
-        lastTouchX = 0;
-        lastTouchY = 0;
-        for (var i = 0; i < evt.touches.length; ++i) {
-            lastTouchX += evt.touches[i].clientX;
-            lastTouchY += evt.touches[i].clientY;
-        }
-        lastTouchX /= evt.touches.length;
-        lastTouchY /= evt.touches.length;
-        if (evt.touches.length <= 3 && evt.touches.length > touchCount) {
-            touchCount = evt.touches.length;
-        }
-        if (touchCount === 1) {
-            setPointer(lastTouchX, lastTouchY);
-            pick("start");
-        }
-    }
-
-    function touchMove(evt) {
-        var x = 0,
-            y = 0;
-        for (var i = 0; i < evt.touches.length; ++i) {
-            x += evt.touches[i].clientX;
-            y += evt.touches[i].clientY;
-        }
-        x /= evt.touches.length;
-        y /= evt.touches.length;
-
-        if (touchCount === 1) {
-            dragging = true;
-            setPointer(x, y);
-        } else if (touchCount === 2) {
-            touchStrafe = (x - lastTouchX) * 0.05;
-            touchDrive = (y - lastTouchY) * 0.05;
-        } else if (touchCount === 3) {
-            heading += (x - lastTouchX) * 0.005;
-            pitch += (y - lastTouchY) * 0.005;
-        }
-        lastTouchX = x;
-        lastTouchY = y;
-        evt.preventDefault();
-    }
-
-    function touchEnd(evt) {
-        if (evt.touches.length === 0) {
-            lastTouchX = null;
-            lastTouchY = null;
-            touchCount = 0;
-            touchDrive = 0;
-            touchStrafe = 0;
-            if (lastEditor && lastEditor.focused) {
-                lastEditor.endPointer();
-            }
-        }
-    }
 
     function renderScene(s, rt, fc) {
         if (inVR) {
-            if (USE_VREFFECT) {
-                vrEffect.render(s, camera);
-            }
-            else {
-                renderer.renderStereo(s, camera, rt, fc, translations, viewports, projectionMatrices);
-            }
+            vrEffect.render(s, camera);
         } else {
             renderer.render(s, camera, rt, fc);
         }
@@ -547,8 +500,6 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
             position.z -= dt * SPEED * sin;
         }
 
-        position.z += dt * SPEED * (touchStrafe * sin - touchDrive * cos);
-        position.x -= dt * SPEED * (touchStrafe * cos + touchDrive * sin);
         position.x = Math.min(X_MAX, Math.max(X_MIN, position.x));
         position.z = Math.min(Z_MAX, Math.max(Z_MIN, position.z));
         camera.quaternion.setFromAxisAngle(UP, heading);
@@ -573,22 +524,6 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         if (dragging) {
             pick("move");
         }
-
-/*
-        if (!scriptUpdateTimeout) {
-            scriptUpdateTimeout = setTimeout(updateScript, 500);
-        }
-
-        if (scriptAnimate) {
-            try {
-                scriptAnimate(dt);
-            } catch (exp) {
-                console.error(exp);
-                log("ERR: " + exp.message);
-                scriptAnimate = null;
-            }
-        }
-*/
     }
 
     function render(t) {
@@ -601,28 +536,4 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         lt = t;
     }
 
-/*
-    function updateScript() {
-        if (editor.editor) {
-            var newScript = editor.editor.value,
-                exp;
-            if (newScript !== lastScript) {
-                try {
-                    var scriptUpdate = new Function("scene",
-                        newScript);
-                    for (var i = subScene.children.length - 1; i >= 0; --i) {
-                        subScene.remove(subScene.children[i]);
-                    }
-                    scriptAnimate = scriptUpdate(subScene);
-                } catch (exp) {
-                    console.error(exp);
-                    log("ERR: " + exp.message);
-                    scriptAnimate = null;
-                }
-                lastScript = newScript;
-            }
-            scriptUpdateTimeout = null;
-        }
-    }
-*/
 }
