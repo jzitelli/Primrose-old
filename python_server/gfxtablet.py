@@ -12,15 +12,16 @@ from tornado.web import Application
 
 _logger = logging.getLogger(__name__)
 
+
 class GFXTabletHandler(WebSocketHandler):
     TYPE_MOTION = 0
     TYPE_BUTTON = 1
+    udpsock = socket.socket(type=socket.SOCK_DGRAM)
+    udpsock.bind(('0.0.0.0', 40118))
+    udpsock.setblocking(False)
     # see http://www.bbarrows.com/blog/2013/01/27/udptornado/
     def open(self):
         _logger.debug("WebSocket opened")
-        self.udpsock = socket.socket(type=socket.SOCK_DGRAM)
-        self.udpsock.bind(('0.0.0.0', 40118))
-        self.udpsock.setblocking(False)
         self._buf = bytearray(18*4)
         self.set_nodelay(True) # maybe better to not do this?
         ioloop = IOLoop.current()
@@ -29,6 +30,8 @@ class GFXTabletHandler(WebSocketHandler):
         _logger.debug(message)
     def on_close(self):
         _logger.debug("WebSocket closed")
+        ioloop = IOLoop.current()
+        ioloop.remove_handler(self.udpsock.fileno())
         #self.udpsock.close()
     def handle_input(self, fd, events):
         # TODO: android app sends width, height, use it

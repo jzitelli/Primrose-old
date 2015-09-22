@@ -166,9 +166,9 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
             paintableMaterial.map.needsUpdate = true;
             paintableMaterial.needsUpdate = true;
         }
-        if (data.button !== undefined) {
-            console.log(data.x + ' ' + data.y + ' ' + data.p + ' ' + data.button + ' ' + data.button_down);
-        }
+        // if (data.button !== undefined) {
+        //     console.log(data.x + ' ' + data.y + ' ' + data.p + ' ' + data.button + ' ' + data.button_down);
+        // }
     };
 
     var output = makeEditor(scene, pickingScene, "outputBox",
@@ -297,7 +297,10 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         history.pushState(null, "Primrose > full screen", "#fullscreen");
     }
 
-    ctrls.goRegular.addEventListener("click", onFullScreen(ctrls.output));
+    ctrls.goRegular.addEventListener("click", function() {
+        onFullScreen(ctrls.output);
+        refreshSize();
+    });
     ctrls.goVR.style.display = !!vrDisplay ? "inline-block" : "none";
     ctrls.goVR.addEventListener("click", function() {
         onFullScreen(ctrls.output, vrDisplay);
