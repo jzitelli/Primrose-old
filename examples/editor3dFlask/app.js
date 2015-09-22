@@ -96,7 +96,6 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         qPitch = new THREE.Quaternion(),
         qRift = new THREE.Quaternion(),
         position = new THREE.Vector3(),
-        src = 'print("Hello world!")',
         vrEffect = new THREE.VREffect(renderer);
 
     var gamepad = new Primrose.Input.Gamepad("gamepad", [{
@@ -130,14 +129,16 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
 
     var socket = new WebSocket('ws://' + document.domain + ':' + location.port + '/gfxtablet');
     var paintableMaterial;
+    var gfxtabletCanvas;
     socket.onopen = function () {
-        var el = document.createElement('canvas');
-        el.width = 2000;
-        el.height = 1000;
-        var canvasMap = new THREE.Texture(el, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping,
+        gfxtabletCanvas = document.createElement('canvas');
+        gfxtabletCanvas.width = 2560;
+        gfxtabletCanvas.height = 1600;
+        var aspect = gfxtabletCanvas.width / gfxtabletCanvas.height;
+        var canvasMap = new THREE.Texture(gfxtabletCanvas, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping,
             THREE.LinearFilter, THREE.LinearFilter);
         paintableMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, map: canvasMap});
-        var canvasMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(3, 3), paintableMaterial);
+        var canvasMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2*aspect, 2), paintableMaterial);
         scene.add(canvasMesh);
         paintableMaterial.map.needsUpdate = true;
         paintableMaterial.needsUpdate = true;
@@ -147,7 +148,7 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         ctx.beginPath();
         var rad = ctx.createRadialGradient(x, y, r/2, x, y, r);
         rad.addColorStop(0, 'rgba('+c+','+opacity+')');
-        rad.addColorStop(0.7, 'rgba('+c+','+opacity+')');
+        rad.addColorStop(0.5, 'rgba('+c+','+opacity+')');
         rad.addColorStop(1, 'rgba('+c+',0)');
         ctx.fillStyle = rad;
         ctx.arc(x, y, r, 0, Math.PI*2, false);
@@ -156,14 +157,17 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
     }
     socket.onmessage = function (message) {
         var data = JSON.parse(message.data);
-        //var ctx = renderer.getContext("experimental-webgl", {preserveDrawingBuffer: false});
         if (data.p > 0) {
-            var image3 = paintableMaterial.map.image;
-            var ctx = image3.getContext('2d');
-            circle(data.x*2560, data.y*1600, 50*data.p, '255,0,0', ctx);
+            var image = paintableMaterial.map.image;
+            var ctx = image.getContext('2d');
+            circle(gfxtabletCanvas.width * data.x, 
+                gfxtabletCanvas.height * data.y,
+                50*data.p, '255,0,0', ctx);
             paintableMaterial.map.needsUpdate = true;
             paintableMaterial.needsUpdate = true;
-            //console.log(data.x + ' ' + data.y + ' ' + data.p);
+        }
+        if (data.button !== undefined) {
+            console.log(data.x + ' ' + data.y + ' ' + data.p + ' ' + data.button + ' ' + data.button_down);
         }
     };
 
@@ -182,22 +186,9 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         editor = makeEditor(scene, pickingScene, "textEditor",
             1, 1, 0, 0, 6, 0, 0, 0, {
                 tokenizer: Primrose.Text.Grammars.Python,
-                file: src
+                file: 'print("Hello world!")'
             });
-
-    log = function() {
-        if (output.editor) {
-            var msg = Array.prototype.join.call(arguments, ", ");
-            output.editor.value += msg + "\n";
-            output.editor.selectionStart = output.editor.selectionEnd = output.editor.value.length;
-            output.editor.scrollIntoView(output.editor.frontCursor);
-            output.editor.forceUpdate();
-        }
-    };
-
-    log(fmt("$1+E to show/hide editor", cmdPre));
-    log(fmt("$1+X to execute editor contents", cmdPre));
-
+    
     (function() {
         var xhr = new XMLHttpRequest();
         xhr.open('GET', "/read?file=test.py");
@@ -214,6 +205,19 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         };
         xhr.send();
     })();
+
+    log = function() {
+        if (output.editor) {
+            var msg = Array.prototype.join.call(arguments, ", ");
+            output.editor.value += msg + "\n";
+            output.editor.selectionStart = output.editor.selectionEnd = output.editor.value.length;
+            output.editor.scrollIntoView(output.editor.frontCursor);
+            output.editor.forceUpdate();
+        }
+    };
+
+    log(fmt("$1+E to show/hide editor", cmdPre));
+    log(fmt("$1+X to execute editor contents", cmdPre));
 
     back.generateMipMaps = false;
 

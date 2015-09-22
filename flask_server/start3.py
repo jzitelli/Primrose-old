@@ -1,7 +1,8 @@
 """Flask/Tornado-based server enabling server-side execution of Python code entered in
 Primrose editors.
 
-This script should be executed from the Primrose root directory, i.e. ::
+This script is called start3.py because Python 3 is required.
+It should be executed from the Primrose root directory, i.e. ::
 
     $ python flask_server/start3.py
 
