@@ -168,7 +168,7 @@ var CrapLoader = (function() {
                             }, function(xhr) {
                                 console.log("error loading " + node.userData.heightmap);
                             });
-                        } else {
+                        } else if (node.userData.cannonData) {
                             var body = makeCannon(node, node.userData.cannonData);
                             if (world) {
                                 world.add(body);
