@@ -95,7 +95,8 @@ def main():
     container = WSGIContainer(app)
     server = Application([
         (r'/gfxtablet', GFXTabletHandler),
-        (r'.*', FallbackHandler, dict(fallback=container))])
+        (r'.*', FallbackHandler, dict(fallback=container))],
+        debug=app.debug)
     server.listen(5000)
     _logger.debug("starting IO loop...")
     IOLoop.instance().start()

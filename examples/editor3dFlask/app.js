@@ -128,42 +128,26 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
     var leapInput = new Primrose.Input.LeapMotion("leapInput", []);
     leapInput.start();
 
-    // var socket = io.connect('ws://' + document.domain + ':8888/gfxtablet')
-    // socket.on('connect', function () {
-    //     //socket.emit('client connect', {data: 'connected from Chromium'});
-    // });
-
-    var el = document.createElement('canvas');
-    el.width = 2000;
-    el.height = 1000;
-    var canvasMap = new THREE.Texture(el);
-    var paintableMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, map: canvasMap});
-    var canvasMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(3, 3), paintableMaterial);
-    scene.add(canvasMesh);
-    // textureImg.onload = function () {
-    //     var el = document.createElement('canvas');
-    //     el.width = this.width;
-    //     el.height = this.height;
-    //     var ctx = el.getContext('2d');
-    //     ctx.drawImage(this,0,0);
-    //     var paintableMap = new THREE.Texture( el );
-    //     paintableMap.flipY = false;
-    //     paintableMap.needsUpdate = true;
-    //     paintableMaterial = new THREE.MeshLambertMaterial( { map:paintableMap } );
-    //     canvasMesh.material = paintableMaterial;
-    //     scene.add(canvasMesh);
-    // };
     var socket = new WebSocket('ws://' + document.domain + ':' + location.port + '/gfxtablet');
+    var paintableMaterial;
     socket.onopen = function () {
-        socket.send("opened WebSocket from Chromium");
+        var el = document.createElement('canvas');
+        el.width = 2000;
+        el.height = 1000;
+        var canvasMap = new THREE.Texture(el, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping,
+            THREE.LinearFilter, THREE.LinearFilter);
+        paintableMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, map: canvasMap});
+        var canvasMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(3, 3), paintableMaterial);
+        scene.add(canvasMesh);
+        paintableMaterial.map.needsUpdate = true;
+        paintableMaterial.needsUpdate = true;
     };
     function circle(x, y, r, c, ctx) {
-        var hardness = 0.12;
-        var opacity = Math.max(hardness, .2);
+        var opacity = Math.max(0.7, .2);
         ctx.beginPath();
-        var rad = ctx.createRadialGradient(x, y, 1, x, y, r);
+        var rad = ctx.createRadialGradient(x, y, r/2, x, y, r);
         rad.addColorStop(0, 'rgba('+c+','+opacity+')');
-        rad.addColorStop(hardness, 'rgba('+c+','+opacity+')');
+        rad.addColorStop(0.7, 'rgba('+c+','+opacity+')');
         rad.addColorStop(1, 'rgba('+c+',0)');
         ctx.fillStyle = rad;
         ctx.arc(x, y, r, 0, Math.PI*2, false);
@@ -174,10 +158,9 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         var data = JSON.parse(message.data);
         //var ctx = renderer.getContext("experimental-webgl", {preserveDrawingBuffer: false});
         if (data.p > 0) {
-            //console.log(paintableMaterial);
             var image3 = paintableMaterial.map.image;
             var ctx = image3.getContext('2d');
-            circle(data.x, data.y, data.p, '22,66,44', ctx);
+            circle(data.x*2560, data.y*1600, 50*data.p, '255,0,0', ctx);
             paintableMaterial.map.needsUpdate = true;
             paintableMaterial.needsUpdate = true;
             //console.log(data.x + ' ' + data.y + ' ' + data.p);

@@ -28,8 +28,8 @@ class GFXTabletHandler(WebSocketHandler):
         buf = self._buf
         self.udpsock.recv_into(buf)
         event_type = buf[11]
-        x = (256 * buf[11 + 1] + buf[11 + 2]) / 2.0**16 * width
-        y = (256 * buf[11 + 3] + buf[11 + 4]) / 2.0**16 * height
+        x = (256 * buf[11 + 1] + buf[11 + 2]) / 2.0**16
+        y = (256 * buf[11 + 3] + buf[11 + 4]) / 2.0**16
         p = (256 * buf[11 + 5] + buf[11 + 6]) / 2.0**16
         if event_type == 0:
             self.write_message({'x': x, 'y': y, 'p': p})
