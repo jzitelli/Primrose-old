@@ -3,7 +3,7 @@ Primrose editors.
 
 This script should be executed from the Primrose root directory, i.e. ::
 
-    $ python flask_server/start.py
+    $ python python_server/start.py
 
 The server can then be accessed locally at 127.0.0.1:5000."""
 
@@ -18,15 +18,16 @@ from flask import Flask, render_template, request, jsonify, Markup
 import default_settings
 import three
 
+_logger = logging.getLogger(__name__)
+
+_example = "editor3dPython"
+
 app = Flask(__name__,
     static_folder=os.path.join(os.getcwd()),
-    template_folder=os.path.join(os.getcwd(), 'examples', 'editor3dFlask'),
+    template_folder=os.path.join(os.getcwd(), 'examples', _example),
     static_url_path='')
 
 app.config.from_object(default_settings)
-
-
-_logger = logging.getLogger(__name__)
 
 
 @app.route('/')
@@ -34,7 +35,7 @@ def editor3d():
     """Serves HTML for a Primrose app based on the editor3d example."""
     if app.debug or app.testing:
         subprocess.call("grunt quick", shell=True)
-    with open(os.path.join(os.getcwd(), 'examples', 'editor3dFlask', 'room.json'), 'w') as f:
+    with open(os.path.join(os.getcwd(), 'examples', _example, 'room.json'), 'w') as f:
         f.write(json.dumps(three.scene_gen(), indent=2))
     return render_template('index.html')
 
@@ -75,8 +76,8 @@ def pyexec():
 
 @app.route("/read")
 def read():
-    """Handles requests to read file contents (files are assumed to be in examples/editor3dFlask)"""
-    filename = os.path.join(os.getcwd(), 'examples', 'editor3dFlask', request.args['file'])
+    """Handles requests to read file contents (files are assumed to be in examples/[_example])"""
+    filename = os.path.join(os.getcwd(), 'examples', _example, request.args['file'])
     response = {}
     try:
         with open(filename, 'r') as f:
