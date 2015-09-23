@@ -20,9 +20,12 @@ class GFXTabletHandler(WebSocketHandler):
     udpsock.bind(('0.0.0.0', 40118))
     udpsock.setblocking(False)
     # see http://www.bbarrows.com/blog/2013/01/27/udptornado/
+    def initialize(self):
+        self._buf = bytearray(18*4)
+        # TODO: maybe not robust on all platforms (see http://stackoverflow.com/questions/166506/finding-local-ip-addresses-using-pythons-stdlib)
+        _logger.info("in GFXTablet settings, set the recipient host to %s (this server's local IP address)" % socket.gethostbyname(socket.gethostname()))
     def open(self):
         _logger.debug("WebSocket opened")
-        self._buf = bytearray(18*4)
         self.set_nodelay(True) # maybe better to not do this?
         ioloop = IOLoop.current()
         ioloop.add_handler(self.udpsock.fileno(), self.handle_input, ioloop.READ)
@@ -38,9 +41,9 @@ class GFXTabletHandler(WebSocketHandler):
         buf = self._buf
         nbytes = self.udpsock.recv_into(buf)
         event_type = buf[11]
-        x = (256 * buf[12] + buf[12 + 1]) / 2**15
-        y = (256 * buf[14] + buf[14 + 1]) / 2**15
-        p = (256 * buf[16] + buf[16 + 1]) / 2**15
+        x = (256 * buf[12] + buf[12 + 1]) / 2.0**15
+        y = (256 * buf[14] + buf[14 + 1]) / 2.0**15
+        p = (256 * buf[16] + buf[16 + 1]) / 2.0**15
         if event_type == GFXTabletHandler.TYPE_MOTION:
             self.write_message({'x': x, 'y': y, 'p': p})
         elif event_type == GFXTabletHandler.TYPE_BUTTON:

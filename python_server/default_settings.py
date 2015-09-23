@@ -1,2 +1,4 @@
-DEBUG = True
-TESTING = True
+DEBUG       = True
+TESTING     = True
+GFXTABLET   = True
+WACOMTABLET = True

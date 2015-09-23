@@ -2,11 +2,12 @@
 var log = null;
 
 function readURLParams() {
+    "use strict"
     var params = {};
     location.search.substr(1).split("&").forEach(function(item) {
         var k = item.split("=")[0],
             v = decodeURIComponent(item.split("=")[1]);
-        (k in params) ? params[k].push(v) : params[k] = [v]
+        (k in params) ? params[k].push(v) : params[k] = [v];
     });
     for (var k in params) {
         if (params[k].length == 1) {
@@ -17,6 +18,7 @@ function readURLParams() {
 }
 var URL_PARAMS = readURLParams();
 
+// TODO: let the python server inject the function in served HTML?
 function pythonExec(src, success) {
     "use strict"
     var xhr = new XMLHttpRequest();
@@ -24,7 +26,7 @@ function pythonExec(src, success) {
     data.append("src", src);
     xhr.open("POST", '/pyexec');
     xhr.onload = function() {
-        console.log("python success! python stdout:");
+        console.log("python success! stdout from python:");
         var response = JSON.parse(xhr.responseText);
         console.log(response.stdout);
         if (log) {
@@ -55,7 +57,7 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         lt = 0,
         heading = 0,
         pitch = 0,
-        SPEED = 0.005,
+        SPEED = 0.003,
         inVR = false,
         dragging = false,
         keyState = {},
@@ -124,52 +126,25 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         }
     }, false);
 
-    var leapInput = new Primrose.Input.LeapMotion("leapInput", []);
-    leapInput.start();
+    GFXTablet(scene);
 
-    var socket = new WebSocket('ws://' + document.domain + ':' + location.port + '/gfxtablet');
-    var paintableMaterial;
-    var gfxtabletCanvas;
-    socket.onopen = function () {
-        gfxtabletCanvas = document.createElement('canvas');
-        gfxtabletCanvas.width = 2560;
-        gfxtabletCanvas.height = 1600;
-        var aspect = gfxtabletCanvas.width / gfxtabletCanvas.height;
-        var canvasMap = new THREE.Texture(gfxtabletCanvas, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping,
-            THREE.LinearFilter, THREE.LinearFilter);
-        paintableMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, map: canvasMap});
-        var canvasMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2*aspect, 2), paintableMaterial);
-        scene.add(canvasMesh);
-        paintableMaterial.map.needsUpdate = true;
-        paintableMaterial.needsUpdate = true;
-    };
-    function circle(x, y, r, c, ctx) {
-        var opacity = Math.max(0.7, .2);
-        ctx.beginPath();
-        var rad = ctx.createRadialGradient(x, y, r/2, x, y, r);
-        rad.addColorStop(0, 'rgba('+c+','+opacity+')');
-        rad.addColorStop(0.5, 'rgba('+c+','+opacity+')');
-        rad.addColorStop(1, 'rgba('+c+',0)');
-        ctx.fillStyle = rad;
-        ctx.arc(x, y, r, 0, Math.PI*2, false);
-        ctx.fill();
-        ctx.closePath();
-    }
-    socket.onmessage = function (message) {
-        var data = JSON.parse(message.data);
-        if (data.p > 0) {
-            var image = paintableMaterial.map.image;
-            var ctx = image.getContext('2d');
-            circle(gfxtabletCanvas.width * data.x, 
-                gfxtabletCanvas.height * data.y,
-                50*data.p, '255,0,0', ctx);
-            paintableMaterial.map.needsUpdate = true;
-            paintableMaterial.needsUpdate = true;
-        }
-        // if (data.button !== undefined) {
-        //     console.log(data.x + ' ' + data.y + ' ' + data.p + ' ' + data.button + ' ' + data.button_down);
-        // }
-    };
+    // var leapInput = new Primrose.Input.LeapMotion("leapInput", []);
+    // leapInput.start();
+    // Leap.loop();
+
+  //   Leap.loopController.use('transform', {
+  //   // This matrix flips the x, y, and z axis, scales to meters, and offsets the hands by -8cm.
+  //   vr: 'desktop',
+  //   // This causes the camera's matrix transforms (position, rotation, scale) to be applied to the hands themselves
+  //   // The parent of the bones remain the scene, allowing the data to remain in easy-to-work-with world space.
+  //   // (As the hands will usually interact with multiple objects in the scene.)
+  //   effectiveParent: camera
+  // });
+
+    // Leap.loopController.use('boneHand', {
+    //     scene: scene,
+    //     arm: true
+    // });
 
     var output = makeEditor(scene, pickingScene, "outputBox",
             1, 0.25, 0, -0.59, 6.09, -Math.PI / 4, 0, 0, {
@@ -239,6 +214,12 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
     scene.add(pointer);
     scene.add(subScene);
 
+    // CrapLoader.load("examples/models/ConfigUtilDeskScene.json", function (object) {
+    //     object.position.y -= 0.8;
+    //     object.position.z += 1;
+    //     scene.add(object);
+    // });
+
     window.addEventListener("resize", refreshSize);
     window.addEventListener("keydown", keyDown);
     window.addEventListener("keyup", function(evt) {
@@ -294,7 +275,6 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
 
     function onFullScreen(elem, vrDisplay) {
         requestFullScreen(elem, vrDisplay);
-        history.pushState(null, "Primrose > full screen", "#fullscreen");
     }
 
     ctrls.goRegular.addEventListener("click", function() {
@@ -308,13 +288,14 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         refreshSize();
     });
 
-    window.addEventListener("popstate", function(evt) {
-        if (isFullScreenMode()) {
-            inVR = false;
-            exitFullScreen();
-            evt.preventDefault();
-        }
-    }, true);
+    // window.addEventListener("popstate", function(evt) {
+    //     if (inVR || isFullScreenMode()) {
+    //         inVR = false;
+    //         exitFullScreen();
+    //         evt.preventDefault();
+    //         refreshSize();
+    //     }
+    // }, true);
 
     refreshSize();
 

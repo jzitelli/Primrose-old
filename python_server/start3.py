@@ -25,6 +25,10 @@ from tornado.ioloop import IOLoop
 import default_settings
 import three
 from gfxtablet import GFXTabletHandler
+try:
+    from tablet import TabletHandler
+except ImportError as err:
+    pass
 
 _logger = logging.getLogger(__name__)
 
@@ -95,12 +99,13 @@ def read():
 
 
 def main():
-    container = WSGIContainer(app)
-    server = Application([
-        (r'/gfxtablet', GFXTabletHandler),
-        (r'.*', FallbackHandler, dict(fallback=container))],
-        debug=app.debug)
-    server.listen(5000)
+    handlers = [('/tablet', TabletHandler),
+                ('.*', FallbackHandler, dict(fallback=WSGIContainer(app)))]
+    if default_settings.GFXTABLET:
+        handlers.insert(-1, ('/gfxtablet', GFXTabletHandler))
+
+    tornado_app = Application(handlers, debug=app.debug)
+    tornado_app.listen(5000)
     _logger.debug("starting IO loop...")
     IOLoop.instance().start()
 
