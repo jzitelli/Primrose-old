@@ -1,5 +1,8 @@
 """
-Another implementation / good reference:
+Wintab API reference:
+http://www.wacomeng.com/windows/docs/Wintab_v140.htm
+
+Another implementation:
 https://bitbucket.org/pyglet/pyglet/src/f388bbe83f4e59079be1329eb61761adcc7f646c/pyglet/input/wintab.py?at=default&fileviewer=file-view-default
 """
 
@@ -13,9 +16,11 @@ HCTX = HANDLE
 WTPKT = DWORD
 FIX32 = DWORD
 
+LCNAMELEN = 40
+
 class LOGCONTEXTA(ctypes.Structure):
 	_fields_ = [
-		('lcName', 40*c_char),
+		('lcName', LCNAMELEN*c_char),
 		('lcOptions', UINT),
 		('lcStatus', UINT),
 		('lcLocks', UINT),
@@ -106,9 +111,9 @@ CXO_PEN = 0x0002
 CXO_MESSAGES = 0x0004
 CXO_MARGIN = 0x8000
 
-#lc.lcOptions = (CXO_SYSTEM | CXO_PEN | CXO_MESSAGES)
+lc.lcOptions = CXO_MESSAGES #(CXO_SYSTEM | CXO_PEN | CXO_MESSAGES)
 
-hwnd = 668
+hwnd = 0
 cMaxPkts = 20
 buf = (cMaxPkts*PACKET)()
 hctx = None
@@ -127,7 +132,13 @@ def close():
 
 
 if __name__ == "__main__":
-	while True:
-		n, buf = read()
-		if pkt is not None:
-			print("%d %d %f" % (pkt.pkX, pkt.pkY, pkt.pkNormalPressure / 1023.0))
+	# hctx = open()
+	# print("hctx = %d" % hctx)
+	# try:
+	# 	while True:
+	# 		n, buf = read()
+	# 		for pkt in buf[:n]:
+	# 			print("%d %d %f %d" % (pkt.pkX, pkt.pkY, pkt.pkNormalPressure / 1023.0, pkt.pkButtons))
+	# finally:
+	# 	close()
+	pass

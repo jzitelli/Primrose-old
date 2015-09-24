@@ -126,7 +126,8 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         }
     }, false);
 
-    GFXTablet(scene);
+    // GFXTablet(scene);
+    WinTablet(scene);
 
     // var leapInput = new Primrose.Input.LeapMotion("leapInput", []);
     // leapInput.start();
@@ -344,8 +345,9 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
             keyState[evt.keyCode] = true;
         } else if (lastEditor && !lastEditor.readOnly) {
             lastEditor.keyDown(evt);
+        } else if (evt.keyCode === Primrose.Text.Keys.V) {
+            // toggle VRControls
         }
-
     }
 
     function setPointer(x, y) {
