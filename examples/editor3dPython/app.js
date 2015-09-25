@@ -126,25 +126,26 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         }
     }, false);
 
-    GFXTablet(scene);
+    //GFXTablet(scene);
 
-    // var leapInput = new Primrose.Input.LeapMotion("leapInput", []);
-    // leapInput.start();
-    // Leap.loop();
-
-  //   Leap.loopController.use('transform', {
-  //   // This matrix flips the x, y, and z axis, scales to meters, and offsets the hands by -8cm.
-  //   vr: 'desktop',
-  //   // This causes the camera's matrix transforms (position, rotation, scale) to be applied to the hands themselves
-  //   // The parent of the bones remain the scene, allowing the data to remain in easy-to-work-with world space.
-  //   // (As the hands will usually interact with multiple objects in the scene.)
-  //   effectiveParent: camera
-  // });
-
-    // Leap.loopController.use('boneHand', {
-    //     scene: scene,
-    //     arm: true
-    // });
+    var leapController = new Leap.Controller({frameEventName: 'animationFrame'});
+    leapController.connect();
+    var palm0 = new THREE.Mesh(new THREE.SphereBufferGeometry(0.03));
+    var leapRoot = new THREE.Object3D();
+    leapRoot.position.z += 1;
+    scene.add(leapRoot);
+    leapRoot.add(palm0);
+    var palm1 = new THREE.Mesh(new THREE.SphereBufferGeometry(0.03));
+    leapRoot.add(palm1);
+    var palms = [palm0, palm1];
+    leapController.on('frame', onFrame);
+    function onFrame(frame)
+    {
+        frame.hands.forEach(function (hand, i) {
+            // console.log(i + ' ' + hand.palmPosition);
+            palms[i].position.set(hand.palmPosition[0] / 1000, hand.palmPosition[1] / 1000, hand.palmPosition[2] / 1000);
+        });
+    }
 
     var output = makeEditor(scene, pickingScene, "outputBox",
             1, 0.25, 0, -0.59, 6.09, -Math.PI / 4, 0, 0, {
@@ -197,7 +198,7 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
     back.generateMipMaps = false;
 
     light.position.set(5, 5, 5);
-    position.set(0, 0, 8);
+    position.set(0, 0, 4);
 
     var X_MAX = 12.5,
         X_MIN = -12.5,
@@ -214,11 +215,11 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
     scene.add(pointer);
     scene.add(subScene);
 
-    // CrapLoader.load("examples/models/ConfigUtilDeskScene.json", function (object) {
-    //     object.position.y -= 0.8;
-    //     object.position.z += 1;
-    //     scene.add(object);
-    // });
+    CrapLoader.load("examples/models/ConfigUtilDeskScene.json", function (object) {
+        object.position.y -= 0.8;
+        object.position.z += 1;
+        scene.add(object);
+    });
 
     window.addEventListener("resize", refreshSize);
     window.addEventListener("keydown", keyDown);

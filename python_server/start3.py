@@ -16,7 +16,7 @@ import subprocess
 import json
 import functools
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, Markup
 
 from tornado.wsgi import WSGIContainer
 from tornado.web import Application, FallbackHandler
@@ -25,10 +25,7 @@ from tornado.ioloop import IOLoop
 import default_settings
 import three
 from gfxtablet import GFXTabletHandler
-try:
-    from tablet import TabletHandler
-except ImportError as err:
-    pass
+
 
 _logger = logging.getLogger(__name__)
 
@@ -46,9 +43,7 @@ def editor3d():
     """Serves HTML for a Primrose app based on the editor3d example."""
     if app.debug or app.testing:
         subprocess.call("grunt quick", shell=True)
-    with open(os.path.join(os.getcwd(), 'examples', _example, 'room.json'), 'w') as f:
-        f.write(json.dumps(three.scene_gen(), indent=2))
-    return render_template('index.html')
+    return render_template('index.html', json_config=Markup(r"<script>%s</script>" % json.dumps(three.scene_gen())))
 
 
 @app.route('/pyexec', methods=['POST'])
@@ -99,8 +94,7 @@ def read():
 
 
 def main():
-    handlers = [('/tablet', TabletHandler),
-                ('.*', FallbackHandler, dict(fallback=WSGIContainer(app)))]
+    handlers = [('.*', FallbackHandler, dict(fallback=WSGIContainer(app)))]
     if default_settings.GFXTABLET:
         handlers.insert(-1, ('/gfxtablet', GFXTabletHandler))
 
