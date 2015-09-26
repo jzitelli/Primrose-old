@@ -1,9 +1,9 @@
 """Flask application enabling server-side execution of Python code entered in
 Primrose editors.
 
-This script should be executed from the Primrose root directory, i.e. ::
+This script may be executed from the Primrose root directory, i.e. ::
 
-    $ python python_server/start.py
+    $ python python_server/flask_app.py
 
 The server can then be accessed locally at 127.0.0.1:5000."""
 

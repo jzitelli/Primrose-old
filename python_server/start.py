@@ -14,15 +14,17 @@ from tornado.wsgi import WSGIContainer
 from tornado.web import Application, FallbackHandler
 from tornado.ioloop import IOLoop
 
-from start import app
+from flask_app import app
 import default_settings
 from gfxtablet import GFXTabletHandler
 
 _logger = logging.getLogger(__name__)
 
+
 handlers = [('.*', FallbackHandler, dict(fallback=WSGIContainer(app)))]
 if default_settings.GFXTABLET:
     handlers.insert(-1, ('/gfxtablet', GFXTabletHandler))
+
 
 def main():
     tornado_app = Application(handlers, debug=app.debug)
