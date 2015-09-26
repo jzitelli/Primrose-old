@@ -1,4 +1,4 @@
-"""Flask-based server enabling server-side execution of Python code entered in
+"""Flask application enabling server-side execution of Python code entered in
 Primrose editors.
 
 This script should be executed from the Primrose root directory, i.e. ::
@@ -10,9 +10,13 @@ The server can then be accessed locally at 127.0.0.1:5000."""
 import os
 import sys
 import logging
-import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 import subprocess
 import json
+
 from flask import Flask, render_template, request, jsonify, Markup
 
 import default_settings
@@ -26,18 +30,16 @@ app = Flask(__name__,
     static_folder=os.path.join(os.getcwd()),
     template_folder=os.path.join(os.getcwd(), 'examples', _example),
     static_url_path='')
-
 app.config.from_object(default_settings)
 
 
 @app.route('/')
-def editor3d():
-    """Serves HTML for a Primrose app based on the editor3d example."""
+def home():
+    """Serves HTML for a Primrose app."""
     if app.debug or app.testing:
         subprocess.call("grunt quick", shell=True)
-    with open(os.path.join(os.getcwd(), 'examples', _example, 'room.json'), 'w') as f:
-        f.write(json.dumps(three.scene_gen(), indent=2))
-    return render_template('index.html')
+    return render_template('index.html',
+        json_config=Markup(r"<script>var sceneJSON = %s;</script>" % json.dumps(three.scene_gen())))
 
 
 @app.route('/pyexec', methods=['POST'])
@@ -51,7 +53,7 @@ def pyexec():
     src = request.form['src']
     # see http://stackoverflow.com/q/5136611/1911963 :
     stdout_bak = sys.stdout
-    sys.stdout = StringIO.StringIO()
+    sys.stdout = StringIO()
     execlocals = locals()
     execlocals.pop("stdout_bak")
     execlocals.pop('return_value', None)

@@ -7,11 +7,12 @@
 
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='examples/editor3d/style.css') }}">
 
-    {{ json_config if json_config }}
+    {{ json_config if json_config else "" }}
 
   </head>
 
   <body onload="findVR(PrimroseDemo);">
+
     <div id="outputContainer">
       <canvas id="output"></canvas>
     </div>
@@ -31,12 +32,8 @@
 
       <h2>Instructions:</h2>
       <ul>
-        <li>Use a one-finger drag or mouse to interact with editor.</li>
-        <li>Use a two-finger drag or keyboard (default <kbd>WASD</kbd>) to navigate.</li>
-        <li>Use a three-finger drag or <kbd>SHIFT+mouse</kbd> to look around</li>
         <li>Click on the editor objects start editing.</li>
         <li>Use common keyboard controls to edit the text.</li>
-        <li>Code executes automatically after 500ms.</li>
         <li>Click off from an editor object to exit editing, or hit <kbd><span class="cmdLabel">+E</kbd> to show/hide editor.</li>
         <li><kbd><span class="cmdLabel"></span>+Up-Arrow</kbd> to increase font size.</li>
         <li><kbd><span class="cmdLabel"></span>+Down-Arrow</kbd> to decrease font size.</li>
