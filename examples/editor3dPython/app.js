@@ -1,5 +1,4 @@
-/* global isOSX, Primrose, THREE, isMobile, requestFullScreen, CrapLoader, pyserver */
-var log = null;
+/* global isOSX, Primrose, THREE, isMobile, requestFullScreen, CrapLoader, pyserver, JSON_SCENE */
 
 var URL_PARAMS = (function () {
     "use strict"
@@ -66,6 +65,10 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         qRift = new THREE.Quaternion(),
         position = new THREE.Vector3(),
         vrEffect = new THREE.VREffect(renderer);
+
+    CrapLoader.parse(JSON_SCENE, function (obj) {
+        scene.add(obj);
+    });
 
     var gamepad = new Primrose.Input.Gamepad("gamepad", [{
         name: "strafe",
@@ -157,7 +160,7 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         editor.editor.value = src;
     });
 
-    log = function() {
+    var log = function() {
         if (output.editor) {
             var msg = Array.prototype.join.call(arguments, ", ");
             output.editor.value += msg + "\n";
