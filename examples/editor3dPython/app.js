@@ -312,7 +312,7 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         } else if (mod && evt.keyCode === Primrose.Text.Keys.DOWNARROW) {
             lastEditor.decreaseFontSize();
         } else if (mod && evt.keyCode === Primrose.Text.Keys.X) {
-            pythonExec(editor.editor.value);
+            pyserver.exec(editor.editor.value);
         } else if (!lastEditor || !lastEditor.focused) {
             keyState[evt.keyCode] = true;
         } else if (lastEditor && !lastEditor.readOnly) {
