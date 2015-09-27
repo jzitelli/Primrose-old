@@ -23,18 +23,18 @@ var pyserver = {
         xhr.send(data);
     },
 
-    readFile: function (filename, success) {
+    readFile: function (filename, success, logger) {
         "use strict"
         var xhr = new XMLHttpRequest();
         xhr.open('GET', "/read?file=" + filename);
         xhr.onload = function() {
             var response = JSON.parse(xhr.responseText);
             if (response.text) {
-                editor.editor.value = response.text;
+                success(response.text);
             } else if (response.error) {
                 console.log(response.error);
-                if (log) {
-                    log(response.error);
+                if (logger) {
+                    logger.log(response.error);
                 }
             }
         };

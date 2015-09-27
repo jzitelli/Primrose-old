@@ -210,30 +210,20 @@ class Material(Three):
         self.__dict__.update(kwargs)
     def json(self):
         d = Three.json(self)
-        d['type'] = "Material"
         d.update({k: v for k, v in self.__dict__.items() if k not in d})
         return d
 
 
 class MeshBasicMaterial(Material):
-    def json(self):
-        d = Material.json(self)
-        d["type"] = "MeshBasicMaterial"
-        return d
+    pass
 
 
 class MeshLambertMaterial(Material):
-    def json(self):
-        d = Material.json(self)
-        d["type"] = "MeshLambertMaterial"
-        return d
+    pass
 
 
 class MeshPhongMaterial(Material):
-    def json(self):
-        d = Material.json(self)
-        d["type"] = "MeshPhongMaterial"
-        return d
+    pass
 
 
 class Texture(Three):
@@ -523,68 +513,6 @@ if __name__ == "__main__":
     with open(pathname, 'w') as f:
         f.write(json.dumps(scene, indent=2))
     print("wrote %s" % pathname)
-
-
-
-
-
-
-
-
-# class PlaneGeometry(Three):
-#     def __init__(self, width=1, height=1, widthSegments=1, heightSegments=1, name=None):
-#         Three.__init__(self, name)
-#         self.width = width
-#         self.height = height
-#         self.widthSegments = widthSegments
-#         self.heightSegments = heightSegments
-#     def json(self):
-#         d = Three.json(self)
-#         d.update({"metadata": {"type": "PlaneGeometry",
-#                                "version": 4},
-#                   "width": self.width,
-#                   "height": self.height,
-#                   "widthSegments": self.widthSegments,
-#                   "heightSegments": self.heightSegments})
-#         return d
-
-# class Geometry(Three):
-#     def __init__(self, vertices=None, indices=None, normals=None, uvs=None, name=None):
-#         Three.__init__(self, name)
-#         if vertices:
-#             self.vertices = vertices
-#         if indices:
-#             self.indices = indices
-#         if normals:
-#             self.normals = normals
-#         if uvs:
-#             self.uvs = uvs
-#     def json(self):
-#         d = Three.json(self)
-#         d.update({"metadata": {"type": "Geometry",
-#                                "version": 4},
-#                   "type": "Geometry"})
-#         d.update({k: v for k, v in self.__dict__.items()
-#                   if k in ('vertices', 'normals', 'uvs', 'indices')})
-#         return d
-
-# class CylinderGeometry(Three):
-#     def __init__(self, radiusTop=1, radiusBottom=1, height=1, radiusSegments=8, heightSegments=1, openEnded=False, thetaStart=0, thetaLength=2*np.pi, name=None):
-#         Three.__init__(self, name)
-#         self.radiusTop = radiusTop
-#         self.radiusBottom = radiusBottom
-#         self.height = height
-#         self.radiusSegments = radiusSegments
-#         self.heightSegments = heightSegments
-#         self.openEnded = openEnded
-#         self.thetaStart = thetaStart
-#         self.thetaLength = thetaLength
-#     def json(self):
-#         d = Three.json(self)
-#         d.update({"type": "CylinderGeometry"})
-#         d.update({k: v for k, v in self.__dict__.iteritems()
-#                   if k in ("radiusTop", "radiusBottom", "height", "radiusSegments", "heightSegments", "openEnded", "thetaStart", "thetaLength")})
-#         return d
 
 
 
