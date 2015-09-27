@@ -1,5 +1,5 @@
 /*
-  Primrose v0.12.3 2015-09-16
+  Primrose v0.12.3 2015-09-27
   
   Copyright (C) 2015 Sean T. McBeth <sean@seanmcbeth.com> (https://www.seanmcbeth.com)
   https://www.primroseeditor.com
@@ -7723,15 +7723,11 @@ Primrose.Text.Controls.TextBox = ( function ( ) {
     //
     // different browsers have different sets of keycodes for less-frequently
     // used keys like.
-    browser = isChrome 
-    ? "CHROMIUM" 
-    : ( isFirefox 
-        ? "FIREFOX" 
-        : ( isIE 
-            ? "IE"
-            : ( isOpera 
-                ? "OPERA" 
-                : ( isSafari ? "SAFARI" : "UNKNOWN" ) ) ) );
+    browser = isChrome ? "CHROMIUM" : ( 
+      isFirefox ? "FIREFOX" : (
+        isIE ? "IE" : (
+          isOpera ? "OPERA" : (
+            isSafari ? "SAFARI" : "UNKNOWN" ) ) ) );
 
     //
     // the `surrogate` textarea makes the soft-keyboard appear on mobile devices.
