@@ -35,7 +35,6 @@ class GFXTabletHandler(WebSocketHandler):
         _logger.debug("WebSocket closed")
         ioloop = IOLoop.current()
         ioloop.remove_handler(self.udpsock.fileno())
-        #self.udpsock.close()
     def handle_input(self, fd, events):
         # TODO: android app sends width, height, use it
         buf = self._buf

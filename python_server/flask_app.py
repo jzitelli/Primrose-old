@@ -39,7 +39,11 @@ def home():
     if app.debug or app.testing:
         subprocess.call("grunt quick", shell=True)
     return render_template('index.html',
-        json_config=Markup(r"<script>var sceneJSON = %s;</script>" % json.dumps(three.scene_gen())))
+        json_config=Markup(r"""<script>
+var JSON_CONFIG = %s;
+var JSON_SCENE = %s;
+</script>""" % (json.dumps({k: v for k, v in app.config.items() if k in ['DEBUG', 'TESTING', 'WEBSOCKETS']}),
+                json.dumps(three.scene_gen()))))
 
 
 @app.route('/pyexec', methods=['POST'])

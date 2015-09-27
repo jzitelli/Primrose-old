@@ -6,12 +6,12 @@ var fs = require( "fs" ),
       "lib/analytics.js",
       "lib/ga.js",
       "lib/mailchimp.js",
+      "lib/VREffect.js",
+      "lib/ColladaLoader.js",
       "node_modules/cannon/build/cannon.js",
       "node_modules/leapjs/leap-0.6.4.js",
       "node_modules/socket.io-client/socket.io.js",
-      "node_modules/three.js/build/three.js",
-      "node_modules/three.js/examples/js/effects/VREffect.js",
-      "node_modules/three.js/examples/js/loaders/ColladaLoader.js"
+      "node_modules/three.js/build/three.js"
     ],
     uglifyFiles = files.map( function ( s ) {
       return{

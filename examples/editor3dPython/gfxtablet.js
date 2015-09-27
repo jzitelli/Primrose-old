@@ -1,5 +1,9 @@
+/* global pyserver */
 function GFXTablet(scene) {
     "use strict"
+    if (pyserver.config.WEBSOCKETS.indexOf('/gfxtablet') == -1) {
+        return;
+    }
     var socket = new WebSocket('ws://' + document.domain + ':' + location.port + '/gfxtablet');
     var paintableMaterial
     var gfxtabletCanvas;
