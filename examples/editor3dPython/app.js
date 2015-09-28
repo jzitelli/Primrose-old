@@ -1,20 +1,4 @@
-/* global isOSX, Primrose, THREE, isMobile, requestFullScreen, CrapLoader, pyserver, JSON_SCENE */
-
-var URL_PARAMS = (function () {
-    "use strict"
-    var params = {};
-    location.search.substr(1).split("&").forEach(function(item) {
-        var k = item.split("=")[0],
-            v = decodeURIComponent(item.split("=")[1]);
-        (k in params) ? params[k].push(v) : params[k] = [v];
-    });
-    for (var k in params) {
-        if (params[k].length == 1) {
-            params[k] = params[k][0];
-        }
-    }
-    return params;
-})();
+/* global isOSX, Primrose, THREE, isMobile, requestFullScreen, CrapLoader, pyserver, JSON_SCENE, URL_PARAMS */
 
 function PrimroseDemo(vrDisplay, vrSensor, err) {
     "use strict";
@@ -41,7 +25,6 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         modB = isOSX ? "altKey" : "shiftKey",
         cmdPre = isOSX ? "CMD+OPT" : "CTRL+SHIFT",
         scene = new THREE.Scene(),
-        subScene = new THREE.Object3D(),
         pickingScene = new THREE.Scene(),
         ctrls = findEverything(),
         camera = new THREE.PerspectiveCamera(50, ctrls.output.width /
@@ -65,10 +48,6 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         qRift = new THREE.Quaternion(),
         position = new THREE.Vector3(),
         vrEffect = new THREE.VREffect(renderer);
-
-    CrapLoader.parse(JSON_SCENE, function (obj) {
-        scene.add(obj);
-    });
 
     var gamepad = new Primrose.Input.Gamepad("gamepad", [{
         name: "strafe",
@@ -95,6 +74,12 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
             gamepad.setGamepad(id);
         }
     }, false);
+
+
+    CrapLoader.parse(JSON_SCENE, function (obj) {
+        scene.add(obj);
+    });
+
 
     (function () {
         var leapController = new Leap.Controller({frameEventName: 'animationFrame'});
@@ -189,7 +174,6 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
     scene.add(sky);
     scene.add(light);
     scene.add(pointer);
-    scene.add(subScene);
 
     CrapLoader.load("examples/models/ConfigUtilDeskScene.json", function (object) {
         object.position.y -= 0.8;

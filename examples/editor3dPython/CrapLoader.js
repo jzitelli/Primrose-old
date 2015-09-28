@@ -12,11 +12,13 @@ var CrapLoader = ( function () {
 
     function load(url, success, onProgress, onError) {
 
-        if (url.endsWith(".dae")) {
-            colladaLoader.load(url, onLoad, onProgress, onError);
-        } else
         if (url.endsWith(".json")) {
             objectLoader.load(url, onLoad, onProgress, onError);
+        } else
+        if (url.endsWith(".dae")) {
+            colladaLoader.load(url, function (loaded) {
+                onLoad(loaded.scene);
+            }, onProgress, onError);
         }
 
         function onLoad(obj) {
@@ -27,7 +29,6 @@ var CrapLoader = ( function () {
                 }
             });
             loadHeightfields(obj);
-            CANNONize(obj);
             if (success) {
                 success(obj);
             }
@@ -37,7 +38,7 @@ var CrapLoader = ( function () {
 
     function parse(json, success) {
 
-        objectLoader.parse(json, function (obj) {
+        return objectLoader.parse(json, function (obj) {
             obj.traverse( function (node) {
                 if (node instanceof THREE.Mesh) {
                     node.geometry.computeBoundingSphere();
@@ -45,7 +46,6 @@ var CrapLoader = ( function () {
                 }
             });
             loadHeightfields(obj);
-            CANNONize(obj);
             if (success) {
                 success(obj);
             }
@@ -101,10 +101,13 @@ var CrapLoader = ( function () {
         });
     }
 
-    function CANNONize(obj) {
+    function CANNONize(obj, world) {
         obj.traverse(function(node) {
             if (node.userData && node.userData.cannonData) {
-                makeCANNON(node, node.userData.cannonData);
+                var body = makeCANNON(node, node.userData.cannonData);
+                if (world) {
+                    world.add(body);
+                }
             }
         });
 
@@ -193,7 +196,8 @@ var CrapLoader = ( function () {
 
     return {
         load: load,
-        parse: parse
+        parse: parse,
+        CANNONize: CANNONize
     };
 
 } )();
