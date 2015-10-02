@@ -20,7 +20,7 @@ import json
 from flask import Flask, render_template, request, jsonify, Markup
 
 import default_settings
-import three
+import scenes
 
 _logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ def home():
 var JSON_CONFIG = %s;
 var JSON_SCENE = %s;
 </script>""" % (json.dumps({k: v for k, v in app.config.items() if k in ['DEBUG', 'TESTING', 'WEBSOCKETS']}),
-                json.dumps(three.scene_gen()))))
+                json.dumps(scenes.scene_gen(), indent=2))))
 
 
 @app.route('/pyexec', methods=['POST'])

@@ -75,23 +75,21 @@ class Object3D(Three):
             else:
                 c.find_materials(materials)
         return materials
-    def find_textures(self, textures=None):
-        if textures is None:
-            textures = {}
-        for c in self.children:
-            if hasattr(c, 'texture'):
-                textures[c.texture.uuid] = c.texture
-            else:
-                c.find_textures(textures)
+    def find_textures(self):
+        textures = {}
+        materials = self.find_materials()
+        for mat in materials.values():
+            if hasattr(mat, 'map'):
+                textures[mat.map.uuid] = mat.map
+            if hasattr(mat, 'bumpMap'):
+                textures[mat.bumpMap.uuid] = mat.bumpMap
         return textures
-    def find_images(self, images=None):
-        if images is None:
-            images = {}
-        for c in self.children:
-            if hasattr(c, 'image'):
-                images[c.image.uuid] = c.image
-            else:
-                c.find_images(images)
+    def find_images(self):
+        images = {}
+        textures = self.find_textures()
+        for tex in textures.values():
+            if hasattr(tex, 'image'):
+                images[tex.image.uuid] = tex.image
         return images
     def json(self):
         S = np.diag(list(self.scale) + [1])
@@ -210,6 +208,12 @@ class Material(Three):
         self.__dict__.update(kwargs)
     def json(self):
         d = Three.json(self)
+        for k in ['map', 'alphaMap', 'bumpMap']:
+            if k in self.__dict__:
+                try:
+                    d[k] = unicode(self.__dict__[k].uuid)
+                except NameError:
+                    d[k] = str(self.__dict__[k].uuid)
         d.update({k: v for k, v in self.__dict__.items() if k not in d})
         return d
 
@@ -227,21 +231,23 @@ class MeshPhongMaterial(Material):
 
 
 class Texture(Three):
-    def __init__(self, minFilter=LinearMipMapLinearFilter, magFilter=LinearFilter, mapping=UVMapping, anisotropy=1, image=None, name=None):
+    def __init__(self, name=None, minFilter=LinearMipMapLinearFilter, magFilter=LinearFilter, mapping=UVMapping, anisotropy=1, image=None, wrap=None, repeat=None):
         Three.__init__(self, name)
         self.minFilter = minFilter
         self.magFilter = magFilter
         self.mapping = mapping
         self.anisotropy = anisotropy
         self.image = image
+        self.repeat = repeat
+        self.wrap = wrap
     def json(self):
         d = Three.json(self)
-        d.update({k: v for k, v in self.__dict__.items() if k in ('minFilter', 'magFilter', 'mapping', 'anisotropy')})
         if self.image:
             try:
                 d['image'] = unicode(self.image.uuid)
             except NameError:
                 d['image'] = str(self.image.uuid)
+        d.update({k: v for k, v in self.__dict__.items() if v is not None and k not in d})
         return d
 
 
@@ -400,111 +406,3 @@ class SphereBufferGeometry(Three):
         d = Three.json(self)
         d.update({k: v for k, v in self.__dict__.items() if k not in d and v is not None})
         return d
-
-
-def scene_gen(length=20, width=20, height=20, **kwargs):
-    L, W, H = length, width, height
-    images = []
-    textures = []
-    materials = [MeshPhongMaterial(side=FrontSide, shading=FlatShading, color=color) for color in [0xaaffff,
-        0xffffaa, 0xffaaff, 0xffaaaa, 0xaaffaa, 0xaaaaff]]
-    geometries = []
-    
-    scene = Scene()
-    scene.add(AmbientLight(color=0x151515))
-
-    pointLight = PointLight(color=0x777777, intensity=0.6, distance=40,
-        position=[0,2.5,-4])
-    scene.add(pointLight);
-    
-    pointLight = PointLight(color=0x880000, intensity=0.6, distance=30,
-        position=[0.45 * L, 0, -0.4 * W])
-    scene.add(pointLight)
-
-    pointLight = PointLight(color=0x008800, intensity=0.6, distance=30,
-        position=[-0.45 * L, 0, -0.4 * W])
-    scene.add(pointLight)
-
-    geometries.append(PlaneBufferGeometry(width=20, height=20, widthSegments=127, heightSegments=127))
-    materials.append(MeshPhongMaterial(side=DoubleSide, color=0xffffff, shading=SmoothShading))
-    mesh = Mesh(name="heightfield", geometry=geometries[-1], material=materials[-1],
-        position=[0,-5,0], rotation=[-np.pi/2, 0, 0],
-        receiveShadow=True,
-        userData={'cannonData': {
-            'mass': 0.0,
-            'shapes': ['Heightfield']
-        }, 'heightmap': 'images/terrain128.png'})
-    scene.add(mesh)
-
-    square = RectangleBufferGeometry(vertices=[[-0.5,0,-0.5], [-0.5,0,0.5], [0.5,0,0.5], [0.5,0,-0.5]],
-        uvs=[(0,1), (0,0), (1,0), (1,1)])
-    geometries.append(square);
-    cannonData = {'mass': 0, 'shapes': ['Plane']}
-
-    floor = Mesh(name="floor", geometry=square, material=materials[0],
-        receiveShadow=True,
-        position=[0,-H/2,0],
-        scale=[L,1,W],
-        userData={'cannonData': cannonData})
-    scene.add(floor)
-
-    ceiling = Mesh(name="ceiling", geometry=square, material=materials[1],
-        receiveShadow=True,
-        position=[0, H/2, 0],
-        rotation=[np.pi, 0, 0],
-        scale=[L,1,W],
-        userData={'cannonData': cannonData})
-    scene.add(ceiling)
-
-    front = Mesh(name="front", geometry=square, material=materials[2],
-        receiveShadow=True,
-        position=[0, 0, W/2],
-        rotation=[np.pi/2, np.pi, 0],
-        scale=[L,1,H],
-        userData={'cannonData': cannonData})
-    scene.add(front)
-    
-    back = Mesh(name="back", geometry=square, material=materials[4],
-        receiveShadow=True,
-        position=[0, 0, -W/2],
-        rotation=[np.pi/2, 0, 0],
-        scale=[L,1,H],
-        userData={'cannonData': cannonData})
-    scene.add(back)
-
-    left = Mesh(name="left", geometry=square, material=materials[3],
-        receiveShadow=True,
-        position=[-L/2, 0, 0],
-        rotation=[np.pi/2, np.pi/2, 0],
-        scale=[W,1,H],
-        userData={'cannonData': cannonData})
-    scene.add(left)
-
-    right = Mesh(name="right", geometry=square, material=materials[5],
-        receiveShadow=True,
-        position=[L/2, 0, 0],
-        rotation=[np.pi/2, -np.pi/2, 0],
-        scale=[W,1,H],
-        userData={'cannonData': cannonData})
-    scene.add(right)
-
-    return scene.export()
-
-
-if __name__ == "__main__":
-    filename = "untitled.json"
-    if len(sys.argv) == 2:
-        filename = sys.argv[1]
-    scene = scene_gen(length=50, width=50, height=25)
-    print(json.loads(json.dumps(scene['object'], indent=2)))
-    pathname = os.path.join(os.getcwd(), "static", "models", filename)
-    if len(sys.argv) == 2:
-        inc = 0
-        while (os.path.exists(pathname)):
-            pathname = os.path.join(os.getcwd(), "static", "models", "%s_%d%s" % (os.path.splitext(filename)[0],
-                inc,
-                os.path.splitext(filename)[1]))
-            inc += 1
-    with open(pathname, 'w') as f:
-        f.write(json.dumps(scene, indent=2))
-    print("wrote %s" % pathname)
