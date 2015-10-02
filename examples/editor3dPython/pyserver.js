@@ -25,7 +25,7 @@ var pyserver = {
     config: JSON_CONFIG,
 
     exec: function (src, success, logger) {
-        "use strict"
+        "use strict";
         var xhr = new XMLHttpRequest();
         var data = new FormData();
         data.append("src", src);
@@ -45,7 +45,7 @@ var pyserver = {
     },
 
     readFile: function (filename, success, logger) {
-        "use strict"
+        "use strict";
         var xhr = new XMLHttpRequest();
         xhr.open('GET', "/read?file=" + filename);
         xhr.onload = function() {

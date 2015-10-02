@@ -335,11 +335,6 @@ class DodecahedronGeometry(Geometry):
         return d
 
 
-class TriangleBufferGeometry(BufferGeometry):
-    def __init__(self, vertices, **kwargs):
-        BufferGeometry.__init__(self, vertices=vertices, indices=(0,1,2), **kwargs)
-
-
 def _tri_faces(rect_face):
     "Return indices for two triangles comprising the rectangle"
     return [[rect_face[0], rect_face[1], rect_face[2]], [rect_face[0], rect_face[2], rect_face[3]]]
@@ -493,7 +488,7 @@ def scene_gen(length=20, width=20, height=20, **kwargs):
         userData={'cannonData': cannonData})
     scene.add(right)
 
-    return scene.export() #, geometries=geometries, materials=materials, textures=textures, images=images)
+    return scene.export()
 
 
 if __name__ == "__main__":
@@ -513,48 +508,3 @@ if __name__ == "__main__":
     with open(pathname, 'w') as f:
         f.write(json.dumps(scene, indent=2))
     print("wrote %s" % pathname)
-
-
-
-
-    # box = Box(vertices=np.array([[0,0,0], [1,0,0], [1,0,1], [0,0,1], [0,1,0], [1,1,0], [1,1,1], [0,1,1]]) - 0.5 * np.ones(3),
-    #     inward_normals=False)
-    # geometries.append(box)
-    # materials.append(MeshPhongMaterial(side=FrontSide, color=0x00ff00, shading=FlatShading))
-    # mesh = Mesh(name="box", geometry=box, material=materials[-1], position=[0,0,-3],
-    #     userData={'cannonData': {
-    #         'mass': 0.5,
-    #         'shapes': ['Box']
-    #     }})
-    # scene.add(mesh)
-
-
-    # tetra = Tetrahedron(vertices=np.array([[0,0,0], [1,0,0], [1,0,1], [0,1,0]]))
-    # geometries.append(tetra)
-    # materials.append(MeshPhongMaterial(side=FrontSide, color=0x0000ff, shading=FlatShading))
-    # mesh = Mesh(name="tetra", geometry=tetra, material=materials[-1], position=[3,0,-3],
-    #     castShadow=True,
-    #     userData={'cannonData': {
-    #         'mass': 0.5,
-    #         'shapes': ['ConvexPolyhedron']
-    #     }})
-    # scene.add(mesh)
-
-
-    # geometries.append(SphereBufferGeometry(widthSegments=16, heightSegments=8))
-    # mesh = Mesh(name="sphere", geometry=geometries[-1], material=materials[-1], position=[-3,3,-3],
-    #     userData={'cannonData': {
-    #         'mass': 0.5,
-    #         'shapes': ['Sphere']
-    #     }})
-    # scene.add(mesh)
-
-
-    # geometries.append(Cylinder(radiusTop=0.25, radiusBottom=0.25, height=1, radialSegments=8))
-    # mesh = Mesh(name="cylinder", geometry=geometries[-1], material=materials[-1], position=[-3,3,-3],
-    #     castShadow=True,
-    #     userData={'cannonData': {
-    #         'mass': 0.5,
-    #         'shapes': ['Cylinder']
-    #     }})
-    # scene.add(mesh)

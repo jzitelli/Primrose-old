@@ -106,12 +106,15 @@ var CrapLoader = ( function () {
             if (node.userData && node.userData.cannonData) {
                 var body = makeCANNON(node, node.userData.cannonData);
                 if (world) {
-                    world.add(body);
+                    world.addBody(body);
                 }
             }
         });
 
         function makeCANNON(node, cannonData) {
+            if (node.physics) {
+                return node.physics;
+            }
             var body = new CANNON.Body({
                 mass: cannonData.mass,
                 position: node.position,
@@ -201,14 +204,3 @@ var CrapLoader = ( function () {
     };
 
 } )();
-
-// var exporter = new THREE.OBJExporter();
-// var objdata = new FormData();
-// objdata.append('filename', url.slice(0, url.lastIndexOf('.')+1) + "obj");
-// objdata.append('text', exporter.parse(object));
-// var xhr = new XMLHttpRequest();
-// xhr.open("POST", "/write");
-// xhr.onload = function () {
-//     console.log("exported " + url + " to OBJ");
-// };
-// xhr.send(objdata);

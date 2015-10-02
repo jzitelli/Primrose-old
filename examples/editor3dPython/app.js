@@ -102,26 +102,6 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
 
     GFXTablet(scene);
 
-    // if (liveCodeModel) {
-    //     application.log("setting up live coding model...");
-    //     function setupLiveCode() {
-    //         application.liveCodeScene = new THREE.Object3D();
-    //         application.liveCodeScene.visible = false;
-    //         application.scene.add(application.liveCodeScene);
-    //         loadModel(liveCodeModel, 0.12, function(loaded) {
-    //             application.log("...loaded live coding model " + liveCodeModel);
-    //             application.liveCodeScene.add(loaded);
-    //             loaded.position.y -= 0.6;
-    //             loaded.position.z -= 0.5;
-    //         });
-    //         // application.liveCodeMode = true;
-    //         // application.liveCodeScene.visible = true;
-    //         //application.newEditor({x: -4, y: 1.5, z: -7, parent: avatar, filename: "js/webvr_controls.js"});
-    //         //application.newEditor({x: 8, y: 1.5, z: -7, parent: avatar, text: application.pressStart.toString()});
-    //     }
-    //     setupLiveCode();
-    // }
-
     var output = makeEditor(scene, pickingScene, "outputBox",
             1, 0.25, 0, -0.59, 6.09, -Math.PI / 4, 0, 0, {
                 readOnly: true,
