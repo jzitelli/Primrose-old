@@ -1,38 +1,30 @@
-"""Flask/Tornado-based server enabling server-side execution of Python code entered in
-Primrose editors.  Also communicates Android tablet input data to the client via WebSocket.
+"""Flask application enabling server-side execution of Python code entered in
+Primrose editors.
 
-This script is called start3.py because Python 3 is required.
-It should be executed from the Primrose root directory, i.e. ::
+This script may be executed from the Primrose root directory, i.e. ::
 
-    $ python python_server/start3.py
+    $ python python_server/flask_app.py
 
 The server can then be accessed locally at 127.0.0.1:5000."""
 
 import os
 import sys
 import logging
-import io
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 import subprocess
 import json
-import functools
 
-from flask import Flask, render_template, request, jsonify
-
-from tornado.wsgi import WSGIContainer
-from tornado.web import Application, FallbackHandler
-from tornado.ioloop import IOLoop
+from flask import Flask, render_template, request, jsonify, Markup
 
 import default_settings
 import three
-from gfxtablet import GFXTabletHandler
-try:
-    from tablet import TabletHandler
-except ImportError as err:
-    pass
 
 _logger = logging.getLogger(__name__)
 
-_example = 'editor3dPython'
+_example = "editor3dPython"
 
 app = Flask(__name__,
     static_folder=os.path.join(os.getcwd()),
@@ -42,13 +34,16 @@ app.config.from_object(default_settings)
 
 
 @app.route('/')
-def editor3d():
-    """Serves HTML for a Primrose app based on the editor3d example."""
+def home():
+    """Serves HTML for a Primrose app."""
     if app.debug or app.testing:
         subprocess.call("grunt quick", shell=True)
-    with open(os.path.join(os.getcwd(), 'examples', _example, 'room.json'), 'w') as f:
-        f.write(json.dumps(three.scene_gen(), indent=2))
-    return render_template('index.html')
+    return render_template('index.html',
+        json_config=Markup(r"""<script>
+var JSON_CONFIG = %s;
+var JSON_SCENE = %s;
+</script>""" % (json.dumps({k: v for k, v in app.config.items() if k in ['DEBUG', 'TESTING', 'WEBSOCKETS']}),
+                json.dumps(three.scene_gen()))))
 
 
 @app.route('/pyexec', methods=['POST'])
@@ -62,7 +57,7 @@ def pyexec():
     src = request.form['src']
     # see http://stackoverflow.com/q/5136611/1911963 :
     stdout_bak = sys.stdout
-    sys.stdout = io.StringIO()
+    sys.stdout = StringIO()
     execlocals = locals()
     execlocals.pop("stdout_bak")
     execlocals.pop('return_value', None)
@@ -99,15 +94,7 @@ def read():
 
 
 def main():
-    handlers = [('/tablet', TabletHandler),
-                ('.*', FallbackHandler, dict(fallback=WSGIContainer(app)))]
-    if default_settings.GFXTABLET:
-        handlers.insert(-1, ('/gfxtablet', GFXTabletHandler))
-
-    tornado_app = Application(handlers, debug=app.debug)
-    tornado_app.listen(5000)
-    _logger.debug("starting IO loop...")
-    IOLoop.instance().start()
+    app.run(host='0.0.0.0')
 
 
 if __name__ == "__main__":

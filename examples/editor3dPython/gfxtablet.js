@@ -1,5 +1,9 @@
+/* global pyserver */
 function GFXTablet(scene) {
     "use strict"
+    if (pyserver.config.WEBSOCKETS.indexOf('/gfxtablet') == -1) {
+        return;
+    }
     var socket = new WebSocket('ws://' + document.domain + ':' + location.port + '/gfxtablet');
     var paintableMaterial
     var gfxtabletCanvas;
@@ -29,6 +33,9 @@ function GFXTablet(scene) {
         ctx.fill();
         ctx.closePath();
     }
+    socket.onerror = function (error) {
+        console.log("could not connect to GfxTablet WebSocket");
+    };
     socket.onmessage = function (message) {
         var data = JSON.parse(message.data);
         if (data.p > 0) {

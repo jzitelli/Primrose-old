@@ -1,43 +1,4 @@
-/* global isOSX, Primrose, THREE, isMobile, requestFullScreen, CrapLoader */
-var log = null;
-
-function readURLParams() {
-    "use strict"
-    var params = {};
-    location.search.substr(1).split("&").forEach(function(item) {
-        var k = item.split("=")[0],
-            v = decodeURIComponent(item.split("=")[1]);
-        (k in params) ? params[k].push(v) : params[k] = [v];
-    });
-    for (var k in params) {
-        if (params[k].length == 1) {
-            params[k] = params[k][0];
-        }
-    }
-    return params;
-}
-var URL_PARAMS = readURLParams();
-
-// TODO: let the python server inject the function in served HTML?
-function pythonExec(src, success) {
-    "use strict"
-    var xhr = new XMLHttpRequest();
-    var data = new FormData();
-    data.append("src", src);
-    xhr.open("POST", '/pyexec');
-    xhr.onload = function() {
-        console.log("python success! stdout from python:");
-        var response = JSON.parse(xhr.responseText);
-        console.log(response.stdout);
-        if (log) {
-            log(response.stdout);
-        }
-        if (success) {
-            success(response.return_value);
-        }
-    };
-    xhr.send(data);
-}
+/* global isOSX, Primrose, THREE, isMobile, requestFullScreen, CrapLoader, pyserver, JSON_SCENE, URL_PARAMS */
 
 function PrimroseDemo(vrDisplay, vrSensor, err) {
     "use strict";
@@ -53,7 +14,6 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         lastPointerY,
         currentEditor,
         lastEditor,
-        lastScript,
         lt = 0,
         heading = 0,
         pitch = 0,
@@ -65,21 +25,10 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         modB = isOSX ? "altKey" : "shiftKey",
         cmdPre = isOSX ? "CMD+OPT" : "CTRL+SHIFT",
         scene = new THREE.Scene(),
-        subScene = new THREE.Object3D(),
         pickingScene = new THREE.Scene(),
         ctrls = findEverything(),
         camera = new THREE.PerspectiveCamera(50, ctrls.output.width /
             ctrls.output.height, 0.1, 1000),
-        back = new THREE.WebGLRenderTarget(ctrls.output.width,
-            ctrls.output.height, {
-                wrapS: THREE.ClampToEdgeWrapping,
-                wrapT: THREE.ClampToEdgeWrapping,
-                magFilter: THREE.LinearFilter,
-                minFilter: THREE.LinearFilter,
-                format: THREE.RGBAFormat,
-                type: THREE.UnsignedByteType,
-                stencilBuffer: false
-            }),
         mouse = new THREE.Vector3(0, 0, 0),
         raycaster = new THREE.Raycaster(new THREE.Vector3(),
             new THREE.Vector3(), 0, 50),
@@ -126,26 +75,52 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         }
     }, false);
 
-    // GFXTablet(scene);
-    WinTablet(scene);
+    CrapLoader.parse(JSON_SCENE, function (obj) {
+        scene.add(obj);
+    });
 
-    // var leapInput = new Primrose.Input.LeapMotion("leapInput", []);
-    // leapInput.start();
-    // Leap.loop();
 
-  //   Leap.loopController.use('transform', {
-  //   // This matrix flips the x, y, and z axis, scales to meters, and offsets the hands by -8cm.
-  //   vr: 'desktop',
-  //   // This causes the camera's matrix transforms (position, rotation, scale) to be applied to the hands themselves
-  //   // The parent of the bones remain the scene, allowing the data to remain in easy-to-work-with world space.
-  //   // (As the hands will usually interact with multiple objects in the scene.)
-  //   effectiveParent: camera
-  // });
+    (function () {
+        var leapController = new Leap.Controller({frameEventName: 'animationFrame'});
+        leapController.connect();
+        var palm0 = new THREE.Mesh(new THREE.SphereBufferGeometry(0.03));
+        var leapRoot = new THREE.Object3D();
+        leapRoot.position.z += 1;
+        scene.add(leapRoot);
+        leapRoot.add(palm0);
+        var palm1 = new THREE.Mesh(new THREE.SphereBufferGeometry(0.03));
+        leapRoot.add(palm1);
+        var palms = [palm0, palm1];
+        leapController.on('frame', onFrame);
+        function onFrame(frame)
+        {
+            frame.hands.forEach(function (hand, i) {
+                palms[i].position.set(hand.palmPosition[0] / 1000, hand.palmPosition[1] / 1000, hand.palmPosition[2] / 1000);
+            });
+        }
+    })();
 
-    // Leap.loopController.use('boneHand', {
-    //     scene: scene,
-    //     arm: true
-    // });
+    GFXTablet(scene);
+
+    // if (liveCodeModel) {
+    //     application.log("setting up live coding model...");
+    //     function setupLiveCode() {
+    //         application.liveCodeScene = new THREE.Object3D();
+    //         application.liveCodeScene.visible = false;
+    //         application.scene.add(application.liveCodeScene);
+    //         loadModel(liveCodeModel, 0.12, function(loaded) {
+    //             application.log("...loaded live coding model " + liveCodeModel);
+    //             application.liveCodeScene.add(loaded);
+    //             loaded.position.y -= 0.6;
+    //             loaded.position.z -= 0.5;
+    //         });
+    //         // application.liveCodeMode = true;
+    //         // application.liveCodeScene.visible = true;
+    //         //application.newEditor({x: -4, y: 1.5, z: -7, parent: avatar, filename: "js/webvr_controls.js"});
+    //         //application.newEditor({x: 8, y: 1.5, z: -7, parent: avatar, text: application.pressStart.toString()});
+    //     }
+    //     setupLiveCode();
+    // }
 
     var output = makeEditor(scene, pickingScene, "outputBox",
             1, 0.25, 0, -0.59, 6.09, -Math.PI / 4, 0, 0, {
@@ -165,24 +140,11 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
                 file: 'print("Hello world!")'
             });
     
-    (function() {
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', "/read?file=test.py");
-        xhr.onload = function() {
-            var response = JSON.parse(xhr.responseText);
-            if (response.text) {
-                editor.editor.value = response.text;
-            } else if (response.error) {
-                console.log(response.error);
-                if (log) {
-                    log(response.error);
-                }
-            }
-        };
-        xhr.send();
-    })();
+    pyserver.readFile("test.py", function (src) {
+        editor.editor.value = src;
+    });
 
-    log = function() {
+    var log = function() {
         if (output.editor) {
             var msg = Array.prototype.join.call(arguments, ", ");
             output.editor.value += msg + "\n";
@@ -195,10 +157,8 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
     log(fmt("$1+E to show/hide editor", cmdPre));
     log(fmt("$1+X to execute editor contents", cmdPre));
 
-    back.generateMipMaps = false;
-
     light.position.set(5, 5, 5);
-    position.set(0, 0, 8);
+    position.set(0, 0, 4);
 
     var X_MAX = 12.5,
         X_MIN = -12.5,
@@ -213,13 +173,12 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
     scene.add(sky);
     scene.add(light);
     scene.add(pointer);
-    scene.add(subScene);
 
-    // CrapLoader.load("examples/models/ConfigUtilDeskScene.json", function (object) {
-    //     object.position.y -= 0.8;
-    //     object.position.z += 1;
-    //     scene.add(object);
-    // });
+    CrapLoader.load("examples/models/ConfigUtilDeskScene.json", function (object) {
+        object.position.y -= 0.8;
+        object.position.z += 1;
+        scene.add(object);
+    });
 
     window.addEventListener("resize", refreshSize);
     window.addEventListener("keydown", keyDown);
@@ -322,7 +281,6 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         renderer.domElement.width = canvasWidth;
         renderer.domElement.height = canvasHeight;
         renderer.setViewport(0, 0, canvasWidth, canvasHeight);
-        back.setSize(canvasWidth, canvasHeight);
         camera.aspect = aspectWidth / canvasHeight;
         camera.updateProjectionMatrix();
     }
@@ -340,7 +298,7 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         } else if (mod && evt.keyCode === Primrose.Text.Keys.DOWNARROW) {
             lastEditor.decreaseFontSize();
         } else if (mod && evt.keyCode === Primrose.Text.Keys.X) {
-            pythonExec(editor.editor.value);
+            pyserver.exec(editor.editor.value);
         } else if (!lastEditor || !lastEditor.focused) {
             keyState[evt.keyCode] = true;
         } else if (lastEditor && !lastEditor.readOnly) {
