@@ -1,5 +1,74 @@
 /* global isOSX, Primrose, THREE, isMobile, requestFullScreen, CrapLoader, pyserver, JSON_SCENE, URL_PARAMS */
 
+THREE.FresnelShader = {
+
+    uniforms: {
+
+        "mRefractionRatio": { type: "f", value: 1.02 },
+        "mFresnelBias": { type: "f", value: 0.1 },
+        "mFresnelPower": { type: "f", value: 2.0 },
+        "mFresnelScale": { type: "f", value: 1.0 },
+        "tCube": { type: "t", value: null }
+
+    },
+
+    vertexShader: [
+
+        "uniform float mRefractionRatio;",
+        "uniform float mFresnelBias;",
+        "uniform float mFresnelScale;",
+        "uniform float mFresnelPower;",
+
+        "varying vec3 vReflect;",
+        "varying vec3 vRefract[3];",
+        "varying float vReflectionFactor;",
+
+        "void main() {",
+
+            "vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );",
+            "vec4 worldPosition = modelMatrix * vec4( position, 1.0 );",
+
+            "vec3 worldNormal = normalize( mat3( modelMatrix[0].xyz, modelMatrix[1].xyz, modelMatrix[2].xyz ) * normal );",
+
+            "vec3 I = worldPosition.xyz - cameraPosition;",
+
+            "vReflect = reflect( I, worldNormal );",
+            "vRefract[0] = refract( normalize( I ), worldNormal, mRefractionRatio );",
+            "vRefract[1] = refract( normalize( I ), worldNormal, mRefractionRatio * 0.99 );",
+            "vRefract[2] = refract( normalize( I ), worldNormal, mRefractionRatio * 0.98 );",
+            "vReflectionFactor = mFresnelBias + mFresnelScale * pow( 1.0 + dot( normalize( I ), worldNormal ), mFresnelPower );",
+
+            "gl_Position = projectionMatrix * mvPosition;",
+
+        "}"
+
+    ].join( "\n" ),
+
+    fragmentShader: [
+
+        "uniform samplerCube tCube;",
+
+        "varying vec3 vReflect;",
+        "varying vec3 vRefract[3];",
+        "varying float vReflectionFactor;",
+
+        "void main() {",
+
+            "vec4 reflectedColor = textureCube( tCube, vec3( -vReflect.x, vReflect.yz ) );",
+            "vec4 refractedColor = vec4( 1.0 );",
+
+            "refractedColor.r = textureCube( tCube, vec3( -vRefract[0].x, vRefract[0].yz ) ).r;",
+            "refractedColor.g = textureCube( tCube, vec3( -vRefract[1].x, vRefract[1].yz ) ).g;",
+            "refractedColor.b = textureCube( tCube, vec3( -vRefract[2].x, vRefract[2].yz ) ).b;",
+
+            "gl_FragColor = mix( refractedColor, reflectedColor, clamp( vReflectionFactor, 0.0, 1.0 ) );",
+
+        "}"
+
+    ].join( "\n" )
+
+};
+
 function PrimroseDemo(vrDisplay, vrSensor, err) {
     "use strict";
     if (err) {
@@ -17,7 +86,7 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         lt = 0,
         heading = 0,
         pitch = 0,
-        SPEED = 0.003,
+        SPEED = 0.001,
         inVR = false,
         dragging = false,
         keyState = {},
@@ -39,14 +108,11 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
             antialias: true
         }),
         gl = renderer.getContext(),
-        skyGeom = shell(50, 8, 4, Math.PI * 2, Math.PI),
-        sky = textured(skyGeom, "images/bg2.jpg", true),
-        light = new THREE.PointLight(0xffffff),
         UP = new THREE.Vector3(0, 1, 0),
         RIGHT = new THREE.Vector3(1, 0, 0),
         qPitch = new THREE.Quaternion(),
         qRift = new THREE.Quaternion(),
-        position = new THREE.Vector3(),
+        position = new THREE.Vector3(0, 0, 0),
         vrEffect = new THREE.VREffect(renderer);
 
     var gamepad = new Primrose.Input.Gamepad("gamepad", [{
@@ -103,19 +169,19 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
     GFXTablet(scene);
 
     var output = makeEditor(scene, pickingScene, "outputBox",
-            1, 0.25, 0, -0.59, 6.09, -Math.PI / 4, 0, 0, {
+            1, 0.25, 0, -0.59, -2, -Math.PI / 4, 0, 0, {
                 readOnly: true,
                 hideLineNumbers: true
             }),
         documentation = makeEditor(scene, pickingScene, "docBox",
-            1, 1, 0.85, 0, 6.35, 0, -Math.PI / 4, 0, {
+            1, 1, 0.85, 0, -2, 0, -Math.PI / 4, 0, {
                 readOnly: true,
                 hideLineNumbers: true,
                 fontSize: 20,
                 file: "INSTRUCTIONS:"
             }),
         editor = makeEditor(scene, pickingScene, "textEditor",
-            1, 1, 0, 0, 6, 0, 0, 0, {
+            1, 1, 0, 0, -2, 0, 0, 0, {
                 tokenizer: Primrose.Text.Grammars.Python,
                 file: 'print("Hello world!")'
             });
@@ -137,26 +203,16 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
     log(fmt("$1+E to show/hide editor", cmdPre));
     log(fmt("$1+X to execute editor contents", cmdPre));
 
-    light.position.set(5, 5, 5);
-    position.set(0, 0, 4);
-
     var X_MAX = 12.5,
         X_MIN = -12.5,
         Z_MAX = 12.5,
         Z_MIN = -12.5;
-    var floor = textured(quad(X_MAX - X_MIN, Z_MAX - Z_MIN),
-        'images/deck.png', true, 1, X_MAX - X_MIN, Z_MAX - Z_MIN);
-    floor.rotation.x -= Math.PI / 2;
-    floor.position.y = -1.2;
-    scene.add(floor);
 
-    scene.add(sky);
-    scene.add(light);
     scene.add(pointer);
 
     CrapLoader.load("examples/models/ConfigUtilDeskScene.json", function (object) {
-        object.position.y -= 0.8;
-        object.position.z += 1;
+        object.position.z = -2;
+        object.position.y = -0.8;
         scene.add(object);
     });
 
@@ -167,12 +223,6 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
     });
     window.addEventListener("wheel", mouseWheel);
     window.addEventListener("paste", paste);
-    window.addEventListener("unload", function() {
-        var script = editor.editor.value;
-        if (script.length > 0) {
-            setSetting("code", script);
-        }
-    });
 
     window.addEventListener("mousedown", mouseDown);
     window.addEventListener("mousemove", mouseMove);
@@ -227,15 +277,6 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         inVR = true;
         refreshSize();
     });
-
-    // window.addEventListener("popstate", function(evt) {
-    //     if (inVR || isFullScreenMode()) {
-    //         inVR = false;
-    //         exitFullScreen();
-    //         evt.preventDefault();
-    //         refreshSize();
-    //     }
-    // }, true);
 
     refreshSize();
 

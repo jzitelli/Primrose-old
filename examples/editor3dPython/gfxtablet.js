@@ -17,6 +17,7 @@ function GFXTablet(scene) {
             THREE.LinearFilter, THREE.LinearFilter);
         paintableMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, map: canvasMap});
         var canvasMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2*aspect, 2), paintableMaterial);
+        canvasMesh.position.z = -4;
         scene.add(canvasMesh);
         paintableMaterial.map.needsUpdate = true;
         paintableMaterial.needsUpdate = true;
