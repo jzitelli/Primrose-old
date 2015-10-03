@@ -93,7 +93,6 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         modA = isOSX ? "metaKey" : "ctrlKey",
         modB = isOSX ? "altKey" : "shiftKey",
         cmdPre = isOSX ? "CMD+OPT" : "CTRL+SHIFT",
-        scene = new THREE.Scene(),
         pickingScene = new THREE.Scene(),
         ctrls = findEverything(),
         camera = new THREE.PerspectiveCamera(50, ctrls.output.width /
@@ -141,20 +140,18 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         }
     }, false);
 
-    CrapLoader.parse(JSON_SCENE, function (obj) {
-        scene.add(obj);
-    });
-
+    var scene = CrapLoader.parse(JSON_SCENE);
 
     (function () {
         var leapController = new Leap.Controller({frameEventName: 'animationFrame'});
         leapController.connect();
-        var palm0 = new THREE.Mesh(new THREE.SphereBufferGeometry(0.03));
+        var palm0 = new THREE.Mesh(new THREE.SphereBufferGeometry(0.02));
         var leapRoot = new THREE.Object3D();
-        leapRoot.position.z += 1;
+        leapRoot.position.y -= 0.2;
+        leapRoot.position.z -= 1.3;
         scene.add(leapRoot);
         leapRoot.add(palm0);
-        var palm1 = new THREE.Mesh(new THREE.SphereBufferGeometry(0.03));
+        var palm1 = new THREE.Mesh(new THREE.SphereBufferGeometry(0.02));
         leapRoot.add(palm1);
         var palms = [palm0, palm1];
         leapController.on('frame', onFrame);
@@ -212,7 +209,7 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
 
     CrapLoader.load("examples/models/ConfigUtilDeskScene.json", function (object) {
         object.position.z = -2;
-        object.position.y = -0.8;
+        object.position.y = -0.85;
         scene.add(object);
     });
 
@@ -319,7 +316,7 @@ function PrimroseDemo(vrDisplay, vrSensor, err) {
         } else if (mod && evt.keyCode === Primrose.Text.Keys.DOWNARROW) {
             lastEditor.decreaseFontSize();
         } else if (mod && evt.keyCode === Primrose.Text.Keys.X) {
-            pyserver.exec(editor.editor.value);
+            pyserver.exec(editor.editor.value, undefined, {log: log});
         } else if (!lastEditor || !lastEditor.focused) {
             keyState[evt.keyCode] = true;
         } else if (lastEditor && !lastEditor.readOnly) {

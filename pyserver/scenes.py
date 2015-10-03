@@ -6,8 +6,10 @@ def scene_gen(length=15, width=15, height=10, **kwargs):
     xMin, xMax = -L/2, L/2
     zMin, zMax = -W/2, W/2
     yAvg = (yMin + yMax) / 2
-    images = [Image("deck", url="images/grass.png")]
-    textures = [Texture(image=images[0], repeat=[L, W], wrap=[RepeatWrapping, RepeatWrapping])]
+    images = [Image("deck", url="images/deck.png"),
+        Image("radiosity", url="images/radiosity_37.png")]
+    textures = [Texture(image=images[0], repeat=[L, W], wrap=[RepeatWrapping, RepeatWrapping]),
+        Texture(image=images[1])]
     materials = [MeshPhongMaterial(side=FrontSide, shading=FlatShading, color=color) for color in [0xaaffff,
         0xffffaa, 0xffaaff, 0xffaaaa, 0xaaffaa, 0xaaaaff]]
     geometries = []
@@ -36,15 +38,17 @@ def scene_gen(length=15, width=15, height=10, **kwargs):
         userData={'cannonData': cannonData})
     scene.add(floor)
 
-    ceiling = Mesh(name="ceiling", geometry=square, material=materials[1],
+    ceiling = Mesh(name="ceiling", geometry=square,
+        material=materials[1],
         receiveShadow=True,
         position=[0, yMax, 0],
         rotation=[np.pi, 0, 0],
         scale=[L,1,W],
         userData={'cannonData': cannonData})
-    scene.add(ceiling)
+    #scene.add(ceiling)
 
-    front = Mesh(name="front", geometry=square, material=materials[2],
+    front = Mesh(name="front", geometry=square,
+        material=materials[2],
         receiveShadow=True,
         position=[0, yAvg, zMax],
         rotation=[np.pi/2, np.pi, 0],
@@ -52,15 +56,17 @@ def scene_gen(length=15, width=15, height=10, **kwargs):
         userData={'cannonData': cannonData})
     scene.add(front)
     
-    back = Mesh(name="back", geometry=square, material=materials[4],
+    back = Mesh(name="back", geometry=square,
+        material=materials[4],
         receiveShadow=True,
         position=[0, yAvg, zMin],
         rotation=[np.pi/2, 0, 0],
         scale=[L,1,H],
         userData={'cannonData': cannonData})
-    scene.add(back)
+    #scene.add(back)
 
-    left = Mesh(name="left", geometry=square, material=materials[3],
+    left = Mesh(name="left", geometry=square,
+        material=materials[3],
         receiveShadow=True,
         position=[xMin, yAvg, 0],
         rotation=[np.pi/2, np.pi/2, 0],
@@ -68,13 +74,19 @@ def scene_gen(length=15, width=15, height=10, **kwargs):
         userData={'cannonData': cannonData})
     scene.add(left)
 
-    right = Mesh(name="right", geometry=square, material=materials[5],
+    right = Mesh(name="right", geometry=square,
+        material=materials[5],
         receiveShadow=True,
         position=[xMax, yAvg, 0],
         rotation=[np.pi/2, -np.pi/2, 0],
         scale=[W,1,H],
         userData={'cannonData': cannonData})
-    scene.add(right)
+    #scene.add(right)
+
+    cylinder = Mesh(name="cylinder", geometry=CylinderGeometry(200, 200, 9/16 * 2 * np.pi * 200,
+        openEnded=True, radiusSegments=16),
+        material=MeshBasicMaterial(side=BackSide, shading=FlatShading, color=0xffffff, map=textures[1]))
+    scene.add(cylinder)
 
     return scene.export()
 

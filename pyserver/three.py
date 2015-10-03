@@ -269,6 +269,7 @@ class Geometry(Three):
         self.colors = colors
         self.faces = faces
     def as_buffer_geometry(self):
+        # TODO
         return BufferGeometry(name=self.name, vertices=self.vertices, indices=self.indices, normals=self.normals, uvs=self.uvs)
 
 
