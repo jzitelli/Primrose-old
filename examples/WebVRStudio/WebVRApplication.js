@@ -8,7 +8,20 @@ WebVRApplication = ( function () {
 
         options = combineDefaults(options, {
             gravity: 0,
-            backgroundColor: 0x000000
+            backgroundColor: 0x000000,
+            keyboardCommands: [{name: "turnLeft", buttons: [-Primrose.Input.Keyboard.LEFTARROW]},
+                {name: "turnRight", buttons: [Primrose.Input.Keyboard.RIGHTARROW]},
+                {name: "driveForward", buttons: [-Primrose.Input.Keyboard.W]},
+                {name: "driveBack", buttons: [Primrose.Input.Keyboard.S]},
+                {name: "strafeLeft", buttons: [-Primrose.Input.Keyboard.A]},
+                {name: "strafeRight", buttons: [Primrose.Input.Keyboard.D]},
+                {name: "floatUp", buttons: [Primrose.Input.Keyboard.E]},
+                {name: "floatDown", buttons: [-Primrose.Input.Keyboard.C]},
+                {name: "toggleVRControls", buttons: [Primrose.Input.Keyboard.V], commandDown: this.toggleVRControls.bind(this), dt: 0.25},
+                {name: "toggleWireframe", buttons: [Primrose.Input.Keyboard.U], commandDown: this.toggleWireframe.bind(this), dt: 0.25},
+                {name: 'resetVRSensor', buttons: [Primrose.Input.Keyboard.Z], commandDown: this.resetVRSensor.bind(this), dt: 0.25}],
+            gamepadCommands: [],
+            mouseCommands: []
         });
 
         this.listeners = {
@@ -18,7 +31,7 @@ WebVRApplication = ( function () {
         this.lt = 0;
         this.frame = 0;
 
-        this.camera = new THREE.PerspectiveCamera(75, 1.77778, 0.25, 1000); // new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.25, 10000);
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
         if (options.fog) {
             this.scene.fog = options.fog;
@@ -76,6 +89,20 @@ WebVRApplication = ( function () {
             }
         }.bind(this), false);
 
+        this.animate = function(t) {
+            var dt = (t - this.lt) * 0.001;
+            this.lt = t;
+            if (this.vrControls && this.vrControls.enabled) {
+                this.vrControls.update();
+            }
+            this.vrManager.render(this.scene, this.camera, t);
+            this.keyboard.update(dt);
+            this.gamepad.update(dt);
+            this.mouse.update(dt);
+            this.fire("update", dt);
+            requestAnimationFrame(this.animate);
+        }.bind(this);
+
     }
 
     WebVRApplication.prototype.start = function(animate) {
@@ -102,20 +129,6 @@ WebVRApplication = ( function () {
         for (var i = 0; i < this.listeners[name].length; ++i) {
             this.listeners[name][i](arg1, arg2, arg3, arg4);
         }
-    };
-
-    WebVRApplication.prototype.animate = function(t) {
-        var dt = (t - this.lt) * 0.001;
-        this.lt = t;
-        if (this.vrControls && this.vrControls.enabled) {
-            this.vrControls.update();
-        }
-        this.vrManager.render(this.scene, this.camera, t);
-        this.keyboard.update(dt);
-        this.gamepad.update(dt);
-        this.mouse.update(dt);
-        this.fire("update", dt);
-        requestAnimationFrame(this.animate);
     };
 
     var wireframeMaterial = new THREE.MeshBasicMaterial({color: 0xeeddaa, wireframe: true});
