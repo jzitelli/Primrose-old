@@ -1,7 +1,8 @@
 """Flask application enabling server-side execution of Python code entered in
 Primrose editors.
 
-This script may be executed from the Primrose root directory, i.e. ::
+This script may be executed from the Primrose root directory to host a local
+server (with a subset of the functionality available from the Tornado server [see start.py]) ::
 
     $ python pyserver/flask_app.py
 
@@ -24,8 +25,8 @@ import scenes
 
 _logger = logging.getLogger(__name__)
 
-_example = "editor3dPython"
-#_example = "WebVRStudio"
+#_example = "editor3dPython"
+_example = "WebVRStudio"
 
 app = Flask(__name__,
     static_folder=os.path.join(os.getcwd()),
@@ -44,7 +45,7 @@ def home():
 var JSON_CONFIG = %s;
 var JSON_SCENE = %s;
 </script>""" % (json.dumps({k: v for k, v in app.config.items() if k in ['DEBUG', 'TESTING', 'WEBSOCKETS']}),
-                json.dumps(scenes.scene_gen(), indent=2))))
+                json.dumps(scenes.scene_gen(), indent=(2 if app.debug else None)))))
 
 
 @app.route('/pyexec', methods=['POST'])

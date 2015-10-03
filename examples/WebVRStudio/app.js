@@ -16,7 +16,11 @@ function onLoad() {
     }
 
     application = new WebVRApplication("WebVR studio", avatar, scene, options);
+	GFXTablet(scene);
+	scene.add(avatar);
+	avatar.add(application.camera);
+
 	application.start();
-	
+
 	console.log("starting WebVR studio...");
 }
