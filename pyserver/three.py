@@ -7,8 +7,8 @@ import sys
 import os
 import json
 import uuid
+from collections import defaultdict
 import numpy as np
-# import sympy as sp
 
 DEG2RAD = np.pi / 180
 
@@ -21,13 +21,14 @@ NearestFilter, NearestMipMapNearestFilter, NearestMipMapLinearFilter, LinearFilt
 
 # TODO: JSON encoder for Three objects
 class Three(object):
-    num = 0
+    instance_num = defaultdict(int)
     def __init__(self, name=None):
         if name is None:
-            name = "Three object %d" % Three.num
+            type = self.__class__.__name__
+            name = "unnamed %s %d" % (type, Three.instance_num[type])
+            Three.instance_num[type] += 1
         self.name = name
         self.uuid = uuid.uuid4()
-        Three.num += 1
     def json(self):
         """Returns a dict which can be JSON serialized (by json.dumps)"""
         try:

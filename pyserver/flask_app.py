@@ -3,7 +3,7 @@ Primrose editors.
 
 This script may be executed from the Primrose root directory, i.e. ::
 
-    $ python python_server/flask_app.py
+    $ python pyserver/flask_app.py
 
 The server can then be accessed locally at 127.0.0.1:5000."""
 
@@ -25,6 +25,7 @@ import scenes
 _logger = logging.getLogger(__name__)
 
 _example = "editor3dPython"
+#_example = "WebVRStudio"
 
 app = Flask(__name__,
     static_folder=os.path.join(os.getcwd()),
