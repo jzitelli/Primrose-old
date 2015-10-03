@@ -1,6 +1,6 @@
 /* global pyserver */
 function GFXTablet(scene) {
-    "use strict"
+    "use strict";
     if (pyserver.config.WEBSOCKETS.indexOf('/gfxtablet') == -1) {
         return;
     }
