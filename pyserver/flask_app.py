@@ -40,12 +40,13 @@ def home():
     """Serves HTML for a Primrose app."""
     if app.debug or app.testing:
         subprocess.call("grunt quick", shell=True)
+    scene = request.args.get('scene', 'some_room')
     return render_template('index.html',
         json_config=Markup(r"""<script>
 var JSON_CONFIG = %s;
 var JSON_SCENE = %s;
 </script>""" % (json.dumps({k: v for k, v in app.config.items() if k in ['DEBUG', 'TESTING', 'WEBSOCKETS']}),
-                json.dumps(scenes.scene_gen(), indent=(2 if app.debug else None)))))
+                json.dumps(getattr(scenes, scene)(), indent=(2 if app.debug else None)))))
 
 
 @app.route('/pyexec', methods=['POST'])

@@ -20,6 +20,12 @@ function onLoad() {
 	scene.add(avatar);
 	avatar.add(application.camera);
 
+    CrapLoader.load("examples/models/ConfigUtilDeskScene.json", function (object) {
+        object.position.z = -2;
+        object.position.y = -0.85;
+        scene.add(object);
+    });
+
 	application.start();
 
 	console.log("starting WebVR studio...");

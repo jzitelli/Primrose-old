@@ -209,7 +209,7 @@ class Material(Three):
         self.__dict__.update(kwargs)
     def json(self):
         d = Three.json(self)
-        for k in ['map', 'alphaMap', 'bumpMap']:
+        for k in ['map', 'alphaMap', 'bumpMap', 'normalMap', 'displacementMap', 'specularMap', 'envMap', 'lightMap', 'aoMap']:
             if k in self.__dict__:
                 try:
                     d[k] = unicode(self.__dict__[k].uuid)
@@ -219,7 +219,23 @@ class Material(Three):
         return d
 
 
+class LineBasicMaterial(Material):
+    pass
+
+
+class LineDashedMaterial(Material):
+    pass
+
+
 class MeshBasicMaterial(Material):
+    pass
+
+
+class MeshDepthMaterial(Material):
+    pass
+
+
+class MeshFaceMaterial(Material):
     pass
 
 
@@ -227,7 +243,35 @@ class MeshLambertMaterial(Material):
     pass
 
 
+class MeshNormalMaterial(Material):
+    pass
+
+
 class MeshPhongMaterial(Material):
+    pass
+
+
+class PointsMaterial(Material):
+    pass
+
+
+class ShaderMaterial(Material):
+    def __init__(self, name=None, vertexShader=None, fragmentShader=None, uniforms=None, **kwargs):
+        Material.__init__(self, name=name, **kwargs)
+        self.vertexShader = vertexShader
+        self.fragmentShader = fragmentShader
+        self.uniforms = uniforms
+
+
+class RawShaderMaterial(Material):
+    pass
+
+
+class SpriteCanvasMaterial(Material):
+    pass
+
+
+class SpriteMaterial(Material):
     pass
 
 
@@ -352,9 +396,6 @@ class RectangleBufferGeometry(BufferGeometry):
     """Defines two triangles representing a rectangle - indices are (0,1,2), (0,2,3)"""
     def __init__(self, vertices, uvs=None, **kwargs):
         BufferGeometry.__init__(self, vertices=vertices, uvs=uvs, indices=_tri_faces([0,1,2,3]), **kwargs)
-    def get_shape(self):
-        """Get the type of CANNON.js shape which represents this type of geometry"""
-        return "Plane"
 
 
 class BoxBufferGeometry(BufferGeometry):
@@ -404,6 +445,31 @@ class SphereBufferGeometry(Three):
         self.phiLength = phiLength
         self.thetaStart = thetaStart
         self.thetaLength = thetaLength
+    def json(self):
+        d = Three.json(self)
+        d.update({k: v for k, v in self.__dict__.items() if k not in d and v is not None})
+        return d
+
+
+class TorusGeometry(Three):
+    def __init__(self, name=None, radius=100, tube=40, radialSegments=8, tubularSegments=6, arc=2*np.pi):
+        Three.__init__(self, name)
+        self.radius = radius
+        self.tube = tube
+        self.radialSegments = radialSegments
+        self.tubularSegments = tubularSegments
+        self.arc = arc
+    def json(self):
+        d = Three.json(self)
+        d.update({k: v for k, v in self.__dict__.items() if k not in d and v is not None})
+        return d
+
+
+class TextGeometry(Three):
+    def __init__(self, name=None, text=None, parameters=None):
+        Three.__init__(self, name)
+        self.text = text
+        self.parameters = parameters
     def json(self):
         d = Three.json(self)
         d.update({k: v for k, v in self.__dict__.items() if k not in d and v is not None})

@@ -105,7 +105,10 @@ WebVRApplication = ( function () {
 
         var kbheading = 0,
             pitch = 0,
-            moveSpeed = options.moveSpeed;
+            pitchQuat = new THREE.Quaternion(),
+            moveSpeed = options.moveSpeed,
+            UP = new THREE.Vector3(0,1,0),
+            RIGHT = new THREE.Vector3(1,0,0);
         this.animate = function(t) {
             var dt = (t - this.lt) * 0.001;
             this.lt = t;
@@ -145,8 +148,9 @@ WebVRApplication = ( function () {
                 drive = 0;
             }
 
-            this.avatar.rotation.y = heading;
-
+            this.avatar.quaternion.setFromAxisAngle(UP, heading);
+            pitchQuat.setFromAxisAngle(RIGHT, pitch);
+            this.avatar.quaternion.multiply(pitchQuat);
             this.avatar.position.x += dt * (strafe * cosHeading + drive * sinHeading);
             this.avatar.position.z += dt * (drive * cosHeading - strafe * sinHeading);
             this.avatar.position.y += dt * floatUp;
@@ -204,7 +208,6 @@ WebVRApplication = ( function () {
             this.vrControls.enabled = true;
             this.vrControls.update();
         }
-        this.log("vrControls.enabled = " + this.vrControls.enabled);
     };
 
     WebVRApplication.prototype.resetVRSensor = function () {
