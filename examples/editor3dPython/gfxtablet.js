@@ -5,23 +5,31 @@ function GFXTablet(scene) {
         return;
     }
     var socket = new WebSocket('ws://' + document.domain + ':' + location.port + '/gfxtablet');
-    var paintableMaterial
-    var gfxtabletCanvas;
+    var gfxtabletCanvas = document.createElement('canvas');
+    gfxtabletCanvas.width = 2560;
+    gfxtabletCanvas.height = 1600;
+    var canvasMap = new THREE.Texture(gfxtabletCanvas, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping,
+        THREE.LinearFilter, THREE.LinearFilter);
+    var paintableMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, map: canvasMap});
+    gfxtabletCanvas.getContext('2d').fillRect(0, 0, gfxtabletCanvas.width, gfxtabletCanvas.height);
+    var aspect = gfxtabletCanvas.width / gfxtabletCanvas.height;
+    var canvasMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2*aspect, 2), paintableMaterial);
+    canvasMesh.position.z = -4;
+
+    var cursorMaterial = new THREE.MeshBasicMaterial({color: 0x00ff00});
+    cursorMaterial.transparent = true;
+    cursorMaterial.opacity = 0.25;
+    var cursor = new THREE.Mesh(new THREE.CircleGeometry(0.02), cursorMaterial);
+    canvasMesh.add(cursor);
+    cursor.visible = false;
+    cursor.position.z = 0.01;
+
     socket.onopen = function () {
-        gfxtabletCanvas = document.createElement('canvas');
-        gfxtabletCanvas.width = 2560;
-        gfxtabletCanvas.height = 1600;
-        gfxtabletCanvas.getContext('2d').fillRect(0, 0, gfxtabletCanvas.width, gfxtabletCanvas.height);
-        var aspect = gfxtabletCanvas.width / gfxtabletCanvas.height;
-        var canvasMap = new THREE.Texture(gfxtabletCanvas, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping,
-            THREE.LinearFilter, THREE.LinearFilter);
-        paintableMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, map: canvasMap});
-        var canvasMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2*aspect, 2), paintableMaterial);
-        canvasMesh.position.z = -4;
         scene.add(canvasMesh);
         paintableMaterial.map.needsUpdate = true;
         paintableMaterial.needsUpdate = true;
     };
+
     function circle(x, y, r, c, o, ctx) {
         var opacity = o || 0.8;
         ctx.beginPath();
@@ -34,12 +42,15 @@ function GFXTablet(scene) {
         ctx.fill();
         ctx.closePath();
     }
+
     socket.onerror = function (error) {
         console.log("could not connect to GfxTablet WebSocket");
     };
+
     socket.onmessage = function (message) {
         var data = JSON.parse(message.data);
         if (data.p > 0) {
+            cursor.visible = false;
             var image = paintableMaterial.map.image;
             var ctx = image.getContext('2d');
             circle(gfxtabletCanvas.width * data.x, 
@@ -47,6 +58,11 @@ function GFXTablet(scene) {
                 2 + 20*data.p, '255,0,0', 0.1 + 0.9 * data.p, ctx);
             paintableMaterial.map.needsUpdate = true;
             paintableMaterial.needsUpdate = true;
+        } else {
+            // draw brush cursor
+            cursor.visible = true;
+            cursor.position.x = -aspect + 2 * aspect * data.x;
+            cursor.position.y = 1 - 2 * data.y;
         }
         // if (data.button !== undefined) {
         //     console.log(data.x + ' ' + data.y + ' ' + data.p + ' ' + data.button + ' ' + data.button_down);
