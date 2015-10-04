@@ -13,7 +13,8 @@ function GFXTablet(scene) {
     var paintableMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, map: canvasMap});
     gfxtabletCanvas.getContext('2d').fillRect(0, 0, gfxtabletCanvas.width, gfxtabletCanvas.height);
     var aspect = gfxtabletCanvas.width / gfxtabletCanvas.height;
-    var canvasMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2*aspect, 2), paintableMaterial);
+    var scale = 2;
+    var canvasMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(scale * aspect, scale), paintableMaterial);
     canvasMesh.position.z = -4;
 
     var cursorMaterial = new THREE.MeshBasicMaterial({color: 0x00ff00});
@@ -61,8 +62,8 @@ function GFXTablet(scene) {
         } else {
             // draw brush cursor
             cursor.visible = true;
-            cursor.position.x = -aspect + 2 * aspect * data.x;
-            cursor.position.y = 1 - 2 * data.y;
+            cursor.position.x = -aspect * scale / 2 + aspect * scale * data.x;
+            cursor.position.y = scale / 2 - scale * data.y;
         }
         // if (data.button !== undefined) {
         //     console.log(data.x + ' ' + data.y + ' ' + data.p + ' ' + data.button + ' ' + data.button_down);

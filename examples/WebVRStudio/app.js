@@ -26,7 +26,8 @@ function onLoad() {
         scene.add(object);
     });
 
-	application.start();
+    addHands(scene);
 
-	console.log("starting WebVR studio...");
+    console.log("starting WebVR studio...");
+	application.start();
 }
