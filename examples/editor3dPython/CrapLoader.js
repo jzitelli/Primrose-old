@@ -37,7 +37,32 @@ var CrapLoader = ( function () {
     }
 
     function parse(json, success) {
-
+        if (json.materials) {
+            json.materials.forEach( function (mat) {
+                if (mat.type === "ShaderMaterial" && mat.uniforms) {
+                    var uniforms = mat.uniforms;
+                    for (var key in uniforms) {
+                        var uniform = uniforms[key];
+                        if (uniform.type === 't') {
+                            if (Array.isArray(uniform.value) && uniform.value.length == 6) {
+                                // texture cube specified by urls
+                                uniform.value = THREE.ImageUtils.loadTextureCube(uniform.value);
+                            } else
+                            if (typeof uniform.value === 'string') {
+                                // single texture specified by url
+                                uniform.value = THREE.ImageUtils.loadTexture(uniform.value);
+                            }
+                        }
+                    }
+                }
+                if (mat.type === "ShaderMaterial" && mat.shaderLib) {
+                    var shader = THREE.ShaderLib[mat.shaderLib];
+                    mat.uniforms = THREE.UniformsUtils.merge( [shader.uniforms, mat.uniforms] );
+                    mat.vertexShader = shader.vertexShader;
+                    mat.fragmentShader = shader.fragmentShader;
+                }
+            });
+        }
         return objectLoader.parse(json, function (obj) {
             obj.traverse( function (node) {
                 if (node instanceof THREE.Mesh) {
@@ -54,9 +79,23 @@ var CrapLoader = ( function () {
     }
 
     function loadHeightfields(obj) {
+
+        function getPixel(imagedata, x, y) {
+            var position = (x + imagedata.width * y) * 4,
+                data = imagedata.data;
+            return {
+                r: data[position],
+                g: data[position + 1],
+                b: data[position + 2],
+                a: data[position + 3]
+            };
+        }
+
         obj.traverse( function (node) {
+
             if (node.userData && node.userData.heightmap) {
                 imageLoader.load(node.userData.heightmap, function(image) {
+
                     var canvas = document.createElement('canvas');
                     canvas.width = image.width;
                     canvas.height = image.height;
@@ -67,21 +106,10 @@ var CrapLoader = ( function () {
                     var gridX1 = node.geometry.parameters.widthSegments + 1;
                     var gridY1 = node.geometry.parameters.heightSegments + 1;
                     if (gridX1 != gridY1 || imageData.width != imageData.height) {
-                        alert("heightmap: only square images supported");
+                        alert("heightmap: currently only square images are supported");
                     }
                     if (gridX1 != imageData.width) {
                         alert("heightmap: widthSegments + 1 != image width");
-                    }
-
-                    function getPixel(imagedata, x, y) {
-                        var position = (x + imagedata.width * y) * 4,
-                            data = imagedata.data;
-                        return {
-                            r: data[position],
-                            g: data[position + 1],
-                            b: data[position + 2],
-                            a: data[position + 3]
-                        };
                     }
                     var i = 0;
                     for (var iy = 0; iy < gridY1; ++iy) {
@@ -96,9 +124,12 @@ var CrapLoader = ( function () {
                     node.geometry.normalsNeedUpdate = true;
                     node.geometry.computeBoundingSphere();
                     node.geometry.computeBoundingBox();
+
                 });
             }
+
         });
+
     }
 
     function CANNONize(obj, world) {

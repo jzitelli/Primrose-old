@@ -154,6 +154,10 @@ class Mesh(Object3D):
         return d
 
 
+class Points(Object3D):
+    pass
+
+
 class Light(Object3D):
     def __init__(self, color=0xffffff, intensity=None, distance=None, **kwargs):
         Object3D.__init__(self, **kwargs)
@@ -164,8 +168,12 @@ class Light(Object3D):
             self.distance = distance
     def json(self):
         d = Object3D.json(self)
-        d.update({k: v for k, v in self.__dict__.items() if k in ('color', 'intensity',
-            'distance', 'shadowDarkness', 'shadowCameraNear', 'shadowCameraFar', 'shadowCameraLeft', 'shadowCameraRight', 'shadowCameraTop', 'shadowCameraBottom')})
+        d.update({k: v for k, v in self.__dict__.items()
+                  if k in ('color', 'intensity', 'distance',
+                           'shadowDarkness', 'shadowCameraNear',
+                           'shadowCameraFar', 'shadowCameraLeft',
+                           'shadowCameraRight', 'shadowCameraTop', 'shadowCameraBottom',
+                           'decay', 'angle', 'exponent', 'groundColor')})
         return d
 
 
@@ -187,6 +195,19 @@ class DirectionalLight(Light):
         d = Light.json(self)
         d['target'] = self.target.tolist()
         return d
+
+
+class SpotLight(Light):
+    def __init__(self, angle=None, exponent=None, decay=None, **kwargs):
+        Light.__init__(self, **kwargs)
+        self.angle = angle
+        self.exponent = exponent
+        self.decay = decay
+    
+        
+
+class HemisphereLight(Light):
+    pass
 
 
 class PerspectiveCamera(Object3D):
@@ -398,6 +419,21 @@ class RectangleBufferGeometry(BufferGeometry):
         BufferGeometry.__init__(self, vertices=vertices, uvs=uvs, indices=_tri_faces([0,1,2,3]), **kwargs)
 
 
+class BoxGeometry(Geometry):
+    def __init__(self, width=1, height=1, depth=1, widthSegments=1, heightSegments=1, depthSegments=1, **kwargs):
+        Geometry.__init__(self, **kwargs)
+        self.width = width
+        self.height = height
+        self.depth = depth
+        self.widthSegments = widthSegments
+        self.heightSegments = heightSegments
+        self.depthSegments = depthSegments
+    def json(self):
+        d = Three.json(self)
+        d.update({k: v for k, v in self.__dict__.items() if k not in d and v is not None})
+        return d
+
+
 class BoxBufferGeometry(BufferGeometry):
     def __init__(self, vertices, inward_normals=False, **kwargs):
         rects = [[0,1,2,3], # bottom
@@ -473,4 +509,46 @@ class TextGeometry(Three):
     def json(self):
         d = Three.json(self)
         d.update({k: v for k, v in self.__dict__.items() if k not in d and v is not None})
+        d['data'] = d.pop('parameters')
         return d
+
+
+class CircleBufferGeometry(Three):
+    def __init__(self, name=None, radius=50, segments=8, thetaStart=0, thetaLength=2*np.pi):
+        Three.__init__(self, name)
+        self.radius = radius
+        self.segments = segments
+        self.thetaStart = thetaStart
+        self.thetaLength = thetaLength
+    def json(self):
+        d = Three.json(self)
+        d.update({k: v for k, v in self.__dict__.items() if k not in d and v is not None})
+        return d
+
+
+class OctahedronGeometry(Three):
+    def __init__(self, name=None, radius=1, detail=0):
+        Three.__init__(self, name)
+        self.radius = radius
+        self.detail = detail
+    def json(self):
+        d = Three.json(self)
+        d.update({k: v for k, v in self.__dict__.items() if k not in d and v is not None})
+        return d
+
+
+class PolyhedronGeometry(Three):
+    def __init__(self, name=None, vertices=None, faces=None, radius=None, detail=0):
+        Three.__init__(self, name)
+        self.vertices = vertices
+        self.faces = faces
+        self.radius = radius
+        self.detail = detail
+    def json(self):
+        d = Three.json(self)
+        d.update({k: v for k, v in self.__dict__.items() if k not in d and v is not None})
+        return d
+
+
+class Line(Object3D):
+    pass
