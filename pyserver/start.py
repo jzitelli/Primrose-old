@@ -16,6 +16,7 @@ from tornado.ioloop import IOLoop
 from flask_app import app, default_settings
 
 from gfxtablet import GFXTabletHandler
+from PointerEventHandler import PointerEventHandler
 
 
 _logger = logging.getLogger(__name__)
@@ -24,6 +25,7 @@ _logger = logging.getLogger(__name__)
 websocket_handlers = []
 if default_settings.GFXTABLET:
     websocket_handlers.append(('/gfxtablet', GFXTabletHandler))
+    websocket_handlers.append(('/pointerevents', PointerEventHandler))
 handlers = websocket_handlers + [('.*', FallbackHandler, dict(fallback=WSGIContainer(app)))]
 
 
@@ -36,5 +38,6 @@ def main():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=(logging.DEBUG if app.debug else None))
+    logging.basicConfig(level=(logging.DEBUG if app.debug else None),
+				    	format="%(levelname)s %(name)s %(funcName)s %(lineno)d:\n%(message)s\n")
     main()

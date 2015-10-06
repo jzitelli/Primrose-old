@@ -2,6 +2,23 @@ from copy import deepcopy
 
 from three import *
 
+FT2METERS = 0.3048
+
+def basement():
+    L, W, H = 20, 20, 8 * FT2METERS
+    scene = Scene()
+    square = RectangleBufferGeometry(vertices=[[-0.5, 0, -0.5], [-0.5, 0,  0.5],
+                                               [ 0.5, 0,  0.5], [ 0.5, 0, -0.5]],
+                                     uvs=[(0,1), (0,0), (1,0), (1,1)])
+    floor = Mesh(name="floor", geometry=square,
+                 material=MeshBasicMaterial(side=FrontSide, shading=FlatShading, color=0xffffff,
+                                            map=Texture(image=Image("deck", url="images/deck.png"), repeat=[L, W], wrap=[RepeatWrapping, RepeatWrapping])),
+                 position=[0, 0, 0],
+                 scale=[L,1,W],
+                 userData={'cannonData': cannonData})
+    scene.add(floor)
+    return scene.export()
+
 
 def shader_room(length=10, width=10, height=10):
     L, W, H = length, width, height
@@ -36,14 +53,13 @@ def shader_room(length=10, width=10, height=10):
                  userData={'cannonData': cannonData})
     scene.add(floor)
 
-    uniforms = deepcopy(ShaderLib['cube']['uniforms'])
-    uniforms['tCube']['value'] = ["examples/WebVRStudio/Park2/%s.jpg" % pos
-                                  for pos in ('posx', 'negx', 'posy', 'negy', 'posz', 'negz')]
+    shader = deepcopy(ShaderLib['cube'])
+    # shader['uniforms']['tCube']['value'] = ["examples/WebVRStudio/Park2/%s.jpg" % pos
+    #                                         for pos in ('posx', 'negx', 'posy', 'negy', 'posz', 'negz')]
+    shader['uniforms']['tCube']['value'] = ["examples/WebVRStudio/SwedishRoyalCastle/%s.jpg" % pos
+                                            for pos in ('px', 'nx', 'py', 'ny', 'pz', 'nz')]
     skyBox = Mesh(geometry=BoxGeometry(666, 666, 666),
-                  material=ShaderMaterial(side=BackSide,
-                                          vertexShader=ShaderLib["cube"]["vertexShader"],
-                                          fragmentShader=ShaderLib["cube"]["fragmentShader"],
-                                          uniforms=uniforms))
+                  material=ShaderMaterial(side=BackSide, **shader))
     scene.add(skyBox)
 
     # cylinder = Mesh(name="cylinder", geometry=CylinderGeometry(200, 200, 9/16 * 2 * np.pi * 200,
