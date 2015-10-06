@@ -98,6 +98,22 @@ def read():
     return jsonify(response)
 
 
+@app.route("/write", methods=['POST'])
+def write():
+    filename = os.path.join(os.getcwd(), 'writes', os.path.split(request.args['file'])[1])
+    try:
+        if request.json is not None:
+            with open(filename, 'w') as f:
+                f.write(json.dumps(request.json))
+        else:
+            with open(filename, 'w') as f:
+                f.write(request.form['text'])
+        response = {'filename': filename}
+    except Exception as err:
+        response = {'error': str(err)}
+    return jsonify(response)
+
+
 def main():
     app.run(host='0.0.0.0')
 

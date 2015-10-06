@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from three import *
 
 
@@ -34,35 +36,21 @@ def shader_room(length=10, width=10, height=10):
                  userData={'cannonData': cannonData})
     scene.add(floor)
 
-    # TODO: how to set value for type 't' uniforms (textures) without having to write supporting JavaScript?
-    with open('examples/WebVRStudio/shaders/FresnelShader.vs') as f:
-        vertexShader = f.read()
-    with open('examples/WebVRStudio/shaders/FresnelShader.fs') as f:
-        fragmentShader = f.read()
-    sphere = Mesh(name="sphere", geometry=SphereBufferGeometry(radius=1, widthSegments=64, heightSegments=32),
-                  material=ShaderMaterial(name="fresnel", vertexShader=vertexShader, fragmentShader=fragmentShader,
-                                          uniforms={'mRefractionRatio': {'type': 'f', 'value': 1.02},
-                                                    'mFresnelBias': {'type': 'f', 'value': 0.1},
-                                                    'mFresnelPower': {'type': 'f', 'value': 2},
-                                                    'mFresnelScale': {'type': 'f', 'value': 1},
-                                                    'tCube': {'type': 't',
-                                                              'value': ["examples/WebVRStudio/Park2/%s.jpg" % pos
-                                                                        for pos in ('posx', 'negx', 'posy', 'negy', 'posz', 'negz')]}}))
-    scene.add(sphere)
+    uniforms = deepcopy(ShaderLib['cube']['uniforms'])
+    uniforms['tCube']['value'] = ["examples/WebVRStudio/Park2/%s.jpg" % pos
+                                  for pos in ('posx', 'negx', 'posy', 'negy', 'posz', 'negz')]
+    skyBox = Mesh(geometry=BoxGeometry(666, 666, 666),
+                  material=ShaderMaterial(side=BackSide,
+                                          vertexShader=ShaderLib["cube"]["vertexShader"],
+                                          fragmentShader=ShaderLib["cube"]["fragmentShader"],
+                                          uniforms=uniforms))
+    scene.add(skyBox)
 
-    # skyBox = Mesh(geometry=BoxGeometry(666, 666, 666),
-    #               material=ShaderMaterial(side=BackSide,
-    #                                       shaderLib="cube",
-    #                                       uniforms={'tCube': {'type': 't',
-    #                                                           'value': ["examples/WebVRStudio/Park2/%s.jpg" % pos
-    #                                                                     for pos in ('posx', 'negx', 'posy', 'negy', 'posz', 'negz')]}}))
-    # scene.add(skyBox)
-
-    cylinder = Mesh(name="cylinder", geometry=CylinderGeometry(200, 200, 9/16 * 2 * np.pi * 200,
-                                                               openEnded=True, radiusSegments=16),
-                    material=MeshBasicMaterial(side=BackSide, shading=FlatShading, color=0xffffff,
-                                               map=Texture(image=Image("radiosity", url="images/radiosity_37.png"))))
-    scene.add(cylinder)
+    # cylinder = Mesh(name="cylinder", geometry=CylinderGeometry(200, 200, 9/16 * 2 * np.pi * 200,
+    #                                                            openEnded=True, radiusSegments=16),
+    #                 material=MeshBasicMaterial(side=BackSide, shading=FlatShading, color=0xffffff,
+    #                                            map=Texture(image=Image("radiosity", url="images/radiosity_37.png"))))
+    # scene.add(cylinder)
 
     return scene.export()
 

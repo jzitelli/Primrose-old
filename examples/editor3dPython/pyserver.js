@@ -31,13 +31,15 @@ var pyserver = {
         data.append("src", src);
         xhr.open("POST", '/pyexec');
         xhr.onload = function() {
-            console.log("python success! stdout from python:");
             var response = JSON.parse(xhr.responseText);
-            console.log(response.stdout);
+            console.log(response);
             if (logger) {
                 logger.log(response.stdout);
             }
-            if (success) {
+            if (response.error) {
+                console.log("Python error: " + response.error);
+            }
+            else if (success) {
                 success(response.return_value);
             }
         };
@@ -60,6 +62,30 @@ var pyserver = {
             }
         };
         xhr.send();
+    },
+
+    writeFile: function (filename, text) {
+        "use strict";
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', "/write?file=" + filename);
+        xhr.onload = function() {
+            var response = JSON.parse(xhr.responseText);
+            if (response.filename) {
+                console.log("wrote " + response.filename);
+            }
+            else if (response.error) {
+                console.log(response.error);
+            }
+        };
+        if (typeof text === 'string') {
+            var data = new FormData();
+            data.append("text", text);
+            xhr.send(data);
+        }
+        else {
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(JSON.stringify(text));
+        }
     }
 
 };

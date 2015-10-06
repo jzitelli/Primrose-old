@@ -55,12 +55,6 @@ var CrapLoader = ( function () {
                         }
                     }
                 }
-                if (mat.type === "ShaderMaterial" && mat.shaderLib) {
-                    var shader = THREE.ShaderLib[mat.shaderLib];
-                    mat.uniforms = THREE.UniformsUtils.merge( [shader.uniforms, mat.uniforms] );
-                    mat.vertexShader = shader.vertexShader;
-                    mat.fragmentShader = shader.fragmentShader;
-                }
             });
         }
         return objectLoader.parse(json, function (obj) {

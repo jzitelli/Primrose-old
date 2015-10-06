@@ -19,6 +19,13 @@ UVMapping, CubeReflectionMapping, CubeRefractionMapping = 300, 301, 302
 RepeatWrapping, ClampToEdgeWrapping, MirroredRepeatWrapping = 1000, 1001, 1002
 NearestFilter, NearestMipMapNearestFilter, NearestMipMapLinearFilter, LinearFilter, LinearMipMapNearestFilter, LinearMipMapLinearFilter = 1003, 1004, 1005, 1006, 1007, 1008
 
+# TODO: http://stackoverflow.com/questions/10935127/way-to-access-resource-files-in-python
+ShaderLib = None
+with open(os.path.join(os.path.split(__file__)[0],
+                       'ShaderLib.json')) as f:
+    ShaderLib = json.loads(f.read())
+    
+
 # TODO: JSON encoder for Three objects
 class Three(object):
     instance_num = defaultdict(int)
@@ -421,7 +428,7 @@ class RectangleBufferGeometry(BufferGeometry):
 
 class BoxGeometry(Geometry):
     def __init__(self, width=1, height=1, depth=1, widthSegments=1, heightSegments=1, depthSegments=1, **kwargs):
-        Geometry.__init__(self, **kwargs)
+        Three.__init__(self, **kwargs)
         self.width = width
         self.height = height
         self.depth = depth
