@@ -38,12 +38,7 @@ WebVRApplication = ( function () {
             moveSpeed: 1
         });
 
-        this.listeners = {
-            ready: [],
-            update: []
-        };
         this.lt = 0;
-        this.frame = 0;
 
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
@@ -56,7 +51,7 @@ WebVRApplication = ( function () {
             console.log(msg);
         };
 
-        this.audio = new Primrose.Output.Audio3D();
+        //this.audio = new Primrose.Output.Audio3D();
 
         this.renderer = new THREE.WebGLRenderer({
             antialias: true,
@@ -69,10 +64,10 @@ WebVRApplication = ( function () {
 
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setClearColor(options.backgroundColor);
-        document.body.appendChild(this.renderer.domElement);
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
 
+        document.body.appendChild(this.renderer.domElement);
         this.vrEffect = new THREE.VREffect(this.renderer);
-        this.vrEffect.setSize(window.innerWidth, window.innerHeight);
 
         this.vrManager = new WebVRManager(this.renderer, this.vrEffect, {
             hideButton: false
@@ -82,26 +77,38 @@ WebVRApplication = ( function () {
         this.vrControls.enabled = false;
 
         this.keyboard = new Primrose.Input.Keyboard("keyboard", window, options.keyboardCommands);
-        this.mouse = new Primrose.Input.Mouse("mouse", window, options.mouseCommands);
+
+        this.mouse = new Primrose.Input.Mouse("mouse", this.renderer.domElement, options.mouseCommands);
+
         this.gamepad = new Primrose.Input.Gamepad("gamepad", options.gamepadCommands);
-        // TODO: window?
-        this.gamepad.addEventListener("gamepadconnected", function(id) {
-            if (!this.gamepad.isGamepadSet()) {
-                this.gamepad.setGamepad(id);
-                console.log("gamepad " + id + " connected");
-            }
-        }.bind(this), false);
+
+        // // TODO: window?
+        // this.gamepad.addEventListener("gamepadconnected", function(id) {
+        //     if (!this.gamepad.isGamepadSet()) {
+        //         this.gamepad.setGamepad(id);
+        //         console.log("gamepad " + id + " connected");
+        //     }
+        // }.bind(this), false);
+
 
         window.addEventListener("resize", function () {
             var canvasWidth = window.innerWidth,
                 canvasHeight = window.innerHeight;
             this.camera.aspect = canvasWidth / canvasHeight;
             this.camera.updateProjectionMatrix();
-            this.vrEffect.setSize(canvasWidth, canvasHeight);
+            this.renderer.setSize(canvasWidth, canvasHeight);
             if (this.vrManager.isVRMode()) {
                 this.vrControls.enabled = true;
             }
         }.bind(this), false);
+
+
+        window.addEventListener("keydown", function (evt) {
+            if (evt.keyCode === Primrose.Text.Keys.F) {
+                requestFullScreen(this.renderer.domElement);
+            }
+        }.bind(this));
+
 
         var kbheading = 0,
             pitch = 0,
@@ -110,15 +117,19 @@ WebVRApplication = ( function () {
             UP = new THREE.Vector3(0,1,0),
             RIGHT = new THREE.Vector3(1,0,0);
         this.animate = function(t) {
+
             var dt = (t - this.lt) * 0.001;
             this.lt = t;
+            // TODO: investigate
             if (this.vrControls.enabled) {
                 this.vrControls.update();
             }
             this.vrManager.render(this.scene, this.camera, t);
+
             this.keyboard.update(dt);
-            this.gamepad.update(dt);
             this.mouse.update(dt);
+            this.gamepad.update(dt);
+
             kbheading += -0.8 * dt * (this.keyboard.getValue("turnLeft") +
             this.keyboard.getValue("turnRight"));
             var heading = kbheading + this.gamepad.getValue("heading");
@@ -155,7 +166,6 @@ WebVRApplication = ( function () {
             this.avatar.position.z += dt * (drive * cosHeading - strafe * sinHeading);
             this.avatar.position.y += dt * floatUp;
 
-            this.fire("update", dt);
             requestAnimationFrame(this.animate);
 
         }.bind(this);
@@ -167,7 +177,6 @@ WebVRApplication = ( function () {
         function waitForResources(t) {
             this.lt = t;
             if (this.scene) {
-                this.fire("ready");
                 requestAnimationFrame(animate);
             } else {
                 requestAnimationFrame(waitForResources);
@@ -176,17 +185,17 @@ WebVRApplication = ( function () {
         waitForResources.call(this, 0);
     };
 
-    WebVRApplication.prototype.addEventListener = function(event, thunk) {
-        if (this.listeners[event]) {
-            this.listeners[event].push(thunk);
-        }
-    };
+    // WebVRApplication.prototype.addEventListener = function(event, thunk) {
+    //     if (this.listeners[event]) {
+    //         this.listeners[event].push(thunk);
+    //     }
+    // };
 
-    WebVRApplication.prototype.fire = function(name, arg1, arg2, arg3, arg4) {
-        for (var i = 0; i < this.listeners[name].length; ++i) {
-            this.listeners[name][i](arg1, arg2, arg3, arg4);
-        }
-    };
+    // WebVRApplication.prototype.fire = function(name, arg1, arg2, arg3, arg4) {
+    //     for (var i = 0; i < this.listeners[name].length; ++i) {
+    //         this.listeners[name][i](arg1, arg2, arg3, arg4);
+    //     }
+    // };
 
     var wireframeMaterial = new THREE.MeshBasicMaterial({color: 0xeeddaa, wireframe: true});
     WebVRApplication.prototype.toggleWireframe = function () {
@@ -213,6 +222,56 @@ WebVRApplication = ( function () {
     WebVRApplication.prototype.resetVRSensor = function () {
         this.vrControls.resetSensor();
     };
+
+    // TODO:
+    // WebVRApplication.prototype.makeEditor = function ( id, options ) {
+    //   options.size = options.size || new Primrose.Text.Size( 1024 * w, 1024 * h );
+    //   options.fontSize = options.fontSize || 30;
+    //   options.theme = options.theme || Primrose.Text.Themes.Dark;
+    //   options.tokenizer = options.tokenizer || Primrose.Text.Grammars.PlainText;
+    //   var t = new Primrose.Text.Controls.TextBox( id, options );
+    //   var o = textured( quad( w, h ), t, true, 0.75 );
+    //   var p = textured( quad( w, h ), t.getRenderer( )
+    //       .getPickingTexture( ), true );
+    //   o.position.set( x, y, z );
+    //   o.rotation.set( rx, ry, rz );
+    //   p.position.set( x, y, z );
+    //   p.rotation.set( rx, ry, rz );
+    //   scene.add( o );
+    //   pickingScene.add( p );
+    //   return o;
+    // };
+    var FORCE_VR_DISPLAY_PARAMETER = false;
+    function requestFullScreen ( elem, vrDisplay ) {
+      var fullScreenParam;
+      if ( (!isMobile || FORCE_VR_DISPLAY_PARAMETER) && vrDisplay ) {
+        fullScreenParam = { vrDisplay: vrDisplay };
+      }
+      if ( elem.webkitRequestFullscreen && fullScreenParam ) {
+        elem.webkitRequestFullscreen( fullScreenParam );
+      } else
+      if ( elem.webkitRequestFullscreen ) {
+        elem.webkitRequestFullscreen( window.Element.ALLOW_KEYBOARD_INPUT );
+      } else
+      if ( elem.requestFullscreen ) {
+        elem.requestFullscreen();
+      } else
+      if ( elem.mozRequestFullScreen ) {
+        elem.mozRequestFullScreen();
+      } else if ( elem.msRequestFullscreen ) {
+        elem.msRequestFullscreen();
+      }
+
+      if ( elem.requestPointerLock ) {
+        elem.requestPointerLock();
+      } else
+      if ( elem.webkitRequestPointerLock ) {
+        elem.webkitRequestPointerLock();
+      } else
+      if ( elem.mozRequestPointerLock ) {
+        elem.mozRequestPointerLock();
+      }
+    }
 
     return WebVRApplication;
 } )();

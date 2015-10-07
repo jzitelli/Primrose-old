@@ -3,6 +3,8 @@ from copy import deepcopy
 from three import *
 
 FT2METERS = 0.3048
+IN2METERS = 0.0254
+
 
 def basement():
     L, W, H = 20, 20, 8 * FT2METERS
@@ -11,12 +13,23 @@ def basement():
                                                [ 0.5, 0,  0.5], [ 0.5, 0, -0.5]],
                                      uvs=[(0,1), (0,0), (1,0), (1,1)])
     floor = Mesh(name="floor", geometry=square,
-                 material=MeshBasicMaterial(side=FrontSide, shading=FlatShading, color=0xffffff,
+                 material=MeshBasicMaterial(shading=FlatShading, color=0xffffff,
                                             map=Texture(image=Image("deck", url="images/deck.png"), repeat=[L, W], wrap=[RepeatWrapping, RepeatWrapping])),
                  position=[0, 0, 0],
                  scale=[L,1,W],
                  userData={'cannonData': cannonData})
     scene.add(floor)
+
+    def desk():
+        top = Mesh(geometry=BoxGeometry(47 * IN2METERS, 1.75 * IN2METERS, 24 * IN2METERS),
+            material=MeshLambertMaterial(color=0xaaaaaa))
+        top.position[1] = (29 - 1.75 / 2) * IN2METERS
+        obj = Object3D()
+        obj.add(top)
+        return obj
+
+    scene.add(desk())
+
     return scene.export()
 
 
@@ -27,7 +40,7 @@ def shader_room(length=10, width=10, height=10):
     zMin, zMax = -W/2, W/2
     yAvg = (yMin + yMax) / 2
     textures = [Texture(image=Image("deck", url="images/deck.png"), repeat=[L, W], wrap=[RepeatWrapping, RepeatWrapping])]
-    
+
     scene = Scene()
     scene.add(AmbientLight(color=0x151515))
 
@@ -53,20 +66,15 @@ def shader_room(length=10, width=10, height=10):
                  userData={'cannonData': cannonData})
     scene.add(floor)
 
-    shader = deepcopy(ShaderLib['cube'])
-    # shader['uniforms']['tCube']['value'] = ["examples/WebVRStudio/Park2/%s.jpg" % pos
-    #                                         for pos in ('posx', 'negx', 'posy', 'negy', 'posz', 'negz')]
-    shader['uniforms']['tCube']['value'] = ["examples/WebVRStudio/SwedishRoyalCastle/%s.jpg" % pos
-                                            for pos in ('px', 'nx', 'py', 'ny', 'pz', 'nz')]
-    skyBox = Mesh(geometry=BoxGeometry(666, 666, 666),
-                  material=ShaderMaterial(side=BackSide, **shader))
-    scene.add(skyBox)
-
-    # cylinder = Mesh(name="cylinder", geometry=CylinderGeometry(200, 200, 9/16 * 2 * np.pi * 200,
-    #                                                            openEnded=True, radiusSegments=16),
-    #                 material=MeshBasicMaterial(side=BackSide, shading=FlatShading, color=0xffffff,
-    #                                            map=Texture(image=Image("radiosity", url="images/radiosity_37.png"))))
-    # scene.add(cylinder)
+    if ShaderLib is not None:
+        shader = deepcopy(ShaderLib['cube'])
+        # shader['uniforms']['tCube']['value'] = ["examples/WebVRStudio/Park2/%s.jpg" % pos
+        #                                         for pos in ('posx', 'negx', 'posy', 'negy', 'posz', 'negz')]
+        shader['uniforms']['tCube']['value'] = ["examples/WebVRStudio/SwedishRoyalCastle/%s.jpg" % pos
+                                                for pos in ('px', 'nx', 'py', 'ny', 'pz', 'nz')]
+        skyBox = Mesh(geometry=BoxGeometry(666, 666, 666),
+                      material=ShaderMaterial(side=BackSide, **shader))
+        scene.add(skyBox)
 
     return scene.export()
 
@@ -81,7 +89,7 @@ def some_room(length=15.0, width=12.0, height=10.0):
     textures = [Texture(image=Image("deck", url="images/deck.png"), repeat=[L, W], wrap=[RepeatWrapping, RepeatWrapping])]
     materials = [MeshPhongMaterial(side=FrontSide, shading=FlatShading, color=color)
                  for color in [0xaaffff, 0xffffaa, 0xffaaff, 0xffaaaa, 0xaaffaa, 0xaaaaff]]
-    
+
     scene = Scene()
 
     scene.add(AmbientLight(color=0x151515))
@@ -94,7 +102,7 @@ def some_room(length=15.0, width=12.0, height=10.0):
                                      uvs=[(0,1), (0,0), (1,0), (1,1)])
     cannonData = {'mass': 0, 'shapes': ['Plane']}
 
-    
+
     materials[0] = MeshBasicMaterial(side=FrontSide, shading=FlatShading, color=0xffffff, map=textures[0])
     # TODO: fix positioning
     floor = Mesh(name="floor", geometry=square, material=materials[0],
@@ -121,7 +129,7 @@ def some_room(length=15.0, width=12.0, height=10.0):
                  scale=[L,1,H],
                  userData={'cannonData': cannonData})
     scene.add(front)
-    
+
     back = Mesh(name="back", geometry=square,
                 material=materials[4],
                 receiveShadow=True,
@@ -152,13 +160,14 @@ def some_room(length=15.0, width=12.0, height=10.0):
     cylinder = Mesh(name="cylinder", geometry=CylinderGeometry(200, 200, 9/16.0 * 2 * np.pi * 200,
                                                                openEnded=True, radiusSegments=16),
                     material=MeshBasicMaterial(side=BackSide, shading=FlatShading, color=0xffffff,
-                                               map=Texture(image=Image("radiosity", url="images/radiosity_37.png"))))
+                                               map=Texture(image=Image("radiosity", url="images/radiosity_37.png"),
+                                                           minFilter=LinearFilter)))
     scene.add(cylinder)
 
-    scene.add(Mesh(geometry=TextGeometry(text="Hello.  This scene was generated by the Python function 'scenes.some_room'", parameters={'size': 0.1, 'height': 0.02}),
+    scene.add(Mesh(geometry=TextGeometry(text="Hello.  This scene was generated by the Python function 'scenes.some_room'", parameters={'size': 0.3, 'height': 0.02}),
                    material=MeshLambertMaterial(color=0xffff00),
-                   position=[-1, 1.6, -4]))
-    
+                   position=[-2.666, 1.6, -4]))
+
     return scene.export()
 
 
@@ -167,7 +176,7 @@ def underwater_tomb(length=20, width=20, height=20):
     materials = [MeshPhongMaterial(side=FrontSide, shading=FlatShading, color=color) for color in [0xaaffff,
         0xffffaa, 0xffaaff, 0xffaaaa, 0xaaffaa, 0xaaaaff]]
     geometries = []
-    
+
     scene = Scene()
     scene.add(AmbientLight(color=0x151515))
 
@@ -217,7 +226,7 @@ def underwater_tomb(length=20, width=20, height=20):
         scale=[L,1,H],
         userData={'cannonData': cannonData})
     scene.add(front)
-    
+
     back = Mesh(name="back", geometry=square, material=materials[4],
         receiveShadow=True,
         position=[0, 0, -W/2],

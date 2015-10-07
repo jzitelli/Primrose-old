@@ -16,10 +16,10 @@ function onLoad() {
 
     var options = {};
     application = new WebVRApplication("WebVR Studio", avatar, scene, options);
-	
+
 	scene.add(avatar);
 	avatar.add(application.camera);
-    
+
     GFXTablet(scene);
 
     CrapLoader.load("examples/models/ConfigUtilDeskScene.json", function (object) {

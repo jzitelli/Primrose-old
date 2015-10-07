@@ -20,25 +20,28 @@ import json
 
 from flask import Flask, render_template, request, jsonify, Markup
 
-import default_settings
 import scenes
 
-_logger = logging.getLogger(__name__)
+import default_settings
 
-#_example = "editor3dPython"
+if default_settings.DEBUG:
+    STATIC_FOLDER = os.path.join(os.getcwd())
+# TODO: TEMPLATE_FOLDER = default_settings.TEMPLATE_FOLDER
 _example = "WebVRStudio"
-
 app = Flask(__name__,
-    static_folder=os.path.join(os.getcwd()),
+    static_folder=STATIC_FOLDER,
     template_folder=os.path.join(os.getcwd(), 'examples', _example),
     static_url_path='')
 app.config.from_object(default_settings)
 
 
+_logger = logging.getLogger(__name__)
+
+
 @app.route('/')
 def home():
     """Serves HTML for a Primrose app."""
-    if app.debug or app.testing:
+    if (app.debug or app.testing) and app.config.get('ALWAYS_GRUNT'):
         subprocess.call("grunt quick", shell=True)
     scene = request.args.get('scene', 'some_room')
     return render_template('index.html',
@@ -115,6 +118,7 @@ def write():
 
 
 def main():
+    app.config['WEBSOCKETS'] = []
     app.run(host='0.0.0.0')
 
 

@@ -1,4 +1,5 @@
-DEBUG       = True
-TESTING     = True
-GFXTABLET   = True
-WEBSOCKETS  = []
+DEBUG        = True
+TESTING      = True
+ALWAYS_GRUNT = False
+GFXTABLET    = True
+WEBSOCKETS   = []
