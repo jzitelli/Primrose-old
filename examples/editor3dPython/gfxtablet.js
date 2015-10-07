@@ -54,9 +54,9 @@ function GFXTablet(scene) {
             cursor.visible = false;
             var image = paintableMaterial.map.image;
             var ctx = image.getContext('2d');
-            circle(gfxtabletCanvas.width * data.x, 
+            circle(gfxtabletCanvas.width * data.x,
                 gfxtabletCanvas.height * data.y,
-                2 + 20*data.p, '255,0,0', 0.1 + 0.9 * data.p, ctx);
+                2 + 50*data.p * data.p, '255,0,0', 0.1 + 0.9 * data.p, ctx);
             paintableMaterial.map.needsUpdate = true;
             paintableMaterial.needsUpdate = true;
         } else {
