@@ -10,6 +10,16 @@ import uuid
 from collections import defaultdict
 import numpy as np
 
+# TODO: http://stackoverflow.com/questions/10935127/way-to-access-resource-files-in-python
+# TODO: automate generation of ShaderLib.json
+SHADERLIB_PATH = os.path.join(os.path.split(__file__)[0], 'ShaderLib.json')
+try:
+    with open(SHADERLIB_PATH) as f:
+        ShaderLib = json.loads(f.read())
+except Exception as err:
+    print("%s could not be loaded: %s" % (SHADERLIB_PATH, err))
+    ShaderLib = None
+
 DEG2RAD = np.pi / 180
 
 FrontSide, BackSide, DoubleSide = 0, 1, 2
@@ -19,12 +29,6 @@ UVMapping, CubeReflectionMapping, CubeRefractionMapping = 300, 301, 302
 RepeatWrapping, ClampToEdgeWrapping, MirroredRepeatWrapping = 1000, 1001, 1002
 NearestFilter, NearestMipMapNearestFilter, NearestMipMapLinearFilter, LinearFilter, LinearMipMapNearestFilter, LinearMipMapLinearFilter = 1003, 1004, 1005, 1006, 1007, 1008
 
-# TODO: http://stackoverflow.com/questions/10935127/way-to-access-resource-files-in-python
-ShaderLib = None
-with open(os.path.join(os.path.split(__file__)[0],
-                       'ShaderLib.json')) as f:
-    ShaderLib = json.loads(f.read())
-    
 
 # TODO: JSON encoder for Three objects
 class Three(object):
@@ -50,6 +54,7 @@ class Three(object):
 
 class Object3D(Three):
     def __init__(self, name=None, position=(0,0,0), rotation=(0,0,0), scale=(1,1,1), visible=None, castShadow=None, receiveShadow=None, userData=None, **kwargs):
+        # TODO: use kwargs, don't convert to ndarray?
         Three.__init__(self, name)
         self.position = np.array(position)
         self.rotation = np.array(rotation)
@@ -100,6 +105,7 @@ class Object3D(Three):
                 images[tex.image.uuid] = tex.image
         return images
     def json(self):
+        # TODO: realized ObjectLoader will also accept pos/rot/scale in place of matrix
         S = np.diag(list(self.scale) + [1])
         I = np.eye(4)
         T = I.copy()
@@ -193,6 +199,7 @@ class PointLight(Light):
 
 
 class DirectionalLight(Light):
+    # TODO: investigate specifying direction
     def __init__(self, target=None, **kwargs):
         Light.__init__(self, **kwargs)
         if target is None:
@@ -284,8 +291,8 @@ class PointsMaterial(Material):
 
 
 class ShaderMaterial(Material):
-    def __init__(self, name=None, vertexShader=None, fragmentShader=None, uniforms=None, **kwargs):
-        Material.__init__(self, name=name, **kwargs)
+    def __init__(self, vertexShader=None, fragmentShader=None, uniforms=None, **kwargs):
+        Material.__init__(self, **kwargs)
         self.vertexShader = vertexShader
         self.fragmentShader = fragmentShader
         self.uniforms = uniforms

@@ -40,7 +40,7 @@ def home():
     """Serves HTML for a Primrose app."""
     if app.debug or app.testing:
         subprocess.call("grunt quick", shell=True)
-    scene = request.args.get('scene', 'shader_room')
+    scene = request.args.get('scene', 'some_room')
     return render_template('index.html',
         json_config=Markup(r"""<script>
 var JSON_CONFIG = %s;
@@ -119,5 +119,6 @@ def main():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=(logging.DEBUG if app.debug else None))
+    logging.basicConfig(level=(logging.DEBUG if app.debug else None),
+                        format="%(levelname)s %(name)s %(funcName)s %(lineno)d:  %(message)s")
     main()

@@ -105,7 +105,7 @@ Primrose.Input.Mouse = ( function () {
       }
     };
 
-    this.exitPointerLock = document.exitPointerLock.bind( document );
+    this.exitPointerLock = document.exitPointerLock;
 
     this.togglePointerLock = function () {
       if ( MouseInput.isPointerLocked() ) {
