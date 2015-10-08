@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
@@ -8,9 +8,6 @@
 
     <style>
       body {
-        width: 100%;
-        height: 100%;
-        position: fixed;
         background-color: #000;
         color: #fff;
         margin: 0px;
@@ -24,6 +21,7 @@
   </head>
 
   <body onload="onLoad()">
+
 
     <script src="{{ url_for('static', filename='bin/three.js') }}"></script>
     <script src="{{ url_for('static', filename='bin/ColladaLoader.js') }}"></script>
@@ -48,9 +46,7 @@
     <script src="{{ url_for('static', filename='examples/editor3dPython/gfxtablet.js') }}"></script>
 
     <script src="{{ url_for('static', filename='examples/WebVRStudio/WebVRApplication.js') }}"></script>
-
     <script src="{{ url_for('static', filename='examples/WebVRStudio/leapmotion.js') }}"></script>
-
     <script src="{{ url_for('static', filename='examples/WebVRStudio/app.js') }}"></script>
 
   </body>
