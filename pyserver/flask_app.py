@@ -18,7 +18,7 @@ except ImportError:
 import subprocess
 import json
 
-from flask import Flask, render_template, request, jsonify, Markup
+from flask import Flask, render_template, request, jsonify, Markup, render_template_string
 
 import scenes
 
@@ -115,6 +115,59 @@ def write():
     except Exception as err:
         response = {'error': str(err)}
     return jsonify(response)
+
+
+@app.route("/testing")
+def testing():
+    return render_template_string(u"""<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0">
+    <title>pointer events test</title>
+  </head>
+
+  <body onload="onLoad();">
+
+    <script type="text/javascript">
+
+    var socket;
+
+    function pointermoveHandler(evt) {
+      if (evt.pointerType === "pen" && evt.pressure > 0) {
+        //console.log(evt.pressure);
+        if (socket.readyState == 1) {
+          socket.send({x: evt.x, y: evt.y, p: evt.pressure});
+        }
+      }
+    }
+
+    function pointerdownHandler(evt) {
+      if (evt.pointerType === "pen") {
+        //console.log(evt.x + ' ' + evt.y);
+      }
+    }
+
+    function onLoad() {
+      socket = new WebSocket('ws://' + document.domain + ':' + location.port + '/pointerevents');
+      socket.onopen = function () {
+        console.log("WebSocket opened");
+        window.addEventListener('pointermove', pointermoveHandler, false);
+        //window.addEventListener('pointerdown', pointerdownHandler, false);
+      };
+      socket.onerror = function (error) {
+        console.log("could not connect to PointerEvents WebSocket");
+      };
+      socket.onmessage = function (message) {
+        //console.log(message);
+      };
+    }
+
+    </script>
+
+  </body>
+</html>
+""")
 
 
 def main():
