@@ -1,5 +1,5 @@
 DEBUG        = True
 TESTING      = True
-ALWAYS_GRUNT = False
+ALWAYS_GRUNT = True
 GFXTABLET    = True
 WEBSOCKETS   = []

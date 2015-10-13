@@ -51,7 +51,7 @@ WebVRApplication = ( function () {
             console.log(msg);
         };
 
-        //this.audio = new Primrose.Output.Audio3D();
+        this.audio = new Primrose.Output.Audio3D();
 
         this.renderer = new THREE.WebGLRenderer({
             antialias: true,
@@ -80,15 +80,14 @@ WebVRApplication = ( function () {
 
         this.mouse = new Primrose.Input.Mouse("mouse", this.renderer.domElement, options.mouseCommands);
 
+        // TODO: dont understand Primrose.Input.Gamepad
         this.gamepad = new Primrose.Input.Gamepad("gamepad", options.gamepadCommands);
-
-        // // TODO: window?
-        // this.gamepad.addEventListener("gamepadconnected", function(id) {
-        //     if (!this.gamepad.isGamepadSet()) {
-        //         this.gamepad.setGamepad(id);
-        //         console.log("gamepad " + id + " connected");
-        //     }
-        // }.bind(this), false);
+        this.gamepad.addEventListener("gamepadconnected", function(id) {
+            if (!this.gamepad.isGamepadSet()) {
+                this.gamepad.setGamepad(id);
+                console.log("gamepad " + id + " connected");
+            }
+        }.bind(this), false);
 
 
         window.addEventListener("resize", function () {
@@ -99,6 +98,7 @@ WebVRApplication = ( function () {
             this.renderer.setSize(canvasWidth, canvasHeight);
             if (this.vrManager.isVRMode()) {
                 this.vrControls.enabled = true;
+                pitch = 0;
             }
         }.bind(this), false);
 
@@ -120,7 +120,6 @@ WebVRApplication = ( function () {
 
             var dt = (t - this.lt) * 0.001;
             this.lt = t;
-            // TODO: investigate
             if (this.vrControls.enabled) {
                 this.vrControls.update();
             }
@@ -135,9 +134,13 @@ WebVRApplication = ( function () {
             var heading = kbheading + this.gamepad.getValue("heading");
             var cosHeading = Math.cos(heading),
                 sinHeading = Math.sin(heading);
-            pitch = 0.3 * pitch - 0.7 * this.gamepad.getValue("pitch");
-            var cosPitch = Math.cos(pitch),
+            var cosPitch = 1,
+                sinPitch = 0;
+            if (!this.vrControls.enabled) {
+                pitch = 0.3 * pitch - 0.7 * this.gamepad.getValue("pitch");
+                cosPitch = Math.cos(pitch);
                 sinPitch = Math.sin(pitch);
+            }
             var strafe = this.keyboard.getValue("strafeRight") +
                 this.keyboard.getValue("strafeLeft") +
                 this.gamepad.getValue("strafe");
@@ -185,18 +188,6 @@ WebVRApplication = ( function () {
         waitForResources.call(this, 0);
     };
 
-    // WebVRApplication.prototype.addEventListener = function(event, thunk) {
-    //     if (this.listeners[event]) {
-    //         this.listeners[event].push(thunk);
-    //     }
-    // };
-
-    // WebVRApplication.prototype.fire = function(name, arg1, arg2, arg3, arg4) {
-    //     for (var i = 0; i < this.listeners[name].length; ++i) {
-    //         this.listeners[name][i](arg1, arg2, arg3, arg4);
-    //     }
-    // };
-
     var wireframeMaterial = new THREE.MeshBasicMaterial({color: 0xeeddaa, wireframe: true});
     WebVRApplication.prototype.toggleWireframe = function () {
         if (this.scene.overrideMaterial) {
@@ -223,24 +214,19 @@ WebVRApplication = ( function () {
         this.vrControls.resetSensor();
     };
 
+
     // TODO:
-    // WebVRApplication.prototype.makeEditor = function ( id, options ) {
-    //   options.size = options.size || new Primrose.Text.Size( 1024 * w, 1024 * h );
-    //   options.fontSize = options.fontSize || 30;
-    //   options.theme = options.theme || Primrose.Text.Themes.Dark;
-    //   options.tokenizer = options.tokenizer || Primrose.Text.Grammars.PlainText;
-    //   var t = new Primrose.Text.Controls.TextBox( id, options );
-    //   var o = textured( quad( w, h ), t, true, 0.75 );
-    //   var p = textured( quad( w, h ), t.getRenderer( )
-    //       .getPickingTexture( ), true );
-    //   o.position.set( x, y, z );
-    //   o.rotation.set( rx, ry, rz );
-    //   p.position.set( x, y, z );
-    //   p.rotation.set( rx, ry, rz );
-    //   scene.add( o );
-    //   pickingScene.add( p );
-    //   return o;
-    // };
+    var quad = new THREE.PlaneBufferGeometry(1, 1);
+    WebVRApplication.prototype.makeEditor = function ( id, w, h, options ) {
+      options.size = options.size || new Primrose.Text.Size( 1024 * w, 1024 * h );
+      options.fontSize = options.fontSize || 30;
+      options.theme = options.theme || Primrose.Text.Themes.Dark;
+      options.tokenizer = options.tokenizer || Primrose.Text.Grammars.PlainText;
+      var t = new Primrose.Text.Controls.TextBox( id, options );
+      var o = new THREE.Mesh(quad.clone(), new THREE.MeshBasicMaterial(0xffffff));
+      return o;
+    };
+
     var FORCE_VR_DISPLAY_PARAMETER = false;
     function requestFullScreen ( elem, vrDisplay ) {
       var fullScreenParam;
