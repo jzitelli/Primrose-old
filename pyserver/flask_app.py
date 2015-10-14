@@ -26,12 +26,13 @@ import default_settings
 
 if default_settings.DEBUG:
     STATIC_FOLDER = os.path.join(os.getcwd())
-# TODO: TEMPLATE_FOLDER = default_settings.TEMPLATE_FOLDER
-_example = "WebVRStudio"
+
+_example = "editvr"
+
 app = Flask(__name__,
-    static_folder=STATIC_FOLDER,
-    template_folder=os.path.join(os.getcwd(), 'examples', _example),
-    static_url_path='')
+            static_folder=STATIC_FOLDER,
+            template_folder=os.path.join(os.getcwd(), 'examples', _example),
+            static_url_path='')
 app.config.from_object(default_settings)
 
 

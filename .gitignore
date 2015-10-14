@@ -2,11 +2,11 @@
 # Commenting this out is preferred by some people, see
 # https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git-
 node_modules
-examples/WebVRStudio/Park2
-examples/WebVRStudio/Park3Med
-examples/WebVRStudio/MilkyWay
-examples/WebVRStudio/skybox
-examples/WebVRStudio/SwedishRoyalCastle
+examples/editvr/Park2
+examples/editvr/Park3Med
+examples/editvr/MilkyWay
+examples/editvr/skybox
+examples/editvr/SwedishRoyalCastle
 
 obj
 bin

@@ -65,13 +65,13 @@ def shader_room(length=10, width=10, height=10):
 
     if ShaderLib is not None:
         shader = deepcopy(ShaderLib['cube'])
-        # shader['uniforms']['tCube']['value'] = ["examples/WebVRStudio/Park2/%s.jpg" % pos
+        # shader['uniforms']['tCube']['value'] = ["examples/editvr/Park2/%s.jpg" % pos
         #                                         for pos in ('posx', 'negx', 'posy', 'negy', 'posz', 'negz')]
-        # shader['uniforms']['tCube']['value'] = ["examples/WebVRStudio/SwedishRoyalCastle/%s.jpg" % pos
+        # shader['uniforms']['tCube']['value'] = ["examples/editvr/SwedishRoyalCastle/%s.jpg" % pos
         #                                         for pos in ('px', 'nx', 'py', 'ny', 'pz', 'nz')]
         # skyBox = Mesh(geometry=BoxGeometry(666, 666, 666),
         #               material=ShaderMaterial(side=BackSide, **shader))
-        shader['uniforms']['tCube']['value'] = ["examples/WebVRStudio/MilkyWay/dark-s_%s.jpg" % pos
+        shader['uniforms']['tCube']['value'] = ["examples/editvr/MilkyWay/dark-s_%s.jpg" % pos
                                                 for pos in ('px', 'nx', 'py', 'ny', 'pz', 'nz')]
         scene.add(Mesh(geometry=BoxGeometry(666, 666, 666),
                        material=ShaderMaterial(side=BackSide, **shader)))
