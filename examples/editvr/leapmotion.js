@@ -17,20 +17,31 @@ function addHands(scene) {
 
     var tips = [[], []];
     var joints = [[], []];
+
     for (var i = 0; i < 5; ++i) {
+
         var tip = new THREE.Mesh(new THREE.SphereBufferGeometry(0.005));
         var joint = new THREE.Mesh(new THREE.SphereBufferGeometry(0.007));
+
         tips[0].push(tip);
         leapRoot.add(tip);
-        joints[0].push(joint);
-        leapRoot.add(joint);
-
         tip = tip.clone();
-        joint = joint.clone();
         tips[1].push(tip);
         leapRoot.add(tip);
-        joints[1].push(joint);
+
+        joints[0].push([joint]);
         leapRoot.add(joint);
+        joint = joint.clone();
+        joints[1].push([joint]);
+        leapRoot.add(joint);
+
+        joint = new THREE.Mesh(new THREE.SphereBufferGeometry(0.0055));
+        joints[0][i].push(joint);
+        leapRoot.add(joint);
+        joint = joint.clone();
+        joints[1][i].push(joint);
+        leapRoot.add(joint);
+
     }
 
     leapController.on('frame', onFrame);
@@ -40,9 +51,8 @@ function addHands(scene) {
             palms[i].position.set(hand.palmPosition[0] / 1000, hand.palmPosition[1] / 1000, hand.palmPosition[2] / 1000);
             hand.fingers.forEach(function (finger, j) {
                 tips[i][j].position.set(finger.tipPosition[0] / 1000, finger.tipPosition[1] / 1000, finger.tipPosition[2] / 1000);
-                joints[i][j].position.set(finger.bones[1].nextJoint[0] / 1000, finger.bones[1].nextJoint[1] / 1000, finger.bones[1].nextJoint[2] / 1000);
-                // finger.bones.forEach(function (bone, k) {
-                // });
+                joints[i][j][0].position.set(finger.bones[1].nextJoint[0] / 1000, finger.bones[1].nextJoint[1] / 1000, finger.bones[1].nextJoint[2] / 1000);
+                joints[i][j][1].position.set(finger.bones[2].nextJoint[0] / 1000, finger.bones[2].nextJoint[1] / 1000, finger.bones[2].nextJoint[2] / 1000);
             });
         });
     }

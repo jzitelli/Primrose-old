@@ -15,7 +15,7 @@ function onLoad() {
     }
 
     var options = {};
-    application = new WebVRApplication("WebVR Studio", avatar, scene, options);
+    application = new WebVRApplication("editvr", avatar, scene, options);
 
 	scene.add(avatar);
 	avatar.add(application.camera);
@@ -25,10 +25,34 @@ function onLoad() {
     CrapLoader.load("examples/models/ConfigUtilDeskScene.json", function (object) {
         object.position.z = -2;
         object.position.y = -0.85;
+        object.scale.set(0.01, 0.01, 0.01);
         scene.add(object);
     });
 
+    window.addEventListener("mousemove", function (evt) {
+        var dx = evt.movementX,
+            dy = evt.movementY;
+    });
+
+    // window.addEventListener("wheel", function (evt) {
+    // });
+
+    // window.addEventListener("paste", function (evt) {
+    // });
+
+    // window.addEventListener("mousedown", function (evt) {
+    // });
+
+    // window.addEventListener("mouseup", function (evt) {
+    // });
+
     addHands(scene);
+
+    // var editorMesh = application.makeEditor("python_editor", 1, 1, {tokenizer: Primrose.Text.Grammars.Python});
+    // pyserver.readFile('test.py', function (text) {
+    //     editorMesh.textBox.value = text;
+    // });
+    // scene.add(editorMesh);
 
 	application.start();
 }

@@ -21,7 +21,7 @@ class GFXTabletHandler(WebSocketHandler):
     udpsock.setblocking(False)
     # see http://www.bbarrows.com/blog/2013/01/27/udptornado/
     def initialize(self):
-        self._buf = bytearray(18*4)
+        self._buf = bytearray(20*10)
         # TODO: maybe not robust on all platforms (see http://stackoverflow.com/questions/166506/finding-local-ip-addresses-using-pythons-stdlib)
         _logger.info("in GFXTablet settings, set the recipient host to %s (this server's local IP address)" % socket.gethostbyname(socket.gethostname()))
     def open(self):

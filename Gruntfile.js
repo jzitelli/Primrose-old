@@ -3,9 +3,9 @@
 var fs = require( "fs" ),
     files = [
       "obj/Primrose.js",
-      "lib/analytics.js",
-      "lib/ga.js",
-      "lib/mailchimp.js",
+      // "lib/analytics.js",
+      // "lib/ga.js",
+      // "lib/mailchimp.js",
       "lib/VREffect.js",
       "lib/VRControls.js",
       "lib/ColladaLoader.js",
