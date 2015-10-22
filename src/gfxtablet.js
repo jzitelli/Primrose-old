@@ -1,13 +1,15 @@
 /* global pyserver */
-function GFXTablet(scene) {
+function GFXTablet(scene, width, height) {
     "use strict";
     if (pyserver.config.WEBSOCKETS.indexOf('/gfxtablet') == -1) {
         return;
     }
+    width = width || 2560 / 2;
+    height = height || 1600 / 2;
     var socket = new WebSocket('ws://' + document.domain + ':' + location.port + '/gfxtablet');
     var gfxtabletCanvas = document.createElement('canvas');
-    gfxtabletCanvas.width = 2560;
-    gfxtabletCanvas.height = 1600;
+    gfxtabletCanvas.width = width;
+    gfxtabletCanvas.height = height;
     var canvasMap = new THREE.Texture(gfxtabletCanvas, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping,
         THREE.LinearFilter, THREE.LinearFilter);
     var paintableMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, map: canvasMap});
@@ -30,8 +32,6 @@ function GFXTablet(scene) {
 
     socket.onopen = function () {
         scene.add(canvasMesh);
-        // paintableMaterial.map.needsUpdate = true;
-        // paintableMaterial.needsUpdate = true;
     };
 
     function drawStroke (points) {
@@ -39,19 +39,17 @@ function GFXTablet(scene) {
         for (var j = 0; j < points.length - 1; j++) {
             var start = points[j];
             var end = points[j + 1];
-            ctx.moveTo(gfxtabletCanvas.width * start.x, gfxtabletCanvas.height
- * start.y);
-            ctx.lineTo(gfxtabletCanvas.width * end.x, gfxtabletCanvas.height
- * end.y);
+            ctx.moveTo(gfxtabletCanvas.width * start.x, gfxtabletCanvas.height * start.y);
+            ctx.lineTo(gfxtabletCanvas.width * end.x, gfxtabletCanvas.height * end.y);
         }
 
         ctx.strokeStyle = 'rgba(0,255,100,1)'; //stroke.color;
-        ctx.lineWidth = 3; //normalizeLineSize(stroke.size);
-        //ctx.lineJoin = false; //stroke.join;
+        ctx.lineWidth = 5; //normalizeLineSize(stroke.size);
+        //ctx.lineJoin = stroke.join;
         //ctx.lineCap = stroke.cap;
         //ctx.miterLimit = stroke.miterLimit;
-        ctx.closePath();
         ctx.stroke();
+        ctx.closePath();
     }
 
     function circle(x, y, r, c, o, ctx) {
@@ -80,13 +78,13 @@ function GFXTablet(scene) {
             // circle(gfxtabletCanvas.width * data.x,
             //     gfxtabletCanvas.height * data.y,
             //     2 + 50*data.p * data.p, '255,0,0', 0.1 + 0.9 * data.p, ctx);
-            if (points.length >= 2) {
+            if (points.length >= 3) {
                 drawStroke(points);
                 paintableMaterial.map.needsUpdate = true;
                 points.splice(0, points.length-1);
             }
         } else {
-            if (data.button !== undefined) {
+            if (data.button !== undefined && data.button_down === 0) {
                 drawStroke(points);
                 paintableMaterial.map.needsUpdate = true;
                 points.splice(0, points.length);
