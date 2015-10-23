@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+
+    <title>vrSound</title>
+
+    <style>
+      body {
+        background-color: #000;
+        color: #fff;
+        margin: 0px;
+        padding: 0;
+        overflow: hidden;
+      }
+    </style>
+
+{{ json_config if json_config else "" }}
+
+  </head>
+
+  <body onload="onLoad()">
+
+    <script src="{{ url_for('static', filename='bin/three.js') }}"></script>
+    <script src="{{ url_for('static', filename='bin/ColladaLoader.js') }}"></script>
+    <script src="{{ url_for('static', filename='bin/cannon.js') }}"></script>
+    <script src="{{ url_for('static', filename='bin/socket.io.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='bin/leap-0.6.4.js') }}"></script>
+    <script src="{{ url_for('static', filename='bin/Primrose.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='bin/VREffect.js') }}"></script>
+    <script src="{{ url_for('static', filename='bin/VRControls.js') }}"></script>
+    <script src="{{ url_for('static', filename='bin/webvr-polyfill.js') }}"></script>
+    <script src="{{ url_for('static', filename='bin/webvr-manager.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='lib/fonts/helvetiker_regular.typeface.js') }}"></script>
+    <script src="{{ url_for('static', filename='lib/fonts/helvetiker_bold.typeface.js') }}"></script>
+    <script src="{{ url_for('static', filename='lib/fonts/optimer_regular.typeface.js') }}"></script>
+    <script src="{{ url_for('static', filename='lib/fonts/optimer_bold.typeface.js') }}"></script>
+    <script src="{{ url_for('static', filename='lib/fonts/Anonymous Pro_Regular.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='src/pyserver.js') }}"></script>
+    <script src="{{ url_for('static', filename='src/CrapLoader.js') }}"></script>
+    <script src="{{ url_for('static', filename='src/gfxtablet.js') }}"></script>
+    <script src="{{ url_for('static', filename='src/WebVRApplication.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='examples/vrSound/app.js') }}"></script>
+
+  </body>
+</html>

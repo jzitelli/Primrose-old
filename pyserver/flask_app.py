@@ -27,11 +27,9 @@ import default_settings
 if default_settings.DEBUG:
     STATIC_FOLDER = os.path.join(os.getcwd())
 
-_example = "editvr"
-
 app = Flask(__name__,
             static_folder=STATIC_FOLDER,
-            template_folder=os.path.join(os.getcwd(), 'examples', _example),
+            template_folder=os.path.join(os.getcwd(), 'examples', 'templates'),
             static_url_path='')
 app.config.from_object(default_settings)
 
@@ -40,12 +38,64 @@ _logger = logging.getLogger(__name__)
 
 
 @app.route('/')
-def home():
+def subvr_app():
+    if (app.debug or app.testing) and app.config.get('ALWAYS_GRUNT'):
+        subprocess.call("grunt quick", shell=True)
+    scene = request.args.get('scene', 'underwater_tomb')
+    return render_template('subvr.html',
+        json_config=Markup(r"""<script>
+var JSON_CONFIG = %s;
+var JSON_SCENE = %s;
+</script>""" % (json.dumps({k: v for k, v in app.config.items()
+                            if k in ['DEBUG', 'TESTING', 'WEBSOCKETS']}),
+                json.dumps(getattr(scenes, scene)(),
+                           indent=(2 if app.debug else None)))))
+
+
+@app.route("/blog")
+def blog():
+    return render_template("blog.html")
+
+
+@app.route('/editvr')
+def editvr():
     """Serves HTML for a Primrose app."""
     if (app.debug or app.testing) and app.config.get('ALWAYS_GRUNT'):
         subprocess.call("grunt quick", shell=True)
     scene = request.args.get('scene', 'some_room')
-    return render_template('index.html',
+    return render_template('editvr.html',
+        json_config=Markup(r"""<script>
+var JSON_CONFIG = %s;
+var JSON_SCENE = %s;
+</script>""" % (json.dumps({k: v for k, v in app.config.items()
+                            if k in ['DEBUG', 'TESTING', 'WEBSOCKETS']}),
+                json.dumps(getattr(scenes, scene)(),
+                           indent=(2 if app.debug else None)))))
+
+
+@app.route('/vrSound')
+def vrSound():
+    """vrSound demo app"""
+    if (app.debug or app.testing) and app.config.get('ALWAYS_GRUNT'):
+        subprocess.call("grunt quick", shell=True)
+    scene = request.args.get('scene', 'sound_room')
+    return render_template('vrSound.html',
+        json_config=Markup(r"""<script>
+var JSON_CONFIG = %s;
+var JSON_SCENE = %s;
+</script>""" % (json.dumps({k: v for k, v in app.config.items()
+                            if k in ['DEBUG', 'TESTING', 'WEBSOCKETS']}),
+                json.dumps(getattr(scenes, scene)(),
+                           indent=(2 if app.debug else None)))))
+
+
+@app.route('/skyDesk')
+def skyDesk():
+    """skyDesk app"""
+    if (app.debug or app.testing) and app.config.get('ALWAYS_GRUNT'):
+        subprocess.call("grunt quick", shell=True)
+    scene = request.args.get('scene', 'shader_room')
+    return render_template('editvr.html',
         json_config=Markup(r"""<script>
 var JSON_CONFIG = %s;
 var JSON_SCENE = %s;

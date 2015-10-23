@@ -32,35 +32,51 @@ function onLoad() {
         scene.add(object);
     });
 
-    function initParticles() {
-        particleGroup = new SPE.Group({
-            texture: THREE.ImageUtils.loadTexture('images/star.png'),
-            maxAge: 2,
-            blending: THREE.AdditiveBlending,
-            maxParticleCount: 1000
-        });
 
-        emitter = new SPE.Emitter({
-            positionSpread: new THREE.Vector3(100, 100, 100),
-            acceleration: new THREE.Vector3(0, 0, 10),
-            velocity: new THREE.Vector3(0, 0, 10),
-            colorStart: new THREE.Color('white'),
-            colorEnd: new THREE.Color('white'),
-            sizeStart: 2,
-            sizeEnd: 2,
-            opacityStart: 0,
-            opacityMiddle: 1,
-            opacityEnd: 0,
-            particleCount: 100
-        });
+    // Create particle group and emitter
+        var particleGroup,
+            emitter;
+        function initParticles() {
+            particleGroup = new SPE.Group({
+                texture: {
+                    value: THREE.ImageUtils.loadTexture('images/star.png')
+                }
+            });
 
-        particleGroup.addEmitter( emitter );
-        scene.add( particleGroup.mesh );
-        application.particleGroups.push(particleGroup);
+            emitter = new SPE.Emitter({
+                maxAge: {
+                    value: 0.5
+                },
+                position: {
+                    value: new THREE.Vector3(0, 0, 0),
+                    spread: new THREE.Vector3( 0, 0, 0 )
+                },
+                acceleration: {
+                    value: new THREE.Vector3(0, -7, 0),
+                    spread: new THREE.Vector3( 5, 0, 5 )
+                },
+                velocity: {
+                    value: new THREE.Vector3(0, 5, 0),
+                    spread: new THREE.Vector3(5.5, 7.5/2, 5.5 )
+                },
+                color: {
+                    value: [ new THREE.Color('white'), new THREE.Color('red') ]
+                },
+                size: {
+                    value: 0.2
+                },
+                particleCount: 4000,
+                activeMultiplier: 1
+            });
+            particleGroup.addEmitter( emitter );
+            scene.add( particleGroup.mesh );
+            application.particleGroups.push(particleGroup);
+        }
+    if (URL_PARAMS.SPE) {
+
+        initParticles();
+
     }
-    // TODO: investigate
-    // initParticles();
-
 
     var mousePointer = new THREE.Mesh(new THREE.SphereBufferGeometry(0.03));
     mousePointer.position.z -= 3;
@@ -73,12 +89,26 @@ function onLoad() {
     });
 
 
-    // addHands(scene);
+    addHands(scene);
 
 
-    var particleGroup,
-        emitter;
-
+    (function () {
+        var audioContext = application.audioContext;
+        var source = audioContext.createBufferSource();
+        var request = new XMLHttpRequest();
+        request.open('GET', 'sounds/wind.ogg', true);
+        request.responseType = 'arraybuffer';
+        request.onload = function() {
+            var audioData = request.response;
+            audioContext.decodeAudioData( audioData ).then(function(buffer) {
+                source.buffer = buffer;
+                source.connect(audioContext.destination);
+                source.loop = true;
+                source.start(0);
+              });
+        };
+        request.send();
+    })();
 
     // window.addEventListener("wheel", function (evt) {
     // });

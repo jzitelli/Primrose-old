@@ -5,6 +5,10 @@ WebVRApplication = ( function () {
         this.name = name;
         this.avatar = avatar;
         this.scene = scene;
+        this.lt = 0;
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        this.audioContext = new AudioContext();
 
         options = combineDefaults(options, {
             gravity: 0,
@@ -40,24 +44,18 @@ WebVRApplication = ( function () {
             moveSpeed: 1
         });
 
-        this.lt = 0;
-
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
         if (options.fog) {
             this.scene.fog = options.fog;
         }
-
-        this.log = function(msg) {
-            console.log(msg);
-        };
-
-        this.audio = new Primrose.Output.Audio3D();
 
         this.renderer = new THREE.WebGLRenderer({
             antialias: true,
             alpha: true
         });
+
+        this.log = function(msg) {
+            console.log(msg);
+        };
 
         if (options.shadowMap) {
             this.renderer.shadowMap.enabled = true;
@@ -92,6 +90,8 @@ WebVRApplication = ( function () {
         world.gravity.set( 0, -options.gravity, 0 );
         world.broadphase = new CANNON.SAPBroadphase( world );
         this.world = world;
+
+        this.particleGroups = [];
 
         window.addEventListener("resize", function () {
             var canvasWidth = window.innerWidth,
@@ -191,6 +191,16 @@ WebVRApplication = ( function () {
 
             pitchQuat.setFromAxisAngle(RIGHT, pitch);
 
+            this.world.step(dt);
+
+            for (var j = 0; j < this.world.bodies.length; ++j) {
+                var obj = this.world.bodies[j];
+                if (obj.graphics) {
+                    obj.graphics.position.copy(obj.position);
+                    obj.graphics.quaternion.copy(obj.quaternion);
+                }
+            }
+
             if (this.avatar.physics) {
 
                 this.avatar.physics.quaternion.setFromAxisAngle(UP, heading);
@@ -201,14 +211,6 @@ WebVRApplication = ( function () {
                     0.1 * ((drive * cosHeading  * cosPitch - strafe * sinHeading));
                 this.avatar.physics.velocity.y = this.avatar.physics.velocity.y * 0.9 +
                     0.08 * floatUp + 0.1 * drive * (-sinPitch);
-                this.world.step(dt);
-                for (var j = 0; j < this.world.bodies.length; ++j) {
-                    var obj = this.world.bodies[j];
-                    if (obj.graphics) {
-                        obj.graphics.position.copy(obj.position);
-                        obj.graphics.quaternion.copy(obj.quaternion);
-                    }
-                }
 
             } else {
 
@@ -218,6 +220,12 @@ WebVRApplication = ( function () {
                 this.avatar.position.z += dt * (drive * cosHeading - strafe * sinHeading);
                 this.avatar.position.y += dt * floatUp;
 
+            }
+
+            if (this.particleGroups) {
+                this.particleGroups.forEach(function (group) {
+                    group.tick(0.5*dt);
+                });
             }
 
         }.bind(this);

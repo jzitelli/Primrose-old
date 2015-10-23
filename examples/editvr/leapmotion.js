@@ -48,11 +48,11 @@ function addHands(scene) {
     function onFrame(frame)
     {
         frame.hands.forEach(function (hand, i) {
-            palms[i].position.set(hand.palmPosition[0] / 1000, hand.palmPosition[1] / 1000, hand.palmPosition[2] / 1000);
+            palms[i].position.set(hand.palmPosition[0], hand.palmPosition[1], hand.palmPosition[2]);
             hand.fingers.forEach(function (finger, j) {
-                tips[i][j].position.set(finger.tipPosition[0] / 1000, finger.tipPosition[1] / 1000, finger.tipPosition[2] / 1000);
-                joints[i][j][0].position.set(finger.bones[1].nextJoint[0] / 1000, finger.bones[1].nextJoint[1] / 1000, finger.bones[1].nextJoint[2] / 1000);
-                joints[i][j][1].position.set(finger.bones[2].nextJoint[0] / 1000, finger.bones[2].nextJoint[1] / 1000, finger.bones[2].nextJoint[2] / 1000);
+                tips[i][j].position.set(finger.tipPosition[0], finger.tipPosition[1], finger.tipPosition[2]);
+                joints[i][j][0].position.set(finger.bones[1].nextJoint[0], finger.bones[1].nextJoint[1], finger.bones[1].nextJoint[2]);
+                joints[i][j][1].position.set(finger.bones[2].nextJoint[0], finger.bones[2].nextJoint[1], finger.bones[2].nextJoint[2]);
             });
         });
     }
