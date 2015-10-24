@@ -1,17 +1,17 @@
+
+
 # Dependency directory
 # Commenting this out is preferred by some people, see
 # https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git-
 node_modules
-examples/editvr/Park2
-examples/editvr/Park3Med
-examples/editvr/MilkyWay
-examples/editvr/skybox
-examples/editvr/SwedishRoyalCastle
 
 obj
 bin
+examples/subvr
+
 primrose.sublime-project
 primrose.sublime-workspace
+
 *.py~
 *.pyc
 *.js~

@@ -25,7 +25,7 @@ function onLoad() {
     GFXTablet(scene);
 
 
-    CrapLoader.load("examples/models/ConfigUtilDeskScene.json", function (object) {
+    CrapLoader.load("models/ConfigUtilDeskScene.json", function (object) {
         object.position.z = -2;
         object.position.y = -0.85;
         object.scale.set(0.01, 0.01, 0.01);
@@ -43,23 +43,24 @@ function onLoad() {
         mousePointer.position.y -= 0.0025*dy;
     });
 
-    addHands(scene);
-
     var audioContext = application.audioContext;
     var source = audioContext.createBufferSource();
     var request = new XMLHttpRequest();
-    request.open('GET', 'examples/vrSound/underwater.ogg', true);
-    request.responseType = 'arraybuffer';
-    request.onload = function() {
-        var audioData = request.response;
-        audioContext.decodeAudioData( audioData ).then(function(buffer) {
-            source.buffer = buffer;
-            source.connect(audioContext.destination);
-            source.loop = true;
-            source.start(0);
-          });
-    };
-    request.send();
+    var gainNode = audioContext.createGain();
+    gainNode.connect(audioContext.destination);
+    gainNode.gain.value = 0.75;
+    // request.open('GET', 'examples/vrSound/underwater.ogg', true);
+    // request.responseType = 'arraybuffer';
+    // request.onload = function() {
+    //     var audioData = request.response;
+    //     audioContext.decodeAudioData( audioData ).then(function(buffer) {
+    //         source.buffer = buffer;
+    //         source.connect(gainNode);
+    //         source.loop = true;
+    //         source.start(0);
+    //       });
+    // };
+    // request.send();
 
     navigator.getUserMedia (
       // constraints - only audio needed for this app
@@ -69,7 +70,7 @@ function onLoad() {
       // Success callback
       function(stream) {
         source = audioContext.createMediaStreamSource(stream);
-        source.connect(audioContext.destination);
+        source.connect(gainNode);
         source.start(0);
       },
       // Error callback
@@ -77,12 +78,6 @@ function onLoad() {
         console.log('The following gUM error occured: ' + err);
       }
     );
-
-    // window.addEventListener("wheel", function (evt) {
-    // });
-
-    // window.addEventListener("mousedown", function (evt) {
-    // });
 
     application.start();
 }

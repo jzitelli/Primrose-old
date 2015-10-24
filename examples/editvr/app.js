@@ -25,7 +25,7 @@ function onLoad() {
     GFXTablet(scene);
 
 
-    CrapLoader.load("examples/models/ConfigUtilDeskScene.json", function (object) {
+    CrapLoader.load("models/ConfigUtilDeskScene.json", function (object) {
         object.position.z = -2;
         object.position.y = -0.85;
         object.scale.set(0.01, 0.01, 0.01);
@@ -34,59 +34,46 @@ function onLoad() {
 
 
     // Create particle group and emitter
-        var particleGroup,
-            emitter;
-        function initParticles() {
-            particleGroup = new SPE.Group({
-                texture: {
-                    value: THREE.ImageUtils.loadTexture('images/star.png')
-                }
-            });
-
-            emitter = new SPE.Emitter({
-                maxAge: {
-                    value: 0.5
-                },
-                position: {
-                    value: new THREE.Vector3(0, 0, 0),
-                    spread: new THREE.Vector3( 0, 0, 0 )
-                },
-                acceleration: {
-                    value: new THREE.Vector3(0, -7, 0),
-                    spread: new THREE.Vector3( 5, 0, 5 )
-                },
-                velocity: {
-                    value: new THREE.Vector3(0, 5, 0),
-                    spread: new THREE.Vector3(5.5, 7.5/2, 5.5 )
-                },
-                color: {
-                    value: [ new THREE.Color('white'), new THREE.Color('red') ]
-                },
-                size: {
-                    value: 0.2
-                },
-                particleCount: 4000,
-                activeMultiplier: 1
-            });
-            particleGroup.addEmitter( emitter );
-            scene.add( particleGroup.mesh );
-            application.particleGroups.push(particleGroup);
-        }
-    if (URL_PARAMS.SPE) {
-
-        initParticles();
-
+    var particleGroup,
+        emitter;
+    function initParticles() {
+        particleGroup = new SPE.Group({
+            texture: {
+                value: THREE.ImageUtils.loadTexture('images/bubble5.png')
+            }
+        });
+        emitter = new SPE.Emitter({
+            maxAge: {
+                value: 1
+            },
+            position: {
+                value: new THREE.Vector3(0, 0, 0),
+                spread: new THREE.Vector3( 10, 0.4, 10 )
+            },
+            acceleration: {
+                value: new THREE.Vector3(0, 0.04, 0),
+                spread: new THREE.Vector3( 0.01, 0.001, 0.01 )
+            },
+            velocity: {
+                value: new THREE.Vector3(0, 2, 0),
+                spread: new THREE.Vector3(2.0, 4.5/2, 2.0 )
+            },
+            color: {
+                value: [ new THREE.Color('white'), new THREE.Color('green') ]
+            },
+            size: {
+                value: 0.11
+            },
+            particleCount: 500,
+            activeMultiplier: 1
+        });
+        particleGroup.addEmitter( emitter );
+        scene.add( particleGroup.mesh );
+        application.particleGroups.push(particleGroup);
     }
-
-    var mousePointer = new THREE.Mesh(new THREE.SphereBufferGeometry(0.03));
-    mousePointer.position.z -= 3;
-    avatar.add(mousePointer);
-    window.addEventListener("mousemove", function (evt) {
-        var dx = evt.movementX,
-            dy = evt.movementY;
-        mousePointer.position.x += 0.003*dx;
-        mousePointer.position.y -= 0.003*dy;
-    });
+    if (true || URL_PARAMS.SPE) {
+        initParticles();
+    }
 
 
     addHands(scene);
@@ -96,13 +83,16 @@ function onLoad() {
         var audioContext = application.audioContext;
         var source = audioContext.createBufferSource();
         var request = new XMLHttpRequest();
+        var gainNode = audioContext.createGain();
+        gainNode.connect(audioContext.destination);
+        gainNode.gain.value = 0.5;
         request.open('GET', 'sounds/wind.ogg', true);
         request.responseType = 'arraybuffer';
         request.onload = function() {
             var audioData = request.response;
             audioContext.decodeAudioData( audioData ).then(function(buffer) {
                 source.buffer = buffer;
-                source.connect(audioContext.destination);
+                source.connect(gainNode);
                 source.loop = true;
                 source.start(0);
               });
@@ -110,19 +100,54 @@ function onLoad() {
         request.send();
     })();
 
+
+    var mousePointer = new THREE.Mesh(new THREE.SphereBufferGeometry(0.03));
+    mousePointer.position.z -= 3;
+    avatar.add(mousePointer);
+    var rectMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0), new THREE.MeshBasicMaterial({color: 0x0022ee, transparent: true, opacity: 0.8}));
+    avatar.add(rectMesh);
+    rectMesh.visible = false;
+    var drawingRect = false;
+    window.addEventListener("mousemove", function (evt) {
+        var dx = evt.movementX,
+            dy = evt.movementY;
+        mousePointer.position.x += 0.003*dx;
+        mousePointer.position.y -= 0.003*dy;
+        if (drawingRect) {
+            var xScale = mousePointer.position.x - rectMesh.position.x,
+                yScale = rectMesh.position.y - mousePointer.position.y;
+            if (xScale > 0.1 && yScale > 0.1) {
+                rectMesh.scale.set(xScale, yScale, 1)
+                rectMesh.visible = true;
+            } else {
+                rectMesh.visible = false;
+            }
+        }
+    });
+    window.addEventListener("mousedown", function (evt) {
+        if (evt.buttons == 1) {
+            drawingRect = true;
+            mousePointer.visible = false;
+            rectMesh.position.copy(mousePointer.position);
+        }
+    });
+    window.addEventListener("mouseup", function (evt) {
+        if (drawingRect) {
+            drawingRect = false;
+            var newMesh = rectMesh.clone();
+            newMesh.position.copy(avatar.localToWorld(rectMesh.position));
+            newMesh.quaternion.copy(avatar.quaternion);
+            scene.add(newMesh);
+            rectMesh.visible = false;
+            mousePointer.visible = true;
+        }
+    });
+
+
     // window.addEventListener("wheel", function (evt) {
     // });
 
-
     // window.addEventListener("paste", function (evt) {
-    // });
-
-
-    // window.addEventListener("mousedown", function (evt) {
-    // });
-
-
-    // window.addEventListener("mouseup", function (evt) {
     // });
 
 

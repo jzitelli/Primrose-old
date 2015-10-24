@@ -29,7 +29,7 @@ if default_settings.DEBUG:
 
 app = Flask(__name__,
             static_folder=STATIC_FOLDER,
-            template_folder=os.path.join(os.getcwd(), 'examples', 'templates'),
+            template_folder=os.path.join(os.getcwd(), 'pyserver', 'templates'),
             static_url_path='')
 app.config.from_object(default_settings)
 
@@ -78,7 +78,7 @@ def vrSound():
     """vrSound demo app"""
     if (app.debug or app.testing) and app.config.get('ALWAYS_GRUNT'):
         subprocess.call("grunt quick", shell=True)
-    scene = request.args.get('scene', 'sound_room')
+    scene = request.args.get('scene', 'some_room')
     return render_template('vrSound.html',
         json_config=Markup(r"""<script>
 var JSON_CONFIG = %s;

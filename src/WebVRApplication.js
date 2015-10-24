@@ -111,7 +111,6 @@ WebVRApplication = ( function () {
             }
         }.bind(this));
 
-
         this.start = function() {
             function waitForResources(t) {
                 this.lt = t;
@@ -160,7 +159,8 @@ WebVRApplication = ( function () {
                 sinHeading = Math.sin(heading);
 
             kbpitch -= 0.8 * dt * (this.keyboard.getValue("pitchUp") + this.keyboard.getValue("pitchDown"));
-            pitch = 0.3 * pitch - 0.7 * (this.gamepad.getValue("pitch") + kbpitch);
+            //pitch = 0.3 * pitch - 0.7 * (this.gamepad.getValue("pitch") + kbpitch);
+            pitch = -(this.gamepad.getValue("pitch") + kbpitch);
             var cosPitch = Math.cos(pitch),
                 sinPitch = Math.sin(pitch);
 
@@ -229,7 +229,31 @@ WebVRApplication = ( function () {
             }
 
         }.bind(this);
+
+        var audioContext = this.audioContext;
+        var gainNode = audioContext.createGain();
+        gainNode.connect(audioContext.destination);
+        gainNode.gain.value = 1;
+        this.playSound = function (url, loop) {
+            loop = (loop === true);
+            var source = audioContext.createBufferSource();
+            source.loop = loop;
+            source.connect(gainNode);
+            var request = new XMLHttpRequest();
+            request.open('GET', url, true);
+            request.responseType = 'arraybuffer';
+            request.onload = function() {
+                audioContext.decodeAudioData(request.response).then(function(buffer) {
+                    source.buffer = buffer;
+                    source.start(0);
+                });
+            };
+            request.send();
+            return gainNode;
+        };
+
     }
+
 
     var wireframeMaterial = new THREE.MeshBasicMaterial({color: 0xeeddaa, wireframe: true});
     WebVRApplication.prototype.toggleWireframe = function () {
@@ -242,6 +266,7 @@ WebVRApplication = ( function () {
         }
     };
 
+
     WebVRApplication.prototype.toggleVRControls = function () {
         if (this.vrControls.enabled) {
             this.vrControls.enabled = false;
@@ -253,9 +278,11 @@ WebVRApplication = ( function () {
         }
     };
 
+
     WebVRApplication.prototype.resetVRSensor = function () {
         this.vrControls.resetSensor();
     };
+
 
     var quad = new THREE.PlaneBufferGeometry(1, 1);
     WebVRApplication.prototype.makeEditor = function ( id, w, h, options ) {
@@ -268,6 +295,7 @@ WebVRApplication = ( function () {
       mesh.textBox = t;
       return mesh;
     };
+
 
     var FORCE_VR_DISPLAY_PARAMETER = false;
     function requestFullScreen ( elem, vrDisplay ) {
@@ -300,6 +328,7 @@ WebVRApplication = ( function () {
         elem.mozRequestPointerLock();
       }
     }
+
 
     return WebVRApplication;
 } )();
