@@ -19,19 +19,16 @@ function GFXTablet(scene, width, height) {
     var canvasMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(scale * aspect, scale), paintableMaterial);
     canvasMesh.position.z = -4;
 
-    var cursorMaterial = new THREE.MeshBasicMaterial({color: 0x00ff00});
+    var cursorMaterial = new THREE.MeshBasicMaterial({color: 0xeeff66});
     cursorMaterial.transparent = true;
     cursorMaterial.opacity = 0.25;
     var cursor = new THREE.Mesh(new THREE.CircleGeometry(0.02), cursorMaterial);
     canvasMesh.add(cursor);
     cursor.position.z = 0.01;
-
+    cursor.visible = false;
     var image = paintableMaterial.map.image;
     var ctx = image.getContext('2d');
 
-    socket.onopen = function () {
-        scene.add(canvasMesh);
-    };
 
     function drawStroke (points) {
         if (points.length === 0)
@@ -51,7 +48,7 @@ function GFXTablet(scene, width, height) {
         //ctx.miterLimit = stroke.miterLimit;
     }
 
-    function circle(x, y, r, c, o, ctx) {
+    function circle(x, y, r, c, o) {
         var opacity = o || 0.8;
         ctx.beginPath();
         var rad = ctx.createRadialGradient(x, y, r/2, x, y, r);
@@ -64,37 +61,42 @@ function GFXTablet(scene, width, height) {
         ctx.closePath();
     }
 
+    socket.onopen = function () {
+        scene.add(canvasMesh);
+    };
     socket.onerror = function (error) {
         console.log("could not connect to GfxTablet WebSocket");
     };
-
     var points = [];
+    var stroking = false;
     socket.onmessage = function (message) {
         var data = JSON.parse(message.data);
         if (data.p > 0) {
             points.push(data);
-            // circle(gfxtabletCanvas.width * data.x,
-            //     gfxtabletCanvas.height * data.y,
-            //     2 + 50*data.p * data.p, '255,0,0', 0.1 + 0.9 * data.p, ctx);
+            // circle(gfxtabletCanvas.width * data.x, gfxtabletCanvas.height * data.y,
+            //     2 + 50*data.p * data.p, '255,0,0', 0.1 + 0.9 * data.p);
             if (points.length > 3) {
                 drawStroke(points);
                 paintableMaterial.map.needsUpdate = true;
                 points.splice(0, 3);
             }
-        } else {
-            cursor.position.x = -aspect * scale / 2 + aspect * scale * data.x;
-            cursor.position.y = scale / 2 - scale * data.y;
         }
         if (data.button !== undefined) {
             if (data.button_down === 0) {
                 drawStroke(points);
+                stroking = false;
                 paintableMaterial.map.needsUpdate = true;
                 points = [];
-                // draw brush cursor
-                cursor.visible = true;
             } else {
-                cursor.visible = false;
+                stroking = true;
             }
+        }
+        if (stroking) {
+            cursor.visible = false;
+        } else {
+            cursor.visible = true;
+            cursor.position.x = -aspect * scale / 2 + aspect * scale * data.x;
+            cursor.position.y = scale / 2 - scale * data.y;
         }
     };
 }
