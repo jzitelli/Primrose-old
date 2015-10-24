@@ -1,18 +1,23 @@
-function addHands(scene) {
+function addHands(parent) {
     var leapController = new Leap.Controller({frameEventName: 'animationFrame'});
     leapController.connect();
-    var leapRoot = new THREE.Object3D();
-    leapRoot.position.y -= 0.2;
-    leapRoot.position.z -= 0.666;
-    scene.add(leapRoot);
+    var leftRoot = new THREE.Object3D(),
+        rightRoot = new THREE.Object3D();
+    leftRoot.position.y = rightRoot.position.y = -0.25;
+    leftRoot.position.z = rightRoot.position.z = -0.5;
+    var scale = 0.001;
+    leftRoot.scale.set(scale, scale, scale);
+    rightRoot.scale.set(scale, scale, scale);
+    leftRoot.visible = rightRoot.visible = false;
+    parent.add(leftRoot);
+    parent.add(rightRoot);
 
     var palms = [];
-    var palm = new THREE.Mesh(new THREE.SphereBufferGeometry(0.025));
-    palm.scale.set(1, 0.5, 1);
-    leapRoot.add(palm);
+    var palm = new THREE.Mesh(new THREE.SphereBufferGeometry(0.025 / scale).scale(1, 0.5, 1));
+    leftRoot.add(palm);
     palms.push(palm);
     var palm = palm.clone();
-    leapRoot.add(palm);
+    rightRoot.add(palm);
     palms.push(palm);
 
     var tips = [[], []];
@@ -20,33 +25,32 @@ function addHands(scene) {
 
     for (var i = 0; i < 5; ++i) {
 
-        var tip = new THREE.Mesh(new THREE.SphereBufferGeometry(0.005));
-        var joint = new THREE.Mesh(new THREE.SphereBufferGeometry(0.007));
+        var tip = new THREE.Mesh(new THREE.SphereBufferGeometry(0.005 / scale));
+        var joint = new THREE.Mesh(new THREE.SphereBufferGeometry(0.007 / scale));
 
         tips[0].push(tip);
-        leapRoot.add(tip);
+        leftRoot.add(tip);
         tip = tip.clone();
         tips[1].push(tip);
-        leapRoot.add(tip);
+        rightRoot.add(tip);
 
         joints[0].push([joint]);
-        leapRoot.add(joint);
+        leftRoot.add(joint);
         joint = joint.clone();
         joints[1].push([joint]);
-        leapRoot.add(joint);
+        rightRoot.add(joint);
 
-        joint = new THREE.Mesh(new THREE.SphereBufferGeometry(0.0055));
+        joint = new THREE.Mesh(new THREE.SphereBufferGeometry(0.0055 / scale));
         joints[0][i].push(joint);
-        leapRoot.add(joint);
+        leftRoot.add(joint);
         joint = joint.clone();
         joints[1][i].push(joint);
-        leapRoot.add(joint);
+        rightRoot.add(joint);
 
     }
 
     leapController.on('frame', onFrame);
-    function onFrame(frame)
-    {
+    function onFrame(frame) {
         frame.hands.forEach(function (hand, i) {
             palms[i].position.set(hand.palmPosition[0], hand.palmPosition[1], hand.palmPosition[2]);
             hand.fingers.forEach(function (finger, j) {
@@ -55,5 +59,14 @@ function addHands(scene) {
                 joints[i][j][1].position.set(finger.bones[2].nextJoint[0], finger.bones[2].nextJoint[1], finger.bones[2].nextJoint[2]);
             });
         });
+        leftRoot.visible = false;
+        rightRoot.visible = false;
+        if (frame.hands.length == 1) {
+            leftRoot.visible = true;
+        } else
+        if (frame.hands.length == 2) {
+            leftRoot.visible = true;
+            rightRoot.visible = true;
+        }
     }
 }

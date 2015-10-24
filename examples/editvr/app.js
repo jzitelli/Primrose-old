@@ -48,7 +48,7 @@ function onLoad() {
             },
             position: {
                 value: new THREE.Vector3(0, 0, 0),
-                spread: new THREE.Vector3( 10, 0.4, 10 )
+                spread: new THREE.Vector3( 10, 0.5, 10 )
             },
             acceleration: {
                 value: new THREE.Vector3(0, 0.04, 0),
@@ -68,6 +68,7 @@ function onLoad() {
             activeMultiplier: 1
         });
         particleGroup.addEmitter( emitter );
+        particleGroup.mesh.position.y -= 1;
         scene.add( particleGroup.mesh );
         application.particleGroups.push(particleGroup);
     }
@@ -76,7 +77,7 @@ function onLoad() {
     }
 
 
-    addHands(scene);
+    addHands(avatar);
 
 
     (function () {

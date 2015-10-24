@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
@@ -8,9 +8,6 @@
 
     <style>
       body {
-        width: 100%;
-        height: 100%;
-        position: fixed;
         background-color: #000;
         color: #fff;
         margin: 0px;
@@ -26,7 +23,7 @@
   <body onload="onLoad()">
 
     <script src="{{ url_for('static', filename='bin/three.js') }}"></script>
-    <script src="{{ url_for('static', filename='lib/ColladaLoader.js') }}"></script>
+    <script src="{{ url_for('static', filename='bin/ColladaLoader.js') }}"></script>
     <script src="{{ url_for('static', filename='bin/cannon.js') }}"></script>
     <script src="{{ url_for('static', filename='bin/leap-0.6.4.js') }}"></script>
     <script src="{{ url_for('static', filename='bin/socket.io.js') }}"></script>
@@ -43,10 +40,8 @@
 
     <script src="{{ url_for('static', filename='lib/fonts/Anonymous Pro_Regular.js') }}"></script>
 
-    <script src="{{ url_for('static', filename='examples/subvr/src/actions.js') }}"></script>
-    <script src="{{ url_for('static', filename='examples/subvr/src/graphics.js') }}"></script>
-    <script src="{{ url_for('static', filename='examples/subvr/src/menus.js') }}"></script>
-    <script src="{{ url_for('static', filename='examples/subvr/src/sounds.js') }}"></script>
+    <script src="{{ url_for('static', filename='examples/subvr/actions.js') }}"></script>
+    <script src="{{ url_for('static', filename='examples/subvr/graphics.js') }}"></script>
     <script src="{{ url_for('static', filename='examples/subvr/app.js') }}"></script>
 
 {% if mystery %}
