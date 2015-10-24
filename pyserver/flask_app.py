@@ -11,36 +11,51 @@ The server can then be accessed locally at 127.0.0.1:5000."""
 import os
 import sys
 import logging
+import subprocess
+import json
+from functools import wraps
 try:
     from StringIO import StringIO
 except ImportError:
     from io import StringIO
-import subprocess
-import json
 
 from flask import Flask, render_template, request, jsonify, Markup, render_template_string
-
-import scenes
-
 import default_settings
-
-if default_settings.DEBUG:
-    STATIC_FOLDER = os.path.join(os.getcwd())
-
+if os.environ.get("PYSERVER_RELEASE"):
+    default_settings.DEBUG = False
+    STATIC_FOLDER = os.environ.get('PYSERVER_STATIC_FOLDER')
+    TEMPLATE_FOLDER = os.environ.get('PYSERVER_TEMPLATE_FOLDER')
+elif default_settings.DEBUG:
+    STATIC_FOLDER = os.environ.get('PYSERVER_STATIC_FOLDER', os.path.join(os.getcwd()))
+    TEMPLATE_FOLDER = os.environ.get('PYSERVER_TEMPLATE_FOLDER', os.path.join(os.getcwd(), 'pyserver', 'templates'))
 app = Flask(__name__,
             static_folder=STATIC_FOLDER,
-            template_folder=os.path.join(os.getcwd(), 'pyserver', 'templates'),
+            template_folder=TEMPLATE_FOLDER,
             static_url_path='')
 app.config.from_object(default_settings)
+
+import scenes
 
 
 _logger = logging.getLogger(__name__)
 
 
+def regrunt(func):
+    @wraps(func)
+    def grunter():
+        subprocess.call("grunt quick", shell=True)
+        func()
+    if (app.debug or app.testing) and app.config.get('ALWAYS_GRUNT'):
+        return grunter
+    else:
+        return func
+
+
+@regrunt
 @app.route('/')
 def subvr_app():
-    if (app.debug or app.testing) and app.config.get('ALWAYS_GRUNT'):
-        subprocess.call("grunt quick", shell=True)
+    # if (app.debug or app.testing) and app.config.get('ALWAYS_GRUNT'):
+    #     subprocess.call("grunt quick", shell=True)
     scene = request.args.get('scene', 'underwater_tomb')
     return render_template('subvr.html',
         json_config=Markup(r"""<script>

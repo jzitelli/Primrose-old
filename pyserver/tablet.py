@@ -5,7 +5,12 @@ import logging
 from tornado.websocket import WebSocketHandler
 from tornado.ioloop import IOLoop, PeriodicCallback
 
-import wintab32
+try:
+    import wintab32 as wacomtab
+except Exception as err:
+    # TODO: investigate wacom tablet usage on linux (fedora, ubuntu)
+    pass
+
 
 _logger = logging.getLogger(__name__)
 
@@ -32,3 +37,8 @@ class TabletHandler(WebSocketHandler):
         if n > 0:
             _logger.debug("%d %d %d %d" % (n, buf[0].pkX, buf[0].pkY, buf[0].pkNormalPressure))
             self.write_message({'n': n})
+
+
+if __name__ == "__main__":
+    # TODO: simple test harness for testing wacom input device websocket (focus on linux atm)
+    pass

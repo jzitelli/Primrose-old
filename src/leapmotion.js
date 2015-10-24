@@ -16,7 +16,7 @@ function addHands(parent) {
     var palm = new THREE.Mesh(new THREE.SphereBufferGeometry(0.025 / scale).scale(1, 0.5, 1));
     leftRoot.add(palm);
     palms.push(palm);
-    var palm = palm.clone();
+    palm = palm.clone();
     rightRoot.add(palm);
     palms.push(palm);
 

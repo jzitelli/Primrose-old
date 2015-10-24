@@ -24,7 +24,6 @@ function GFXTablet(scene, width, height) {
     cursorMaterial.opacity = 0.25;
     var cursor = new THREE.Mesh(new THREE.CircleGeometry(0.02), cursorMaterial);
     canvasMesh.add(cursor);
-    cursor.visible = false;
     cursor.position.z = 0.01;
 
     var image = paintableMaterial.map.image;
@@ -35,21 +34,21 @@ function GFXTablet(scene, width, height) {
     };
 
     function drawStroke (points) {
+        if (points.length === 0)
+            return;
+        var start = points[0];
         ctx.beginPath();
-        for (var j = 0; j < points.length - 1; j++) {
-            var start = points[j];
-            var end = points[j + 1];
-            ctx.moveTo(gfxtabletCanvas.width * start.x, gfxtabletCanvas.height * start.y);
-            ctx.lineTo(gfxtabletCanvas.width * end.x, gfxtabletCanvas.height * end.y);
-        }
-
         ctx.strokeStyle = 'rgba(0,255,100,1)'; //stroke.color;
         ctx.lineWidth = 5; //normalizeLineSize(stroke.size);
+        ctx.moveTo(gfxtabletCanvas.width * start.x, gfxtabletCanvas.height * start.y);
+        for (var j = 1; j < points.length; j++) {
+            var end = points[j];
+            ctx.lineTo(gfxtabletCanvas.width * end.x, gfxtabletCanvas.height * end.y);
+        }
+        ctx.stroke();
         //ctx.lineJoin = stroke.join;
         //ctx.lineCap = stroke.cap;
         //ctx.miterLimit = stroke.miterLimit;
-        ctx.stroke();
-        ctx.closePath();
     }
 
     function circle(x, y, r, c, o, ctx) {
@@ -73,29 +72,29 @@ function GFXTablet(scene, width, height) {
     socket.onmessage = function (message) {
         var data = JSON.parse(message.data);
         if (data.p > 0) {
-            cursor.visible = false;
             points.push(data);
             // circle(gfxtabletCanvas.width * data.x,
             //     gfxtabletCanvas.height * data.y,
             //     2 + 50*data.p * data.p, '255,0,0', 0.1 + 0.9 * data.p, ctx);
-            if (points.length >= 3) {
+            if (points.length > 3) {
                 drawStroke(points);
                 paintableMaterial.map.needsUpdate = true;
-                points.splice(0, points.length-1);
+                points.splice(0, 3);
             }
         } else {
-            if (data.button !== undefined && data.button_down === 0) {
-                drawStroke(points);
-                paintableMaterial.map.needsUpdate = true;
-                points.splice(0, points.length);
-            }
-            // draw brush cursor
-            cursor.visible = true;
             cursor.position.x = -aspect * scale / 2 + aspect * scale * data.x;
             cursor.position.y = scale / 2 - scale * data.y;
         }
-        // if (data.button !== undefined) {
-        //     console.log(data.x + ' ' + data.y + ' ' + data.p + ' ' + data.button + ' ' + data.button_down);
-        // }
+        if (data.button !== undefined) {
+            if (data.button_down === 0) {
+                drawStroke(points);
+                paintableMaterial.map.needsUpdate = true;
+                points = [];
+                // draw brush cursor
+                cursor.visible = true;
+            } else {
+                cursor.visible = false;
+            }
+        }
     };
 }

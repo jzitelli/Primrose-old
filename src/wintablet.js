@@ -1,7 +1,7 @@
 function WinTablet(scene) {
-    "use strict"
+    "use strict";
     var socket = new WebSocket('ws://' + document.domain + ':' + location.port + '/tablet');
-    var paintableMaterial
+    var paintableMaterial;
     var gfxtabletCanvas;
     socket.onopen = function () {
         gfxtabletCanvas = document.createElement('canvas');
@@ -31,11 +31,11 @@ function WinTablet(scene) {
     }
     socket.onmessage = function (message) {
         var data = JSON.parse(message.data);
-        console.log(data)
+        console.log(data);
         // if (data.p > 0) {
         //     var image = paintableMaterial.map.image;
         //     var ctx = image.getContext('2d');
-        //     circle(gfxtabletCanvas.width * data.x, 
+        //     circle(gfxtabletCanvas.width * data.x,
         //         gfxtabletCanvas.height * data.y,
         //         2 + 20*data.p, '255,0,0', 0.1 + 0.9 * data.p, ctx);
         //     paintableMaterial.map.needsUpdate = true;

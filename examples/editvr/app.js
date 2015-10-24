@@ -105,7 +105,7 @@ function onLoad() {
     var mousePointer = new THREE.Mesh(new THREE.SphereBufferGeometry(0.03));
     mousePointer.position.z -= 3;
     avatar.add(mousePointer);
-    var rectMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0), new THREE.MeshBasicMaterial({color: 0x0022ee, transparent: true, opacity: 0.8}));
+    var rectMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0), new THREE.MeshBasicMaterial({color: 0x0022ee, side: THREE.DoubleSide, transparent: true, opacity: 0.8}));
     avatar.add(rectMesh);
     rectMesh.visible = false;
     var drawingRect = false;
