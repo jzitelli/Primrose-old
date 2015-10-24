@@ -102,8 +102,8 @@ function onLoad() {
     })();
 
 
-    var mousePointer = new THREE.Mesh(new THREE.SphereBufferGeometry(0.03));
-    mousePointer.position.z -= 3;
+    var mousePointer = new THREE.Mesh(new THREE.SphereBufferGeometry(0.02));
+    mousePointer.position.z -= 2;
     avatar.add(mousePointer);
     var rectMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0), new THREE.MeshBasicMaterial({color: 0x0022ee, side: THREE.DoubleSide, transparent: true, opacity: 0.8}));
     avatar.add(rectMesh);
@@ -113,7 +113,9 @@ function onLoad() {
         var dx = evt.movementX,
             dy = evt.movementY;
         mousePointer.position.x += 0.003*dx;
+        mousePointer.position.x = Math.max(Math.min(mousePointer.position.x, 2.5), -2.5);
         mousePointer.position.y -= 0.003*dy;
+        mousePointer.position.y = Math.max(Math.min(mousePointer.position.y, 1.5), -1);
         if (drawingRect) {
             var xScale = mousePointer.position.x - rectMesh.position.x,
                 yScale = rectMesh.position.y - mousePointer.position.y;
