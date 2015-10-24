@@ -1,0 +1,3 @@
+[submodule "examples/subvr"]
+	path = examples/subvr
+	url = https://github.com/jzitelli/subvr

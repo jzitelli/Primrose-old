@@ -7,7 +7,6 @@ node_modules
 
 obj
 bin
-examples/subvr
 
 primrose.sublime-project
 primrose.sublime-workspace
