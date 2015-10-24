@@ -103,10 +103,45 @@ function onLoad() {
 
 
     var mousePointer = application.mousePointer;
-    var rectMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0), new THREE.MeshBasicMaterial({color: 0x0022ee, side: THREE.DoubleSide, transparent: true, opacity: 0.8}));
+    var rectGeom = new THREE.PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0);
+    var rectMesh = new THREE.Mesh(rectGeom, new THREE.MeshBasicMaterial({color: 0x0022ee, side: THREE.DoubleSide, transparent: true, opacity: 0.8}));
     avatar.add(rectMesh);
     rectMesh.visible = false;
     var drawingRect = false;
+    var popupMenu = new THREE.Mesh(rectGeom);
+    popupMenu.visible = false;
+    scene.add(popupMenu);
+    window.addEventListener("mousedown", function (evt) {
+        if (evt.buttons == 1) {
+            drawingRect = true;
+            mousePointer.visible = false;
+            rectMesh.position.copy(mousePointer.position);
+        } else
+        if (evt.buttons == 2) {
+            scene.remove(popupMenu);
+            avatar.add(popupMenu);
+            popupMenu.position.copy(mousePointer.position);
+            popupMenu.quaternion.set(0,0,0,1);
+            popupMenu.visible = true;
+        }
+    });
+    window.addEventListener("mouseup", function (evt) {
+        if (drawingRect) {
+            drawingRect = false;
+            var newMesh = rectMesh.clone();
+            newMesh.position.copy(avatar.localToWorld(rectMesh.position));
+            newMesh.quaternion.copy(avatar.quaternion);
+            scene.add(newMesh);
+            rectMesh.visible = false;
+            mousePointer.visible = true;
+        } else
+        if (popupMenu.visible) {
+            avatar.remove(popupMenu);
+            scene.add(popupMenu);
+            popupMenu.position.copy(avatar.localToWorld(popupMenu.position));
+            popupMenu.quaternion.copy(avatar.quaternion);
+        }
+    });
     window.addEventListener("mousemove", function (evt) {
         var dx = evt.movementX,
             dy = evt.movementY;
@@ -125,32 +160,9 @@ function onLoad() {
             }
         }
     });
-    window.addEventListener("mousedown", function (evt) {
-        if (evt.buttons == 1) {
-            drawingRect = true;
-            mousePointer.visible = false;
-            rectMesh.position.copy(mousePointer.position);
-        }
+    window.addEventListener("wheel", function (evt) {
+
     });
-    window.addEventListener("mouseup", function (evt) {
-        if (drawingRect) {
-            drawingRect = false;
-            var newMesh = rectMesh.clone();
-            newMesh.position.copy(avatar.localToWorld(rectMesh.position));
-            newMesh.quaternion.copy(avatar.quaternion);
-            scene.add(newMesh);
-            rectMesh.visible = false;
-            mousePointer.visible = true;
-        }
-    });
-
-
-    // window.addEventListener("wheel", function (evt) {
-    // });
-
-    // window.addEventListener("paste", function (evt) {
-    // });
-
 
     // var editorMesh = application.makeEditor("python_editor", 1, 1, {tokenizer: Primrose.Text.Grammars.Python});
     // pyserver.readFile('test.py', function (text) {
