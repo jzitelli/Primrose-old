@@ -102,9 +102,7 @@ function onLoad() {
     })();
 
 
-    var mousePointer = new THREE.Mesh(new THREE.SphereBufferGeometry(0.02));
-    mousePointer.position.z -= 2;
-    avatar.add(mousePointer);
+    var mousePointer = application.mousePointer;
     var rectMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0), new THREE.MeshBasicMaterial({color: 0x0022ee, side: THREE.DoubleSide, transparent: true, opacity: 0.8}));
     avatar.add(rectMesh);
     rectMesh.visible = false;

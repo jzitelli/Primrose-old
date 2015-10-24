@@ -84,6 +84,10 @@ WebVRApplication = ( function () {
                 console.log("gamepad " + id + " connected");
             }
         }.bind(this), false);
+        this.mousePointer = new THREE.Mesh(new THREE.SphereBufferGeometry(0.02));
+        this.mousePointer.position.z = -2;
+        avatar.add(this.mousePointer);
+        this.mousePointer.visible = false;
 
         var world = new CANNON.World();
         world.defaultContactMaterial.friction = 0.2;
@@ -318,6 +322,7 @@ WebVRApplication = ( function () {
         elem.msRequestFullscreen();
       }
 
+      mousePointer.visible = true;
       if ( elem.requestPointerLock ) {
         elem.requestPointerLock();
       } else
