@@ -3,15 +3,17 @@
 var fs = require( "fs" ),
     files = [
       "obj/Primrose.js",
+      "lib/three-r73.js",
       "lib/VREffect.js",
       "lib/VRControls.js",
       "lib/ColladaLoader.js",
+      "lib/TextGeometry.js",
+      "lib/FontUtils.js",
       "lib/webvr-polyfill.js",
       "lib/webvr-manager.js",
       "node_modules/cannon/build/cannon.js",
       "node_modules/leapjs/leap-0.6.4.js",
-      "node_modules/socket.io-client/socket.io.js",
-      "node_modules/three.js/build/three.js"
+      "node_modules/socket.io-client/socket.io.js"
     ],
     uglifyFiles = files.map( function ( s ) {
       return{

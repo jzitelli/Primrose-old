@@ -33,26 +33,18 @@ function onLoad() {
     });
 
 
-    var mousePointer = new THREE.Mesh(new THREE.SphereBufferGeometry(0.025));
-    mousePointer.position.z -= 3;
-    avatar.add(mousePointer);
-    window.addEventListener("mousemove", function (evt) {
-        var dx = evt.movementX,
-            dy = evt.movementY;
-        mousePointer.position.x += 0.0025*dx;
-        mousePointer.position.y -= 0.0025*dy;
-    });
-
     var audioContext = application.audioContext;
-    var source = audioContext.createBufferSource();
-    var request = new XMLHttpRequest();
+    var source;
     var gainNode = audioContext.createGain();
     gainNode.connect(audioContext.destination);
     gainNode.gain.value = 0.75;
+
+    // var request = new XMLHttpRequest();
     // request.open('GET', 'examples/vrSound/underwater.ogg', true);
     // request.responseType = 'arraybuffer';
     // request.onload = function() {
     //     var audioData = request.response;
+    //     source = audioContext.createBufferSource();
     //     audioContext.decodeAudioData( audioData ).then(function(buffer) {
     //         source.buffer = buffer;
     //         source.connect(gainNode);
@@ -71,7 +63,6 @@ function onLoad() {
       function(stream) {
         source = audioContext.createMediaStreamSource(stream);
         source.connect(gainNode);
-        source.start(0);
       },
       // Error callback
       function(err) {
