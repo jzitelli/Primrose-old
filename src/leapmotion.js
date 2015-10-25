@@ -79,6 +79,7 @@ var addTool = (function () {
         leapController.connect();
         var scale = 0.001;
         var toolGeom = new THREE.CylinderGeometry(0.025 / scale, 0.025 / scale, 0.5 / scale, 7, 1, false, 0, 2*Math.PI);
+        toolGeom.computeFaceNormals();
         var toolMaterial = new THREE.MeshLambertMaterial({color: 0xeebbff, shading: THREE.FlatShading});
         var toolMesh = new THREE.Mesh(toolGeom, toolMaterial);
         var toolRoot = new THREE.Object3D();
@@ -91,8 +92,8 @@ var addTool = (function () {
         function onFrame(frame) {
             if (frame.tools.length == 1) {
                 var tool = frame.tools[0];
-                //toolMesh.position.set(tool.tipPosition[0], tool.tipPosition[1], tool.tipPosition[2]);
-                toolMesh.position.set(tool.stabilizedTipPosition[0], tool.stabilizedTipPosition[1], tool.stabilizedTipPosition[2]);
+                toolMesh.position.set(tool.tipPosition[0], tool.tipPosition[1], tool.tipPosition[2]);
+                // toolMesh.position.set(tool.stabilizedTipPosition[0], tool.stabilizedTipPosition[1], tool.stabilizedTipPosition[2]);
                 direction.set(tool.direction[0], tool.direction[1], tool.direction[2]);
                 toolMesh.quaternion.setFromUnitVectors(UP, direction);
                 toolRoot.visible = true;
