@@ -33,73 +33,29 @@ function onLoad() {
     });
 
 
-    // Create particle group and emitter
-    var particleGroup,
-        emitter;
-    function initParticles() {
-        particleGroup = new SPE.Group({
-            texture: {
-                value: THREE.ImageUtils.loadTexture('images/bubble5.png')
-            }
-        });
-        emitter = new SPE.Emitter({
-            maxAge: {
-                value: 1
-            },
-            position: {
-                value: new THREE.Vector3(0, 0, 0),
-                spread: new THREE.Vector3( 10, 0.5, 10 )
-            },
-            acceleration: {
-                value: new THREE.Vector3(0, 0.04, 0),
-                spread: new THREE.Vector3( 0.01, 0.001, 0.01 )
-            },
-            velocity: {
-                value: new THREE.Vector3(0, 2, 0),
-                spread: new THREE.Vector3(2.0, 4.5/2, 2.0 )
-            },
-            color: {
-                value: [ new THREE.Color('white'), new THREE.Color('green') ]
-            },
-            size: {
-                value: 0.11
-            },
-            particleCount: 500,
-            activeMultiplier: 1
-        });
-        particleGroup.addEmitter( emitter );
-        particleGroup.mesh.position.y -= 1;
-        scene.add( particleGroup.mesh );
-        application.particleGroups.push(particleGroup);
-    }
-    if (true || URL_PARAMS.SPE) {
-        initParticles();
-    }
-
-
     addHands(avatar);
 
 
-    (function () {
-        var audioContext = application.audioContext;
-        var source = audioContext.createBufferSource();
-        var request = new XMLHttpRequest();
-        var gainNode = audioContext.createGain();
-        gainNode.connect(audioContext.destination);
-        gainNode.gain.value = 0.5;
-        request.open('GET', 'sounds/wind.ogg', true);
-        request.responseType = 'arraybuffer';
-        request.onload = function() {
-            var audioData = request.response;
-            audioContext.decodeAudioData( audioData ).then(function(buffer) {
-                source.buffer = buffer;
-                source.connect(gainNode);
-                source.loop = true;
-                source.start(0);
-              });
-        };
-        request.send();
-    })();
+    // (function () {
+    //     var audioContext = application.audioContext;
+    //     var source = audioContext.createBufferSource();
+    //     var request = new XMLHttpRequest();
+    //     var gainNode = audioContext.createGain();
+    //     gainNode.connect(audioContext.destination);
+    //     gainNode.gain.value = 0.5;
+    //     request.open('GET', 'sounds/wind.ogg', true);
+    //     request.responseType = 'arraybuffer';
+    //     request.onload = function() {
+    //         var audioData = request.response;
+    //         audioContext.decodeAudioData( audioData ).then(function(buffer) {
+    //             source.buffer = buffer;
+    //             source.connect(gainNode);
+    //             source.loop = true;
+    //             source.start(0);
+    //           });
+    //     };
+    //     request.send();
+    // })();
 
 
     var mousePointer = application.mousePointer;
@@ -112,9 +68,12 @@ function onLoad() {
     popupMenu.visible = false;
     scene.add(popupMenu);
     window.addEventListener("mousedown", function (evt) {
+        if (!mousePointer.visible) {
+            return;
+        }
         if (evt.buttons == 1) {
             drawingRect = true;
-            mousePointer.visible = false;
+            // mousePointer.visible = false;
             rectMesh.position.copy(mousePointer.position);
         } else
         if (evt.buttons == 2) {
@@ -126,6 +85,9 @@ function onLoad() {
         }
     });
     window.addEventListener("mouseup", function (evt) {
+        if (!mousePointer.visible) {
+            return;
+        }
         if (drawingRect) {
             drawingRect = false;
             var newMesh = rectMesh.clone();
@@ -133,7 +95,7 @@ function onLoad() {
             newMesh.quaternion.copy(avatar.quaternion);
             scene.add(newMesh);
             rectMesh.visible = false;
-            mousePointer.visible = true;
+            // mousePointer.visible = true;
         } else
         if (popupMenu.visible) {
             avatar.remove(popupMenu);
@@ -146,7 +108,7 @@ function onLoad() {
         var dx = evt.movementX,
             dy = evt.movementY;
         mousePointer.position.x += 0.003*dx;
-        mousePointer.position.x = Math.max(Math.min(mousePointer.position.x, 2.5), -2.5);
+        mousePointer.position.x = Math.max(Math.min(mousePointer.position.x, 2.25), -2.25);
         mousePointer.position.y -= 0.003*dy;
         mousePointer.position.y = Math.max(Math.min(mousePointer.position.y, 1.5), -1);
         if (drawingRect) {
@@ -164,11 +126,12 @@ function onLoad() {
 
     });
 
-    // var editorMesh = application.makeEditor("python_editor", 1, 1, {tokenizer: Primrose.Text.Grammars.Python});
-    // pyserver.readFile('test.py', function (text) {
-    //     editorMesh.textBox.value = text;
-    // });
-    // scene.add(editorMesh);
+    var editorMesh = application.makeEditor("python_editor", 1, 1, {tokenizer: Primrose.Text.Grammars.Python});
+    editorMesh.position.set(2, 2, -5);
+    pyserver.readFile('examples/editvr/test.py', function (text) {
+        editorMesh.textBox.value = text;
+        scene.add(editorMesh);
+    });
 
 	application.start();
 }

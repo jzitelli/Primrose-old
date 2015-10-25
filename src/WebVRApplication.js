@@ -15,8 +15,6 @@ WebVRApplication = ( function () {
             backgroundColor: 0x000000,
             keyboardCommands: [{name: "turnLeft", buttons: [-Primrose.Input.Keyboard.LEFTARROW]},
                 {name: "turnRight", buttons: [Primrose.Input.Keyboard.RIGHTARROW]},
-                // {name: "pitchUp", buttons: [Primrose.Input.Keyboard.UPARROW]},
-                // {name: "pitchDown", buttons: [-Primrose.Input.Keyboard.DOWNARROW]},
                 {name: "driveForward", buttons: [-Primrose.Input.Keyboard.W]},
                 {name: "driveBack", buttons: [Primrose.Input.Keyboard.S]},
                 {name: "strafeLeft", buttons: [-Primrose.Input.Keyboard.A]},
@@ -84,10 +82,12 @@ WebVRApplication = ( function () {
                 console.log("gamepad " + id + " connected");
             }
         }.bind(this), false);
-        this.mousePointer = new THREE.Mesh(new THREE.SphereBufferGeometry(0.02));
-        this.mousePointer.position.z = -2;
-        avatar.add(this.mousePointer);
-        this.mousePointer.visible = false;
+
+        var mousePointer = new THREE.Mesh(new THREE.SphereBufferGeometry(0.02));
+        mousePointer.position.z = -2;
+        avatar.add(mousePointer);
+        mousePointer.visible = false;
+        this.mousePointer = mousePointer;
 
         var world = new CANNON.World();
         world.defaultContactMaterial.friction = 0.2;
@@ -111,9 +111,27 @@ WebVRApplication = ( function () {
 
         window.addEventListener("keydown", function (evt) {
             if (evt.keyCode === Primrose.Text.Keys.F) {
-                requestFullScreen(this.renderer.domElement);
+                this.vrManager.enterImmersive();
             }
         }.bind(this));
+
+        if ("onpointerlockchange" in document) {
+          document.addEventListener('pointerlockchange', lockChangeAlert, false);
+        } else if ("onmozpointerlockchange" in document) {
+          document.addEventListener('mozpointerlockchange', lockChangeAlert, false);
+        } else if ("onwebkitpointerlockchange" in document) {
+          document.addEventListener('webkitpointerlockchange', lockChangeAlert, false);
+        }
+        function lockChangeAlert() {
+          if( document.pointerLockElement || document.mozPointerLockElement || document.webkitPointerLockElement ) {
+            console.log('The pointer lock status is now locked');
+            mousePointer.visible = true;
+            mousePointer.position.x = mousePointer.position.y = 0;
+          } else {
+            console.log('The pointer lock status is now unlocked');
+            mousePointer.visible = false;
+          }
+        }
 
         this.start = function() {
             function waitForResources(t) {
@@ -162,7 +180,7 @@ WebVRApplication = ( function () {
             var cosHeading = Math.cos(heading),
                 sinHeading = Math.sin(heading);
 
-            kbpitch -= 0.8 * dt * (this.keyboard.getValue("pitchUp") + this.keyboard.getValue("pitchDown"));
+            //kbpitch -= 0.8 * dt * (this.keyboard.getValue("pitchUp") + this.keyboard.getValue("pitchDown"));
             //pitch = 0.3 * pitch - 0.7 * (this.gamepad.getValue("pitch") + kbpitch);
             pitch = -(this.gamepad.getValue("pitch") + kbpitch);
             var cosPitch = Math.cos(pitch),
@@ -228,7 +246,7 @@ WebVRApplication = ( function () {
 
             if (this.particleGroups) {
                 this.particleGroups.forEach(function (group) {
-                    group.tick(0.5*dt);
+                    group.tick(dt);
                 });
             }
 
@@ -253,7 +271,6 @@ WebVRApplication = ( function () {
                 });
             };
             request.send();
-            return gainNode;
         };
 
     }
@@ -290,50 +307,15 @@ WebVRApplication = ( function () {
 
     var quad = new THREE.PlaneBufferGeometry(1, 1);
     WebVRApplication.prototype.makeEditor = function ( id, w, h, options ) {
-      options.size = options.size || new Primrose.Text.Size( 1024 * w, 1024 * h );
-      options.fontSize = options.fontSize || 30;
-      options.theme = options.theme || Primrose.Text.Themes.Dark;
-      options.tokenizer = options.tokenizer || Primrose.Text.Grammars.PlainText;
-      var t = new Primrose.Text.Controls.TextBox( id, options );
-      var mesh = new THREE.Mesh(quad.clone(), new THREE.MeshBasicMaterial({map: t.getRenderer().getTexture()}));
-      mesh.textBox = t;
-      return mesh;
+        options.size = options.size || new Primrose.Text.Size( 1024 * w, 1024 * h );
+        options.fontSize = options.fontSize || 30;
+        options.theme = options.theme || Primrose.Text.Themes.Dark;
+        options.tokenizer = options.tokenizer || Primrose.Text.Grammars.PlainText;
+        var t = new Primrose.Text.Controls.TextBox( id, options );
+        var mesh = new THREE.Mesh(quad.clone(), new THREE.MeshBasicMaterial({map: t.getRenderer().getTexture()}));
+        mesh.textBox = t;
+        return mesh;
     };
-
-
-    var FORCE_VR_DISPLAY_PARAMETER = false;
-    function requestFullScreen ( elem, vrDisplay ) {
-      var fullScreenParam;
-      if ( (!isMobile || FORCE_VR_DISPLAY_PARAMETER) && vrDisplay ) {
-        fullScreenParam = { vrDisplay: vrDisplay };
-      }
-      if ( elem.webkitRequestFullscreen && fullScreenParam ) {
-        elem.webkitRequestFullscreen( fullScreenParam );
-      } else
-      if ( elem.webkitRequestFullscreen ) {
-        elem.webkitRequestFullscreen( window.Element.ALLOW_KEYBOARD_INPUT );
-      } else
-      if ( elem.requestFullscreen ) {
-        elem.requestFullscreen();
-      } else
-      if ( elem.mozRequestFullScreen ) {
-        elem.mozRequestFullScreen();
-      } else if ( elem.msRequestFullscreen ) {
-        elem.msRequestFullscreen();
-      }
-
-      mousePointer.visible = true;
-      if ( elem.requestPointerLock ) {
-        elem.requestPointerLock();
-      } else
-      if ( elem.webkitRequestPointerLock ) {
-        elem.webkitRequestPointerLock();
-      } else
-      if ( elem.mozRequestPointerLock ) {
-        elem.mozRequestPointerLock();
-      }
-    }
-
 
     return WebVRApplication;
 } )();

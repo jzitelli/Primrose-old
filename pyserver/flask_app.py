@@ -172,8 +172,8 @@ def pyexec():
 
 @app.route("/read")
 def read():
-    """Handles requests to read file contents (files are assumed to be in examples/[_example])"""
-    filename = os.path.join(os.getcwd(), 'examples', _example, request.args['file'])
+    """Handles requests to read file contents"""
+    filename = os.path.join(STATIC_FOLDER, request.args['file'])
     response = {}
     try:
         with open(filename, 'r') as f:
