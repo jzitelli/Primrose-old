@@ -70,3 +70,35 @@ function addHands(parent) {
         }
     }
 }
+
+var addTool = (function () {
+    var UP = new THREE.Vector3(0, 1, 0);
+    var direction = new THREE.Vector3(0, 0, -1);
+    function addTool(parent) {
+        var leapController = new Leap.Controller({frameEventName: 'animationFrame'});
+        leapController.connect();
+        var scale = 0.001;
+        var toolGeom = new THREE.CylinderGeometry(0.03 / scale, 0.03 / scale, 0.5 / scale, 5, 1, false, 0, 2*Math.PI);
+        var toolMesh = new THREE.Mesh(toolGeom);
+        var toolRoot = new THREE.Object3D();
+        toolRoot.position.set(0, 0, -3);
+        toolRoot.scale.set(scale, scale, scale);
+        toolRoot.add(toolMesh);
+        parent.add(toolRoot);
+        toolRoot.visible = false;
+        leapController.on('frame', onFrame);
+        function onFrame(frame) {
+            if (frame.tools.length == 1) {
+                var tool = frame.tools[0];
+                //toolMesh.position.set(tool.tipPosition[0], tool.tipPosition[1], tool.tipPosition[2]);
+                toolMesh.position.set(tool.stabilizedTipPosition[0], tool.stabilizedTipPosition[1], tool.stabilizedTipPosition[2]);
+                direction.set(tool.direction[0], tool.direction[1], tool.direction[2]);
+                toolMesh.quaternion.setFromUnitVectors(UP, direction);
+                toolRoot.visible = true;
+            } else {
+                toolRoot.visible = false;
+            }
+        }
+    }
+    return addTool;
+})();
