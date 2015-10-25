@@ -23,6 +23,7 @@ from flask import Flask, render_template, request, jsonify, Markup, render_templ
 import default_settings
 if os.environ.get("PYSERVER_RELEASE"):
     default_settings.DEBUG = False
+    default_settings.TESTING = False
     STATIC_FOLDER = os.environ.get('PYSERVER_STATIC_FOLDER')
     TEMPLATE_FOLDER = os.environ.get('PYSERVER_TEMPLATE_FOLDER')
 elif default_settings.DEBUG:
@@ -40,22 +41,21 @@ import scenes
 _logger = logging.getLogger(__name__)
 
 
-def regrunt(func):
-    @wraps(func)
-    def grunter():
-        subprocess.call("grunt quick", shell=True)
-        func()
-    if (app.debug or app.testing) and app.config.get('ALWAYS_GRUNT'):
-        return grunter
-    else:
-        return func
+# def regrunt(func):
+#     #@wraps(func)
+#     def grunter():
+#         subprocess.call("grunt quick", shell=True)
+#         func()
+#     if (app.debug or app.testing) and app.config.get('ALWAYS_GRUNT'):
+#         return grunter
+#     else:
+#         return func
 
 
-@regrunt
 @app.route('/')
 def subvr_app():
-    # if (app.debug or app.testing) and app.config.get('ALWAYS_GRUNT'):
-    #     subprocess.call("grunt quick", shell=True)
+    if (app.debug or app.testing) and app.config.get('ALWAYS_GRUNT'):
+        subprocess.call("grunt quick", shell=True)
     scene = request.args.get('scene', 'underwater_tomb')
     return render_template('subvr.html',
         json_config=Markup(r"""<script>
@@ -65,11 +65,6 @@ var JSON_SCENE = %s;
                             if k in ['DEBUG', 'TESTING', 'WEBSOCKETS']}),
                 json.dumps(getattr(scenes, scene)(),
                            indent=(2 if app.debug else None)))))
-
-
-@app.route("/blog")
-def blog():
-    return render_template("blog.html")
 
 
 @app.route('/editvr')
@@ -102,6 +97,11 @@ var JSON_SCENE = %s;
                             if k in ['DEBUG', 'TESTING', 'WEBSOCKETS']}),
                 json.dumps(getattr(scenes, scene)(),
                            indent=(2 if app.debug else None)))))
+
+
+@app.route("/blog")
+def blog():
+    return render_template("blog.html")
 
 
 @app.route('/skyDesk')

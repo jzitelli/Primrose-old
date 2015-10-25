@@ -24,6 +24,7 @@ do
       break;
       ;;
     *)
+      echo "*** RUNNING SERVER IN DEBUG MODE ***"
       break;
       ;;
   esac
