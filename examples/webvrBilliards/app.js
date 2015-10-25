@@ -61,14 +61,14 @@ function onLoad() {
         avatar.add(application.camera);
         application.scene.add(avatar);
 
+        // leap motion tool tracking (the pool stick)
+        addTool(avatar);
+
         // avatar.physics = new CANNON.Body({mass: 1,
         //     shape: new CANNON.Sphere(avatar.boundingMesh.geometry.boundingSphere.radius)});
         // avatar.physics.position.copy(avatar.position);
         // application.world.add(avatar.physics);
         // avatar.physics.graphics = avatar;
-
-        // leap motion tool tracking (the pool stick)
-        addTool(avatar);
 
         application.start();
     });

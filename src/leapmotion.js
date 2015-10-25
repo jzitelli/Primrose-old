@@ -79,7 +79,8 @@ var addTool = (function () {
         leapController.connect();
         var scale = 0.001;
         var toolGeom = new THREE.CylinderGeometry(0.03 / scale, 0.03 / scale, 0.5 / scale, 5, 1, false, 0, 2*Math.PI);
-        var toolMesh = new THREE.Mesh(toolGeom);
+        var toolMaterial = new THREE.MeshLambertMaterial({color: 0xeebbff});
+        var toolMesh = new THREE.Mesh(toolGeom, toolMaterial);
         var toolRoot = new THREE.Object3D();
         toolRoot.position.set(0, 0, -3);
         toolRoot.scale.set(scale, scale, scale);
