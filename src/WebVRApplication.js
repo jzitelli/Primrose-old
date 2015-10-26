@@ -10,10 +10,12 @@ WebVRApplication = ( function () {
 
         this.audioContext = new AudioContext();
 
-        options = combineDefaults(options, {
-            gravity: 0,
-            backgroundColor: 0x000000,
-            keyboardCommands: [{name: "turnLeft", buttons: [-Primrose.Input.Keyboard.LEFTARROW]},
+        this.log = function(msg) {
+            console.log(msg);
+        };
+
+        // TODO: make this object, not array
+        var keyboardCommands = [{name: "turnLeft", buttons: [-Primrose.Input.Keyboard.LEFTARROW]},
                 {name: "turnRight", buttons: [Primrose.Input.Keyboard.RIGHTARROW]},
                 {name: "driveForward", buttons: [-Primrose.Input.Keyboard.W]},
                 {name: "driveBack", buttons: [Primrose.Input.Keyboard.S]},
@@ -23,8 +25,13 @@ WebVRApplication = ( function () {
                 {name: "floatDown", buttons: [-Primrose.Input.Keyboard.C]},
                 {name: "toggleVRControls", buttons: [Primrose.Input.Keyboard.V], commandDown: this.toggleVRControls.bind(this), dt: 0.25},
                 {name: "toggleWireframe", buttons: [Primrose.Input.Keyboard.U], commandDown: this.toggleWireframe.bind(this), dt: 0.25},
-                {name: 'resetVRSensor', buttons: [Primrose.Input.Keyboard.Z], commandDown: this.resetVRSensor.bind(this), dt: 0.25}],
-            gamepadCommands: [{name: "strafe", axes: [Primrose.Input.Gamepad.LSX], deadzone: 0.15},
+                {name: 'resetVRSensor', buttons: [Primrose.Input.Keyboard.Z], commandDown: this.resetVRSensor.bind(this), dt: 0.25}];
+        if (options.keyboardCommands) {
+            Array.prototype.push.apply(options.keyboardCommands, keyboardCommands);
+        } else {
+            options.keyboardCommands = keyboardCommands;
+        }
+        var gamepadCommands = [{name: "strafe", axes: [Primrose.Input.Gamepad.LSX], deadzone: 0.15},
                 {name: "drive", axes: [Primrose.Input.Gamepad.LSY], deadzone: 0.15},
                 {name: "heading", axes: [-Primrose.Input.Gamepad.RSX], integrate: true, deadzone: 0.15},
                 {name: "dheading", commands: ["heading"], delta: true},
@@ -34,7 +41,15 @@ WebVRApplication = ( function () {
                     commandDown: function () { application.avatar.floatMode = true; },
                     commandUp: function () { application.avatar.floatMode = false; } },
                 {name: "resetVRSensor", buttons: [Primrose.Input.Gamepad.XBOX_BUTTONS.back],
-                    commandDown: function () { application.resetVRSensor(); }, dt: 0.25}],
+                    commandDown: function () { application.resetVRSensor(); }, dt: 0.25}];
+        if (options.gamepadCommands) {
+            Array.prototype.push.apply(options.gamepadCommands, gamepadCommands);
+        } else {
+            options.gamepadCommands = gamepadCommands;
+        }
+        options = combineDefaults(options, {
+            gravity: 0,
+            backgroundColor: 0x000000,
             mouseCommands: [{name: "dx", axes: [-Primrose.Input.Mouse.X], delta: true, scale: 0.5},
                 {name: "heading", commands: ["dx"], integrate: true},
                 {name: "dy", axes: [-Primrose.Input.Mouse.Y], delta: true, scale: 0.5},
@@ -50,31 +65,28 @@ WebVRApplication = ( function () {
             antialias: true,
             alpha: true
         });
-
-        this.log = function(msg) {
-            console.log(msg);
-        };
-
-        if (options.shadowMap) {
-            this.renderer.shadowMap.enabled = true;
-        }
-
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setClearColor(options.backgroundColor);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
+        if (options.shadowMap) {
+            this.renderer.shadowMap.enabled = true;
+        }
         document.body.appendChild(this.renderer.domElement);
 
         this.vrEffect = new THREE.VREffect(this.renderer);
-
         this.vrManager = new WebVRManager(this.renderer, this.vrEffect, {
             hideButton: false
         });
-
         this.vrControls = new THREE.VRControls(this.camera);
         this.vrControls.enabled = false;
 
         this.keyboard = new Primrose.Input.Keyboard("keyboard", window, options.keyboardCommands);
-        this.mouse = new Primrose.Input.Mouse("mouse", window, options.mouseCommands);
+        window.addEventListener("keydown", function (evt) {
+            if (evt.keyCode === Primrose.Text.Keys.F) {
+                this.vrManager.enterImmersive();
+            }
+        }.bind(this));
+
         this.gamepad = new Primrose.Input.Gamepad("gamepad", options.gamepadCommands);
         this.gamepad.addEventListener("gamepadconnected", function(id) {
             if (!this.gamepad.isGamepadSet()) {
@@ -83,11 +95,8 @@ WebVRApplication = ( function () {
             }
         }.bind(this), false);
 
-        var mousePointer = new THREE.Mesh(new THREE.SphereBufferGeometry(0.02));
-        mousePointer.position.z = -2;
-        avatar.add(mousePointer);
-        mousePointer.visible = false;
-        this.mousePointer = mousePointer;
+        // mouse controls
+        this.mouse = new Primrose.Input.Mouse("mouse", window, options.mouseCommands);
 
         var world = new CANNON.World();
         world.defaultContactMaterial.friction = 0.2;
@@ -109,29 +118,6 @@ WebVRApplication = ( function () {
             }
         }.bind(this), false);
 
-        window.addEventListener("keydown", function (evt) {
-            if (evt.keyCode === Primrose.Text.Keys.F) {
-                this.vrManager.enterImmersive();
-            }
-        }.bind(this));
-
-        if ("onpointerlockchange" in document) {
-          document.addEventListener('pointerlockchange', lockChangeAlert, false);
-        } else if ("onmozpointerlockchange" in document) {
-          document.addEventListener('mozpointerlockchange', lockChangeAlert, false);
-        } else if ("onwebkitpointerlockchange" in document) {
-          document.addEventListener('webkitpointerlockchange', lockChangeAlert, false);
-        }
-        function lockChangeAlert() {
-          if( document.pointerLockElement || document.mozPointerLockElement || document.webkitPointerLockElement ) {
-            console.log('The pointer lock status is now locked');
-            mousePointer.visible = true;
-            mousePointer.position.x = mousePointer.position.y = 0;
-          } else {
-            console.log('The pointer lock status is now unlocked');
-            mousePointer.visible = false;
-          }
-        }
 
         this.start = function() {
             function waitForResources(t) {
@@ -181,7 +167,6 @@ WebVRApplication = ( function () {
                 sinHeading = Math.sin(heading);
 
             //kbpitch -= 0.8 * dt * (this.keyboard.getValue("pitchUp") + this.keyboard.getValue("pitchDown"));
-            //pitch = 0.3 * pitch - 0.7 * (this.gamepad.getValue("pitch") + kbpitch);
             pitch = -(this.gamepad.getValue("pitch") + kbpitch);
             var cosPitch = Math.cos(pitch),
                 sinPitch = Math.sin(pitch);
@@ -256,14 +241,14 @@ WebVRApplication = ( function () {
         var gainNode = audioContext.createGain();
         gainNode.connect(audioContext.destination);
         gainNode.gain.value = 1;
+        this.gainNode = gainNode;
         this.playSound = function (url, loop) {
-            loop = (loop === true);
             var source = audioContext.createBufferSource();
-            source.loop = loop;
+            source.loop = (loop === true);
             source.connect(gainNode);
             var request = new XMLHttpRequest();
-            request.open('GET', url, true);
             request.responseType = 'arraybuffer';
+            request.open('GET', url, true);
             request.onload = function() {
                 audioContext.decodeAudioData(request.response).then(function(buffer) {
                     source.buffer = buffer;

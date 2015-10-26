@@ -99,22 +99,6 @@ var JSON_SCENE = %s;
                            indent=(2 if app.debug else None)))))
 
 
-@app.route('/skyDesk')
-def skyDesk():
-    """skyDesk app"""
-    if (app.debug or app.testing) and app.config.get('ALWAYS_GRUNT'):
-        subprocess.call("grunt quick", shell=True)
-    scene = request.args.get('scene', 'shader_room')
-    return render_template('editvr.html',
-        json_config=Markup(r"""<script>
-var JSON_CONFIG = %s;
-var JSON_SCENE = %s;
-</script>""" % (json.dumps({k: v for k, v in app.config.items()
-                            if k in ['DEBUG', 'TESTING', 'WEBSOCKETS']}),
-                json.dumps(getattr(scenes, scene)(),
-                           indent=(2 if app.debug else None)))))
-
-
 @app.route('/webvrBilliards')
 def webvrBilliards():
     """billiards app"""

@@ -50,9 +50,13 @@ function addHands(parent) {
     }
 
     leapController.on('frame', onFrame);
+    var UP = new THREE.Vector3(0, 1, 0);
+    var palmNormal = new THREE.Vector3(0, 0, 0);
     function onFrame(frame) {
         frame.hands.forEach(function (hand, i) {
             palms[i].position.set(hand.palmPosition[0], hand.palmPosition[1], hand.palmPosition[2]);
+            palmNormal.set(hand.palmNormal[0], hand.palmNormal[1], hand.palmNormal[2]);
+            palms[i].quaternion.setFromUnitVectors(UP, palmNormal);
             hand.fingers.forEach(function (finger, j) {
                 tips[i][j].position.set(finger.tipPosition[0], finger.tipPosition[1], finger.tipPosition[2]);
                 joints[i][j][0].position.set(finger.bones[1].nextJoint[0], finger.bones[1].nextJoint[1], finger.bones[1].nextJoint[2]);
@@ -73,7 +77,7 @@ function addHands(parent) {
 
 var addTool = (function () {
     var UP = new THREE.Vector3(0, 1, 0);
-    var direction = new THREE.Vector3(0, 0, -1);
+    var direction = new THREE.Vector3(0, 0, 0);
     function addTool(parent) {
         var leapController = new Leap.Controller({frameEventName: 'animationFrame'});
         leapController.connect();
