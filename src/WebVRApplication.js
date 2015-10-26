@@ -166,7 +166,7 @@ WebVRApplication = ( function () {
             var cosHeading = Math.cos(heading),
                 sinHeading = Math.sin(heading);
 
-            //kbpitch -= 0.8 * dt * (this.keyboard.getValue("pitchUp") + this.keyboard.getValue("pitchDown"));
+            kbpitch -= 0.8 * dt * (this.keyboard.getValue("pitchUp") + this.keyboard.getValue("pitchDown"));
             pitch = -(this.gamepad.getValue("pitch") + kbpitch);
             var cosPitch = Math.cos(pitch),
                 sinPitch = Math.sin(pitch);
