@@ -159,9 +159,9 @@ var CrapLoader = ( function () {
                         break;
                     case 'Box':
                         var halfExtents = new CANNON.Vec3();
-                        halfExtents.x = (node.geometry.boundingBox.max.x - node.geometry.boundingBox.min.x) / 2;
-                        halfExtents.y = (node.geometry.boundingBox.max.y - node.geometry.boundingBox.min.y) / 2;
-                        halfExtents.z = (node.geometry.boundingBox.max.z - node.geometry.boundingBox.min.z) / 2;
+                        halfExtents.x = node.scale.x * (node.geometry.boundingBox.max.x - node.geometry.boundingBox.min.x) / 2;
+                        halfExtents.y = node.scale.y * (node.geometry.boundingBox.max.y - node.geometry.boundingBox.min.y) / 2;
+                        halfExtents.z = node.scale.z * (node.geometry.boundingBox.max.z - node.geometry.boundingBox.min.z) / 2;
                         shape = new CANNON.Box(halfExtents);
                         break;
                     case 'Sphere':
