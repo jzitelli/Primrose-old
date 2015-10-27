@@ -196,10 +196,9 @@ WebVRApplication = ( function () {
             this.lt = t;
 
             if (mousePointer.visible && picking) {
-                origin.copy(camera.position);
-                camera.localToWorld(origin);
-                direction.copy(mousePointer.position);
-                direction.subVectors(mousePointer.localToWorld(direction), origin).normalize();
+                origin.set(0, 0, 0);
+                direction.set(0, 0, 0);
+                direction.subVectors(mousePointer.localToWorld(direction), camera.localToWorld(origin)).normalize();
                 raycaster.set(origin, direction);
                 var intersects = raycaster.intersectObjects(pickables);
                 if (intersects.length > 0) {
@@ -207,7 +206,7 @@ WebVRApplication = ( function () {
                         if (INTERSECTED) INTERSECTED.material.color.setHex(INTERSECTED.currentHex);
                         INTERSECTED = intersects[0].object;
                         INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
-                        INTERSECTED.material.color.setHex(0xff0000); //0x44ff44);
+                        INTERSECTED.material.color.setHex(0xff4444); //0x44ff44);
                     }
                 } else {
                     if (INTERSECTED) INTERSECTED.material.color.setHex(INTERSECTED.currentHex);
@@ -257,10 +256,10 @@ WebVRApplication = ( function () {
             this.world.step(dt);
 
             for (var j = 0; j < this.world.bodies.length; ++j) {
-                var obj = this.world.bodies[j];
-                if (obj.graphics) {
-                    obj.graphics.position.copy(obj.position);
-                    obj.graphics.quaternion.copy(obj.quaternion);
+                var body = this.world.bodies[j];
+                if (body.graphics) {
+                    body.graphics.position.copy(body.position);
+                    body.graphics.quaternion.copy(body.quaternion);
                 }
             }
 
