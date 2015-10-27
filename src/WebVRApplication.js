@@ -6,7 +6,8 @@ WebVRApplication = ( function () {
         this.avatar = avatar;
         this.scene = scene;
         this.lt = 0;
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.camera = camera;
 
         this.audioContext = new AudioContext();
 
@@ -95,9 +96,6 @@ WebVRApplication = ( function () {
             }
         }.bind(this), false);
 
-        // mouse controls
-        this.mouse = new Primrose.Input.Mouse("mouse", window, options.mouseCommands);
-
         var world = new CANNON.World();
         world.defaultContactMaterial.friction = 0.2;
         world.gravity.set( 0, -options.gravity, 0 );
@@ -143,9 +141,48 @@ WebVRApplication = ( function () {
         var walkSpeed = options.moveSpeed,
             floatSpeed = 0.9 * options.moveSpeed;
         var pitchQuat = new THREE.Quaternion();
-
+        var raycaster = new THREE.Raycaster();
+        var mousePointer = new THREE.Mesh(new THREE.SphereBufferGeometry(0.02));
+        mousePointer.position.z = -2;
+        avatar.add(mousePointer);
+        mousePointer.visible = false;
+        this.mousePointer = mousePointer;
+        var INTERSECTED;
+        var picking = false;
+        var pickables;
+        this.setPicking = function (mode) {
+            picking = mode;
+            pickables = [];
+            scene.traverse(function (obj) {
+                if (obj != mousePointer && obj instanceof THREE.Mesh && obj.material.color !== undefined) {
+                    pickables.push(obj);
+                }
+            });
+        };
+        var origin = new THREE.Vector3(),
+            direction = new THREE.Vector3();
         var animate = function (t) {
             requestAnimationFrame(animate);
+
+            if (mousePointer.visible && picking) {
+                origin.copy(camera.position);
+                camera.localToWorld(origin);
+                direction.copy(mousePointer.position);
+                direction.subVectors(mousePointer.localToWorld(direction), origin).normalize();
+                raycaster.set(origin, direction);
+                var intersects = raycaster.intersectObjects(pickables);
+                if (intersects.length > 0) {
+                    if (INTERSECTED != intersects[0].object) {
+                        if (INTERSECTED) INTERSECTED.material.color.setHex(INTERSECTED.currentHex);
+                        INTERSECTED = intersects[0].object;
+                        INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
+                        INTERSECTED.material.color.setHex(0x44ff44);
+                    }
+                } else {
+                    if (INTERSECTED) INTERSECTED.material.color.setHex(INTERSECTED.currentHex);
+                    INTERSECTED = null;
+                }
+            }
 
             var dt = (t - this.lt) * 0.001;
             this.lt = t;
@@ -158,34 +195,26 @@ WebVRApplication = ( function () {
 
             this.keyboard.update(dt);
             this.gamepad.update(dt);
-            this.mouse.update(dt);
-
             kbheading += -0.8 * dt * (this.keyboard.getValue("turnLeft") +
                 this.keyboard.getValue("turnRight"));
             heading = kbheading + this.gamepad.getValue("heading");
             var cosHeading = Math.cos(heading),
                 sinHeading = Math.sin(heading);
-
             kbpitch -= 0.8 * dt * (this.keyboard.getValue("pitchUp") + this.keyboard.getValue("pitchDown"));
             pitch = -(this.gamepad.getValue("pitch") + kbpitch);
             var cosPitch = Math.cos(pitch),
                 sinPitch = Math.sin(pitch);
-
             strafe = this.keyboard.getValue("strafeRight") +
                 this.keyboard.getValue("strafeLeft") +
                 this.gamepad.getValue("strafe");
-
             floatUp = this.keyboard.getValue("floatUp") + this.keyboard.getValue("floatDown");
             drive = this.keyboard.getValue("driveBack") + this.keyboard.getValue("driveForward");
-
             if (this.avatar.floatMode) {
                 floatUp += this.gamepad.getValue("float");
             } else {
                 drive += this.gamepad.getValue("drive");
             }
-
             floatUp *= floatSpeed;
-
             if (strafe || drive) {
                 var len = walkSpeed * Math.min(1, 1 / Math.sqrt(drive * drive +
                     strafe * strafe));
@@ -195,7 +224,6 @@ WebVRApplication = ( function () {
                 strafe = 0;
                 drive = 0;
             }
-
             pitchQuat.setFromAxisAngle(RIGHT, pitch);
 
             this.world.step(dt);

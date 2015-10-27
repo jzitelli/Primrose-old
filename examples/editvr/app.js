@@ -38,16 +38,14 @@ function onLoad() {
         object.position.y = -0.85;
         object.scale.set(0.01, 0.01, 0.01);
         scene.add(object);
+        application.setPicking(true);
     });
 
 
     addHands(avatar);
 
 
-    var mousePointer = new THREE.Mesh(new THREE.SphereBufferGeometry(0.02));
-    mousePointer.position.z = -2;
-    avatar.add(mousePointer);
-    mousePointer.visible = false;
+    var mousePointer = application.mousePointer;
     if ("onpointerlockchange" in document) {
       document.addEventListener('pointerlockchange', lockChangeAlert, false);
     } else if ("onmozpointerlockchange" in document) {
@@ -79,7 +77,6 @@ function onLoad() {
         }
         if (evt.buttons == 1) {
             drawingRect = true;
-            // mousePointer.visible = false;
             rectMesh.position.copy(mousePointer.position);
         } else
         if (evt.buttons == 2) {
@@ -101,7 +98,6 @@ function onLoad() {
             newMesh.quaternion.copy(avatar.quaternion);
             scene.add(newMesh);
             rectMesh.visible = false;
-            // mousePointer.visible = true;
         } else
         if (popupMenu.visible) {
             avatar.remove(popupMenu);
@@ -127,9 +123,11 @@ function onLoad() {
                 rectMesh.visible = false;
             }
         }
+        else if (popupMenu.visible && evt.buttons == 2) {
+            popupMenu.position.copy(mousePointer.position);
+        }
     });
     window.addEventListener("wheel", function (evt) {
-
     });
 
     // TODO: investigate slow firefox performance:
@@ -139,6 +137,5 @@ function onLoad() {
         editorMesh.textBox.value = text;
         scene.add(editorMesh);
     });
-
     application.start();
 }
