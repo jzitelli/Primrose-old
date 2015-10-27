@@ -104,7 +104,7 @@ def webvrBilliards():
     """billiards app"""
     if (app.debug or app.testing) and app.config.get('ALWAYS_GRUNT'):
         subprocess.call("grunt quick", shell=True)
-    scene = request.args.get('scene', 'some_room') # TODO: pool hall scene
+    scene = request.args.get('scene', 'pool_hall')
     return render_template('webvrBilliards.html',
         json_config=Markup(r"""<script>
 var JSON_CONFIG = %s;

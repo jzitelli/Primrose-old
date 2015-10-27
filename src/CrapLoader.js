@@ -45,10 +45,10 @@ var CrapLoader = ( function () {
 
     }
 
-    function parse(json, onLoad) {
+    function parse(json) {
         if (json.materials) {
             json.materials.forEach( function (mat) {
-                if (mat.type === "ShaderMaterial" && mat.uniforms) {
+                if (mat.type.endsWith("ShaderMaterial") && mat.uniforms) {
                     var uniforms = mat.uniforms;
                     for (var key in uniforms) {
                         var uniform = uniforms[key];
@@ -66,9 +66,18 @@ var CrapLoader = ( function () {
                         }
                     }
                 }
-            });
+            } );
         }
-        return objectLoader.parse(json, function (obj) {
+        var geometries = objectLoader.parseGeometries(json.geometries.filter(function (geom) { return geom.type != "TextGeometry";}));
+        json.geometries.forEach( function (geom) {
+            if (geom.type == "TextGeometry") {
+                var geometry = new THREE.TextGeometry(geom.text, geom.parameters);
+                geometry.uuid = geom.uuid;
+                if (geom.name !== undefined) geometry.name = geom.name;
+                geometries[geom.uuid] = geometry;
+            }
+        } );
+        function onLoad(obj) {
             obj.traverse( function (node) {
                 if (node instanceof THREE.Mesh) {
                     node.geometry.computeBoundingSphere();
@@ -76,7 +85,17 @@ var CrapLoader = ( function () {
                 }
             });
             loadHeightfields(obj);
+        }
+        var images = objectLoader.parseImages(json.images, function () {
+            onLoad(object);
         });
+        var textures = objectLoader.parseTextures(json.textures, images);
+        var materials = objectLoader.parseMaterials(json.materials, textures);
+        var object = objectLoader.parseObject(json.object, geometries, materials);
+        if (json.images === undefined || json.images.length === 0) {
+            onLoad(object);
+        }
+        return object;
     }
 
     function loadHeightfields(obj) {

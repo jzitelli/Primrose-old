@@ -523,7 +523,6 @@ class TextGeometry(Three):
     def json(self):
         d = Three.json(self)
         d.update({k: v for k, v in self.__dict__.items() if k not in d and v is not None})
-        d['data'] = d.pop('parameters')
         return d
 
 
