@@ -8,6 +8,9 @@ node_modules
 obj
 bin
 
+models/ConfigUtilDeskScene.json
+models/ConfigUtilDeskScene.png
+
 primrose.sublime-project
 primrose.sublime-workspace
 
