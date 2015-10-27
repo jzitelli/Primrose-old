@@ -149,6 +149,7 @@ WebVRApplication = ( function () {
             function waitForResources(t) {
                 this.lt = t;
                 if (CrapLoader.isLoaded()) {
+                    CrapLoader.CANNONize(scene, world);
                     requestAnimationFrame(animate);
                 } else {
                     renderer.render(loadingScene, loadingCamera);
@@ -162,18 +163,18 @@ WebVRApplication = ( function () {
             RIGHT = new THREE.Vector3(1, 0, 0),
             heading = 0,
             pitch = 0,
+            pitchQuat = new THREE.Quaternion(),
             strafe,
             drive,
             floatUp,
             kbheading = 0,
-            kbpitch = 0;
-        var walkSpeed = options.moveSpeed,
+            kbpitch = 0,
+            walkSpeed = options.moveSpeed,
             floatSpeed = 0.9 * options.moveSpeed;
-        var pitchQuat = new THREE.Quaternion();
-        var raycaster = new THREE.Raycaster();
-        var INTERSECTED;
-        var picking = false;
-        var pickables;
+        var raycaster = new THREE.Raycaster(),
+            INTERSECTED,
+            picking = false,
+            pickables;
         this.setPicking = function (mode, objects) {
             picking = mode;
             if (objects) {
