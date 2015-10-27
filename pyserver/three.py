@@ -68,8 +68,8 @@ class Object3D(Three):
             self.receiveShadow = receiveShadow
         if userData is not None:
             self.userData = userData
-    def add(self, obj):
-        self.children.append(obj)
+    def add(self, *objs):
+        self.children += objs
     def find_geometries(self, geometries=None):
         if geometries is None:
             geometries = {}
@@ -163,7 +163,7 @@ class Mesh(Object3D):
                       "geometry": unicode(self.geometry.uuid)})
         except NameError:
             d.update({"material": str(self.material.uuid),
-                      "geometry": str(self.geometry.uuid)})            
+                      "geometry": str(self.geometry.uuid)})
         return d
 
 
@@ -217,8 +217,8 @@ class SpotLight(Light):
         self.angle = angle
         self.exponent = exponent
         self.decay = decay
-    
-        
+
+
 
 class HemisphereLight(Light):
     pass

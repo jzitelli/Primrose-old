@@ -174,14 +174,18 @@ WebVRApplication = ( function () {
         var INTERSECTED;
         var picking = false;
         var pickables;
-        this.setPicking = function (mode) {
+        this.setPicking = function (mode, objects) {
             picking = mode;
-            pickables = [];
-            scene.traverse(function (obj) {
-                if (obj != mousePointer && obj instanceof THREE.Mesh && obj.material.color !== undefined) {
-                    pickables.push(obj);
-                }
-            });
+            if (objects) {
+                pickables = objects;
+            } else {
+                pickables = [];
+                scene.traverse(function (obj) {
+                    if (obj != mousePointer && obj instanceof THREE.Mesh && obj.material.color !== undefined) {
+                        pickables.push(obj);
+                    }
+                });
+            }
         };
         var origin = new THREE.Vector3(),
             direction = new THREE.Vector3();
@@ -202,7 +206,7 @@ WebVRApplication = ( function () {
                         if (INTERSECTED) INTERSECTED.material.color.setHex(INTERSECTED.currentHex);
                         INTERSECTED = intersects[0].object;
                         INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
-                        INTERSECTED.material.color.setHex(0x44ff44);
+                        INTERSECTED.material.color.setHex(0xff0000); //0x44ff44);
                     }
                 } else {
                     if (INTERSECTED) INTERSECTED.material.color.setHex(INTERSECTED.currentHex);

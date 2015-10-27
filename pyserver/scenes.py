@@ -112,10 +112,15 @@ def underwater_tomb(length=20.0, width=20.0, height=30.0):
     side_colors = [0xaaffff, 0xffffaa, 0xffaaff, 0xffaaaa, 0xaaffaa, 0xaaaaff]
     scene = Scene()
     scene.add(AmbientLight(color=0x252525))
+    sphere = SphereBufferGeometry(radius=0.1)
     scene.add(PointLight(color=0x880000, intensity=0.8, distance=40,
-                         position=[0.45 * L, yAvg, -0.4 * W]))
+                         position=[0.45 * L, yAvg, -0.4 * W]),
+              Mesh(geometry=sphere, material=MeshBasicMaterial(color=0x880000),
+                   position=[0.45 * L, yAvg, -0.4 * W]))
     scene.add(PointLight(color=0x008800, intensity=0.8, distance=40,
-                         position=[-0.45 * L, yAvg, -0.4 * W]))
+                         position=[-0.45 * L, yAvg, -0.4 * W]),
+              Mesh(geometry=sphere, material=MeshBasicMaterial(color=0x008800),
+                   position=[-0.45 * L, yAvg, -0.4 * W]))
     square = RectangleBufferGeometry(vertices=[[-0.5, 0, -0.5],
                                                [-0.5, 0, 0.5],
                                                [0.5, 0, 0.5],
