@@ -175,6 +175,7 @@ WebVRApplication = ( function () {
             INTERSECTED,
             picking = false,
             pickables;
+        raycaster.far = 100;
         this.setPicking = function (mode, objects) {
             picking = mode;
             if (objects) {
@@ -348,7 +349,7 @@ WebVRApplication = ( function () {
     var quad = new THREE.PlaneBufferGeometry(1, 1);
     WebVRApplication.prototype.makeEditor = function ( id, w, h, options ) {
         options.size = options.size || new Primrose.Text.Size( 1024 * w, 1024 * h );
-        options.fontSize = options.fontSize || 30;
+        options.fontSize = options.fontSize || 50;
         options.theme = options.theme || Primrose.Text.Themes.Dark;
         options.tokenizer = options.tokenizer || Primrose.Text.Grammars.PlainText;
         var t = new Primrose.Text.Controls.TextBox( id, options );

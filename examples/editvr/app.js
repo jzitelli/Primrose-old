@@ -58,35 +58,40 @@ function onLoad() {
         if (!mousePointer.visible) {
             return;
         }
-        if (evt.buttons == 1) {
+        if (evt.button === 1) {
             drawingRect = true;
             rectMesh.position.copy(mousePointer.position);
+            application.setPicking(false);
         } else
-        if (evt.buttons == 2) {
+        if (evt.button === 2) {
             scene.remove(popupMenu);
             avatar.add(popupMenu);
             popupMenu.position.copy(mousePointer.position);
             popupMenu.quaternion.set(0,0,0,1);
             popupMenu.visible = true;
+            application.setPicking(false);
         }
     });
     window.addEventListener("mouseup", function (evt) {
         if (!mousePointer.visible) {
             return;
         }
-        if (drawingRect) {
+        if (evt.button === 1) {
             drawingRect = false;
             var newMesh = rectMesh.clone();
+            newMesh.material = rectMesh.material.clone();
             newMesh.position.copy(avatar.localToWorld(rectMesh.position));
             newMesh.quaternion.copy(avatar.quaternion);
             scene.add(newMesh);
             rectMesh.visible = false;
+            application.setPicking(true);
         } else
-        if (popupMenu.visible) {
+        if (evt.button === 2) {
             avatar.remove(popupMenu);
             scene.add(popupMenu);
             popupMenu.position.copy(avatar.localToWorld(popupMenu.position));
             popupMenu.quaternion.copy(avatar.quaternion);
+            application.setPicking(true);
         }
     });
     window.addEventListener("mousemove", function (evt) {
@@ -106,7 +111,7 @@ function onLoad() {
                 rectMesh.visible = false;
             }
         }
-        else if (popupMenu.visible && evt.buttons == 2) {
+        else if (popupMenu.visible && evt.buttons === 2) {
             popupMenu.position.copy(mousePointer.position);
         }
     });
@@ -114,8 +119,8 @@ function onLoad() {
     });
 
     // TODO: investigate slow firefox performance:
-    var editorMesh = application.makeEditor("python_editor", 1, 1, {tokenizer: Primrose.Text.Grammars.Python});
-    editorMesh.position.set(2, 1, -3);
+    var editorMesh = application.makeEditor("python_editor", 2, 2, {tokenizer: Primrose.Text.Grammars.Python});
+    editorMesh.position.set(1.25, 0, -1.5);
     pyserver.readFile('examples/editvr/test.py', function (text) {
         editorMesh.textBox.value = text;
         scene.add(editorMesh);
