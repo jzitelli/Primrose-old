@@ -46,23 +46,6 @@ function onLoad() {
 
 
     var mousePointer = application.mousePointer;
-    if ("onpointerlockchange" in document) {
-      document.addEventListener('pointerlockchange', lockChangeAlert, false);
-    } else if ("onmozpointerlockchange" in document) {
-      document.addEventListener('mozpointerlockchange', lockChangeAlert, false);
-    } else if ("onwebkitpointerlockchange" in document) {
-      document.addEventListener('webkitpointerlockchange', lockChangeAlert, false);
-    }
-    function lockChangeAlert() {
-      if( document.pointerLockElement || document.mozPointerLockElement || document.webkitPointerLockElement ) {
-        console.log('The pointer lock status is now locked');
-        mousePointer.visible = true;
-        mousePointer.position.x = mousePointer.position.y = 0;
-      } else {
-        console.log('The pointer lock status is now unlocked');
-        mousePointer.visible = false;
-      }
-    }
     var rectGeom = new THREE.PlaneBufferGeometry(1, 1).translate(0.5, -0.5, 0);
     var rectMesh = new THREE.Mesh(rectGeom, new THREE.MeshBasicMaterial({color: 0x0022ee, side: THREE.DoubleSide, transparent: true, opacity: 0.8}));
     avatar.add(rectMesh);

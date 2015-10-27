@@ -116,6 +116,28 @@ WebVRApplication = ( function () {
             }
         }.bind(this), false);
 
+        var mousePointer = new THREE.Mesh(new THREE.SphereBufferGeometry(0.02));
+        mousePointer.position.z = -2;
+        avatar.add(mousePointer);
+        mousePointer.visible = false;
+        this.mousePointer = mousePointer;
+        if ("onpointerlockchange" in document) {
+          document.addEventListener('pointerlockchange', lockChangeAlert, false);
+        } else if ("onmozpointerlockchange" in document) {
+          document.addEventListener('mozpointerlockchange', lockChangeAlert, false);
+        } else if ("onwebkitpointerlockchange" in document) {
+          document.addEventListener('webkitpointerlockchange', lockChangeAlert, false);
+        }
+        function lockChangeAlert() {
+          if( document.pointerLockElement || document.mozPointerLockElement || document.webkitPointerLockElement ) {
+            console.log('The pointer lock status is now locked');
+            mousePointer.visible = true;
+            mousePointer.position.x = mousePointer.position.y = 0;
+          } else {
+            console.log('The pointer lock status is now unlocked');
+            mousePointer.visible = false;
+          }
+        }
 
         this.start = function() {
             function waitForResources(t) {
@@ -142,11 +164,6 @@ WebVRApplication = ( function () {
             floatSpeed = 0.9 * options.moveSpeed;
         var pitchQuat = new THREE.Quaternion();
         var raycaster = new THREE.Raycaster();
-        var mousePointer = new THREE.Mesh(new THREE.SphereBufferGeometry(0.02));
-        mousePointer.position.z = -2;
-        avatar.add(mousePointer);
-        mousePointer.visible = false;
-        this.mousePointer = mousePointer;
         var INTERSECTED;
         var picking = false;
         var pickables;
@@ -163,6 +180,8 @@ WebVRApplication = ( function () {
             direction = new THREE.Vector3();
         var animate = function (t) {
             requestAnimationFrame(animate);
+            var dt = (t - this.lt) * 0.001;
+            this.lt = t;
 
             if (mousePointer.visible && picking) {
                 origin.copy(camera.position);
@@ -183,9 +202,6 @@ WebVRApplication = ( function () {
                     INTERSECTED = null;
                 }
             }
-
-            var dt = (t - this.lt) * 0.001;
-            this.lt = t;
 
             if (this.vrControls.enabled) {
                 this.vrControls.update();
