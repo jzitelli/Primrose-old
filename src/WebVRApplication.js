@@ -62,10 +62,11 @@ WebVRApplication = ( function () {
             this.scene.fog = options.fog;
         }
 
-        this.renderer = new THREE.WebGLRenderer({
+        var renderer = new THREE.WebGLRenderer({
             antialias: true,
             alpha: true
         });
+        this.renderer = renderer;
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setClearColor(options.backgroundColor);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -139,12 +140,18 @@ WebVRApplication = ( function () {
           }
         }
 
+        var loadingScene = new THREE.Scene();
+        var loadingMesh = new THREE.Mesh(new THREE.TextGeometry('LOADING...', {size: 0.3, height: 0}));
+        loadingMesh.position.x = loadingMesh.position.z = -2;
+        loadingScene.add(loadingMesh);
+        var loadingCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.start = function() {
             function waitForResources(t) {
                 this.lt = t;
-                if (this.scene) {
+                if (CrapLoader.isLoaded()) {
                     requestAnimationFrame(animate);
                 } else {
+                    renderer.render(loadingScene, loadingCamera);
                     requestAnimationFrame(waitForResources);
                 }
             }

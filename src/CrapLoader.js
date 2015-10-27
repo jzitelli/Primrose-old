@@ -2,16 +2,25 @@
 
 var CrapLoader = ( function () {
     "use strict";
-    var manager = THREE.DefaultLoadingManager;
+    var manager = new THREE.LoadingManager();
+    var isLoaded_ = true;
+    manager.onLoad = function () {
+        isLoaded_ = true;
+    };
+    function isLoaded() {
+        return isLoaded_;
+    }
 
     var colladaLoader = new THREE.ColladaLoader(manager),
         objectLoader = new THREE.ObjectLoader(manager),
-        imageLoader = new THREE.ImageLoader(manager);
+        imageLoader = new THREE.ImageLoader(manager),
+        textureLoader = new THREE.TextureLoader(manager),
+        cubeTextureLoader = new THREE.CubeTextureLoader(manager);
 
     colladaLoader.setPreferredShading(THREE.FlatShading);
 
     function load(url, success, onProgress, onError) {
-
+        isLoaded_ = false;
         if (url.endsWith(".json")) {
             objectLoader.load(url, onLoad, onProgress, onError);
         } else
@@ -36,7 +45,7 @@ var CrapLoader = ( function () {
 
     }
 
-    function parse(json, success) {
+    function parse(json, onLoad) {
         if (json.materials) {
             json.materials.forEach( function (mat) {
                 if (mat.type === "ShaderMaterial" && mat.uniforms) {
@@ -45,12 +54,14 @@ var CrapLoader = ( function () {
                         var uniform = uniforms[key];
                         if (uniform.type === 't') {
                             if (Array.isArray(uniform.value) && uniform.value.length == 6) {
+                                isLoaded_ = false;
                                 // texture cube specified by urls
-                                uniform.value = THREE.ImageUtils.loadTextureCube(uniform.value);
+                                uniform.value = cubeTextureLoader.load(uniform.value);
                             } else
                             if (typeof uniform.value === 'string') {
+                                isLoaded_ = false;
                                 // single texture specified by url
-                                uniform.value = THREE.ImageUtils.loadTexture(uniform.value);
+                                uniform.value = textureLoader.load(uniform.value);
                             }
                         }
                     }
@@ -65,11 +76,7 @@ var CrapLoader = ( function () {
                 }
             });
             loadHeightfields(obj);
-            if (success) {
-                success(obj);
-            }
         });
-
     }
 
     function loadHeightfields(obj) {
@@ -88,6 +95,7 @@ var CrapLoader = ( function () {
         obj.traverse( function (node) {
 
             if (node.userData && node.userData.heightmap) {
+                isLoaded_ = false;
                 imageLoader.load(node.userData.heightmap, function(image) {
 
                     var canvas = document.createElement('canvas');
@@ -226,7 +234,8 @@ var CrapLoader = ( function () {
     return {
         load: load,
         parse: parse,
-        CANNONize: CANNONize
+        CANNONize: CANNONize,
+        isLoaded: isLoaded
     };
 
 } )();
