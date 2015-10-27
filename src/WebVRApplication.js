@@ -5,7 +5,6 @@ WebVRApplication = ( function () {
         this.name = name;
         this.avatar = avatar;
         this.scene = scene;
-        this.lt = 0;
         var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.camera = camera;
 
@@ -145,19 +144,21 @@ WebVRApplication = ( function () {
         loadingMesh.position.x = loadingMesh.position.z = -2;
         loadingScene.add(loadingMesh);
         var loadingCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        var lt = 0;
+        // TODO: don't poll
         this.start = function() {
             function waitForResources(t) {
-                this.lt = t;
                 if (CrapLoader.isLoaded()) {
                     CrapLoader.CANNONize(scene, world);
+                    lt = t;
                     requestAnimationFrame(animate);
                 } else {
                     renderer.render(loadingScene, loadingCamera);
                     requestAnimationFrame(waitForResources);
                 }
             }
-            waitForResources.call(this, 0);
-        }.bind(this);
+            waitForResources(0);
+        };
 
         var UP = new THREE.Vector3(0, 1, 0),
             RIGHT = new THREE.Vector3(1, 0, 0),
@@ -189,12 +190,14 @@ WebVRApplication = ( function () {
                 });
             }
         };
+
+
         var origin = new THREE.Vector3(),
             direction = new THREE.Vector3();
         var animate = function (t) {
             requestAnimationFrame(animate);
-            var dt = (t - this.lt) * 0.001;
-            this.lt = t;
+            var dt = (t - lt) * 0.001;
+            lt = t;
 
             if (mousePointer.visible && picking) {
                 origin.set(0, 0, 0);

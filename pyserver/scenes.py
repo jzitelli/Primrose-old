@@ -27,8 +27,7 @@ def some_room(length=15.0, width=12.0, height=10.0):
     scene.add(Mesh(geometry=sphere, position=[-0.45 * L, yAvg, -0.4 * W], material=MeshBasicMaterial(color=0x00aa00)))
     cannonData = {'mass': 0, 'shapes': ['Plane']}
     scene.add(Mesh(name="floor", geometry=square,
-                   material=MeshBasicMaterial(shading=FlatShading,
-                                              color=0xffffff,
+                   material=MeshBasicMaterial(color=0xffffff,
                                               map=Texture(image=Image(url="images/deck.png"),
                                                           repeat=[L, W], wrap=[RepeatWrapping, RepeatWrapping])),
                    position=[0, yMin, 0],
@@ -54,7 +53,7 @@ def some_room(length=15.0, width=12.0, height=10.0):
                    userData={'cannonData': cannonData}))
     # scene.add(Mesh(name="cylinder", geometry=CylinderGeometry(200, 200, 9/16.0 * 2 * np.pi * 200,
     #                                                           openEnded=True, radiusSegments=16),
-    #                material=MeshBasicMaterial(side=BackSide, shading=FlatShading, color=0xffffff,
+    #                material=MeshBasicMaterial(side=BackSide, color=0xffffff,
     #                                           map=Texture(image=Image(url="images/radiosity_37.png"),
     #                                                       minFilter=LinearFilter))))
     if ShaderLib is not None:
@@ -86,7 +85,7 @@ def shader_room(length=10, width=10, height=10):
                          position=[-0.45 * L, 0, -0.4 * W]))
     cannonData = {'mass': 0, 'shapes': ['Plane']}
     scene.add(Mesh(name="floor", geometry=square,
-                   material=MeshBasicMaterial(side=FrontSide, shading=FlatShading, color=0xffffff,
+                   material=MeshBasicMaterial(side=FrontSide, color=0xffffff,
                                               map=textures[0]),
                    receiveShadow=True,
                    position=[0, yMin, 0],
@@ -160,7 +159,7 @@ def underwater_tomb(length=20.0, width=20.0, height=30.0):
                                'mass': 0.0,
                                'shapes': ['Heightfield']
                               },
-                              'heightmap': 'images/terrain128.png'
+                              'heightmap': 'images/terrain256.png'
                             }))
     return scene.export()
 
@@ -171,7 +170,7 @@ def basement():
     L, W, H = 20, 20, 8 * FT2METERS
     scene = Scene()
     floor = Mesh(name="floor", geometry=square,
-                 material=MeshBasicMaterial(shading=FlatShading, color=0xffffff,
+                 material=MeshBasicMaterial(color=0xffffff,
                                             map=Texture(image=Image("deck", url="images/deck.png"), repeat=[L, W], wrap=[RepeatWrapping, RepeatWrapping])),
                  position=[0, 0, 0],
                  scale=[L,1,W],
@@ -196,11 +195,24 @@ def cave():
 def pool_hall():
     scene = Scene()
     L, W = 7, 7
+    scene.add(PointLight(color=0xffffff, position=[0,2,0.5]))
     floor = Mesh(name="floor", geometry=square,
-                 material=MeshBasicMaterial(shading=FlatShading, color=0xffffff,
+                 material=MeshBasicMaterial(color=0xffffff,
                                             map=Texture(image=Image("deck", url="images/deck.png"), repeat=[L, W], wrap=[RepeatWrapping, RepeatWrapping])),
                  position=[0, -1, 0],
                  scale=[L,1,W],
                  userData={'cannonData': {'mass': 0, 'shapes': ['Plane']}})
     scene.add(floor)
+    pool_table = Mesh(geometry=BoxGeometry(1.17, 0.03, 2.34),
+                      material=MeshLambertMaterial(color=0x00aa00),
+                      position=[0, -0.6, 0],
+                      receiveShadow=True,
+                      userData={'cannonData': {'mass': 0, 'shapes': ['Box']}})
+    scene.add(pool_table)
+    cue_ball = Mesh(geometry=SphereBufferGeometry(radius=0.05715 / 2, widthSegments=16, heightSegments=32),
+                    material=MeshPhongMaterial(color=0xeeeeee),
+                    position=[0, 1, 0],
+                    castShadow=True,
+                    userData={'cannonData': {'mass': 0.17, 'shapes': ['Sphere']}})
+    scene.add(cue_ball)
     return scene.export()

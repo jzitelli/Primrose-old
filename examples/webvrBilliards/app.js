@@ -6,7 +6,7 @@ var options = ( function () {
     var backgroundColor = 0x000121;
     var options = {
         backgroundColor: backgroundColor,
-        shadowMap: true
+        gravity: 0.17
     };
     var FOG_MODE = URL_PARAMS.fog || 2;
     var fogColor = URL_PARAMS.fogColor || 0x0c0501 || 0x000121 || options.backgroundColor;
@@ -19,12 +19,11 @@ var options = ( function () {
     }
     return options;
 } )();
-var avatarModel = "models/aPerson.dae";
 
 function onLoad() {
     "use strict";
     var avatar = new THREE.Object3D();
-    avatar.name = "user_00000000";
+    avatar.position.z = 2;
 
     var scene;
     if (JSON_SCENE) {
@@ -35,44 +34,13 @@ function onLoad() {
 
     application = new WebVRApplication("webvrBilliards", avatar, scene, options);
 
-    CrapLoader.load(avatarModel, function(loaded) {
-        loaded.traverse(function(obj) {
-            if (obj instanceof THREE.Mesh) {
-                var mesh = obj;
-                mesh.castShadow = false;
-                mesh.receiveShadow = false;
-                if (mesh.material instanceof THREE.MeshFaceMaterial) {
-                    mesh.material.materials.forEach(function(e, i, a) {
-                        e.shading = THREE.FlatShading;
-                        e.needsUpdate = true;
-                    });
-                }
-                avatar.add(mesh);
-                if (avatar.boundingMesh) {
-                    if (avatar.boundingMesh.geometry.boundingSphere.radius < obj.geometry.boundingSphere.radius) {
-                        avatar.boundingMesh = obj;
-                    }
-                } else {
-                    avatar.boundingMesh = obj;
-                }
-            }
-        });
+    avatar.add(application.camera);
+    application.scene.add(avatar);
 
-        avatar.add(application.camera);
-        application.scene.add(avatar);
+    // leap motion tool tracking (the pool stick)
+    addTool(avatar);
 
-        // leap motion tool tracking (the pool stick)
-        addTool(avatar);
-
-        // avatar.physics = new CANNON.Body({mass: 1,
-        //     shape: new CANNON.Sphere(avatar.boundingMesh.geometry.boundingSphere.radius)});
-        // avatar.physics.position.copy(avatar.position);
-        // application.world.add(avatar.physics);
-        // avatar.physics.graphics = avatar;
-
-        application.start();
-    });
-
+    application.start();
 }
 
 function setupMenu (avatar) {

@@ -11,7 +11,7 @@ var fs = require( "fs" ),
       "lib/FontUtils.js",
       "lib/webvr-polyfill.js",
       "lib/webvr-manager.js",
-      "node_modules/cannon/build/cannon.js",
+      "lib/cannon.js",
       "node_modules/leapjs/leap-0.6.4.js",
       "node_modules/socket.io-client/socket.io.js"
     ],
