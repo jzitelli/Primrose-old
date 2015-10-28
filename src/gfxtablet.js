@@ -28,7 +28,9 @@ function GFXTablet(scene, width, height) {
     cursor.visible = false;
     var image = paintableMaterial.map.image;
     var ctx = image.getContext('2d');
-
+    ctx.lineCap = 'round';
+    //ctx.lineJoin = stroke.join;
+    //ctx.miterLimit = stroke.miterLimit;
 
     function drawStroke (points) {
         if (points.length === 0)
@@ -43,13 +45,10 @@ function GFXTablet(scene, width, height) {
             ctx.lineTo(gfxtabletCanvas.width * end.x, gfxtabletCanvas.height * end.y);
         }
         ctx.stroke();
-        //ctx.lineJoin = stroke.join;
-        //ctx.lineCap = stroke.cap;
-        //ctx.miterLimit = stroke.miterLimit;
     }
 
     function circle(x, y, r, c, o) {
-        var opacity = o || 0.8;
+        var opacity = o || 1;
         ctx.beginPath();
         var rad = ctx.createRadialGradient(x, y, r/2, x, y, r);
         rad.addColorStop(0, 'rgba('+c+','+opacity+')');
