@@ -10,14 +10,18 @@ function GFXTablet(scene, width, height) {
     var gfxtabletCanvas = document.createElement('canvas');
     gfxtabletCanvas.width = width;
     gfxtabletCanvas.height = height;
-    var canvasMap = new THREE.Texture(gfxtabletCanvas, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping,
-        THREE.LinearFilter, THREE.LinearFilter);
-    var paintableMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, map: canvasMap});
-    gfxtabletCanvas.getContext('2d').fillRect(0, 0, gfxtabletCanvas.width, gfxtabletCanvas.height);
     var aspect = gfxtabletCanvas.width / gfxtabletCanvas.height;
+    var texture = new THREE.Texture(gfxtabletCanvas, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping,
+        THREE.LinearFilter, THREE.LinearFilter);
+    var paintableMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, map: texture});
+    var image = paintableMaterial.map.image;
+    var ctx = image.getContext('2d');
+    ctx.fillStyle = 'rgb(255, 255, 255)';
+    ctx.fillRect(0, 0, gfxtabletCanvas.width, gfxtabletCanvas.height);
     var scale = 2;
     var canvasMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(scale * aspect, scale), paintableMaterial);
     canvasMesh.position.z = -4;
+    paintableMaterial.map.needsUpdate = true;
 
     var cursorMaterial = new THREE.MeshBasicMaterial({color: 0xeeff66});
     cursorMaterial.transparent = true;
@@ -26,8 +30,7 @@ function GFXTablet(scene, width, height) {
     canvasMesh.add(cursor);
     cursor.position.z = 0.01;
     cursor.visible = false;
-    var image = paintableMaterial.map.image;
-    var ctx = image.getContext('2d');
+
     ctx.lineCap = 'round';
     //ctx.lineJoin = stroke.join;
     //ctx.miterLimit = stroke.miterLimit;

@@ -95,7 +95,7 @@ def shader_room(length=10, width=10, height=10):
     return scene.export()
 
 
-def underwater_tomb(length=20.0, width=20.0, height=30.0):
+def underwater_tomb(length=25.0, width=25.0, height=30.0):
     L, W, H = length, width, height
     yMin, yMax = -1.2, -1.2 + H
     xMin, xMax = -L/2, L/2
@@ -146,7 +146,7 @@ def underwater_tomb(length=20.0, width=20.0, height=30.0):
     scene.add(Mesh(name="heightfield",
                    geometry=PlaneBufferGeometry(width=L, height=W, widthSegments=255, heightSegments=255),
                    material=MeshLambertMaterial(color=0xffffff, shading=SmoothShading),
-                   position=[0,-3,0],
+                   position=[0,-7,0],
                    rotation=[-np.pi/2, 0, 0],
                    userData={'cannonData': {
                                'mass': 0.0,

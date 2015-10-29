@@ -56,12 +56,9 @@ WebVRApplication = ( function () {
                 {name: "heading", commands: ["dx"], integrate: true},
                 {name: "dy", axes: [-Primrose.Input.Mouse.Y], delta: true, scale: 0.5},
                 {name: "pitch", commands: ["dy"], integrate: true, min: -Math.PI * 0.5, max: Math.PI * 0.5}],
-            moveSpeed: 1
+            moveSpeed: 1,
+            mousePointerColor: 0xff3322
         });
-
-        if (options.fog) {
-            this.scene.fog = options.fog;
-        }
 
         var renderer = new THREE.WebGLRenderer({
             antialias: true,
@@ -99,7 +96,6 @@ WebVRApplication = ( function () {
         }.bind(this), false);
 
         var world = new CANNON.World();
-        world.defaultContactMaterial.friction = 0.2;
         world.gravity.set( 0, -options.gravity, 0 );
         world.broadphase = new CANNON.SAPBroadphase( world );
         this.world = world;
@@ -118,7 +114,7 @@ WebVRApplication = ( function () {
             }
         }.bind(this), false);
 
-        var mousePointer = new THREE.Mesh(new THREE.SphereBufferGeometry(0.02));
+        var mousePointer = new THREE.Mesh(new THREE.SphereBufferGeometry(0.0123), new THREE.MeshBasicMaterial({color: options.mousePointerColor}));
         mousePointer.position.z = -2;
         avatar.add(mousePointer);
         mousePointer.visible = false;
@@ -162,6 +158,29 @@ WebVRApplication = ( function () {
             waitForResources(0);
         };
 
+        var raycaster = new THREE.Raycaster(),
+            picking = false,
+            pickables,
+            origin = new THREE.Vector3(),
+            direction = new THREE.Vector3();
+        raycaster.far = 100;
+        this.setPicking = function (mode, objects) {
+            picking = mode;
+            if (picking) {
+                if (objects) {
+                    pickables = objects;
+                } else {
+                    pickables = [];
+                    scene.traverse(function (obj) {
+                        if (obj != mousePointer && obj instanceof THREE.Mesh && obj.material.color !== undefined) {
+                            pickables.push(obj);
+                        }
+                    });
+                }
+            }
+        };
+        this.picked = null;
+
         var UP = new THREE.Vector3(0, 1, 0),
             RIGHT = new THREE.Vector3(1, 0, 0),
             heading = 0,
@@ -174,28 +193,6 @@ WebVRApplication = ( function () {
             kbpitch = 0,
             walkSpeed = options.moveSpeed,
             floatSpeed = 0.9 * options.moveSpeed;
-        var raycaster = new THREE.Raycaster(),
-            INTERSECTED,
-            picking = false,
-            pickables;
-        raycaster.far = 100;
-        this.setPicking = function (mode, objects) {
-            picking = mode;
-            if (objects) {
-                pickables = objects;
-            } else {
-                pickables = [];
-                scene.traverse(function (obj) {
-                    if (obj != mousePointer && obj instanceof THREE.Mesh && obj.material.color !== undefined) {
-                        pickables.push(obj);
-                    }
-                });
-            }
-        };
-
-
-        var origin = new THREE.Vector3(),
-            direction = new THREE.Vector3();
         var animate = function (t) {
             requestAnimationFrame(animate);
             var dt = (t - lt) * 0.001;
@@ -208,15 +205,15 @@ WebVRApplication = ( function () {
                 raycaster.set(origin, direction);
                 var intersects = raycaster.intersectObjects(pickables);
                 if (intersects.length > 0) {
-                    if (INTERSECTED != intersects[0].object) {
-                        if (INTERSECTED) INTERSECTED.material.color.setHex(INTERSECTED.currentHex);
-                        INTERSECTED = intersects[0].object;
-                        INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
-                        INTERSECTED.material.color.setHex(0xff4444); //0x44ff44);
+                    if (this.picked != intersects[0].object) {
+                        if (this.picked) this.picked.material.color.setHex(this.picked.currentHex);
+                        this.picked = intersects[0].object;
+                        this.picked.currentHex = this.picked.material.color.getHex();
+                        this.picked.material.color.setHex(0xff4444); //0x44ff44);
                     }
                 } else {
-                    if (INTERSECTED) INTERSECTED.material.color.setHex(INTERSECTED.currentHex);
-                    INTERSECTED = null;
+                    if (this.picked) this.picked.material.color.setHex(this.picked.currentHex);
+                    this.picked = null;
                 }
             }
 
