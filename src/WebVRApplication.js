@@ -14,6 +14,8 @@ WebVRApplication = ( function () {
             console.log(msg);
         };
 
+        this.listeners = {'update': []};
+
         // TODO: make this object, not array
         var keyboardCommands = [{name: "turnLeft", buttons: [-Primrose.Input.Keyboard.LEFTARROW]},
                 {name: "turnRight", buttons: [Primrose.Input.Keyboard.RIGHTARROW]},
@@ -267,6 +269,8 @@ WebVRApplication = ( function () {
                 }
             }
 
+            this.fire('update', dt);
+
             if (this.avatar.physics) {
 
                 this.avatar.physics.quaternion.setFromAxisAngle(UP, heading);
@@ -319,6 +323,17 @@ WebVRApplication = ( function () {
 
     }
 
+      WebVRApplication.prototype.addEventListener = function ( event, thunk ) {
+        if ( this.listeners[event] ) {
+          this.listeners[event].push( thunk );
+        }
+      };
+
+      WebVRApplication.prototype.fire = function ( name, arg1, arg2, arg3, arg4 ) {
+        for ( var i = 0; i < this.listeners[name].length; ++i ) {
+          this.listeners[name][i]( arg1, arg2, arg3, arg4 );
+        }
+      };
 
     var wireframeMaterial = new THREE.MeshBasicMaterial({color: 0xeeddaa, wireframe: true});
     WebVRApplication.prototype.toggleWireframe = function () {
