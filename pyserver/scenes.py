@@ -192,20 +192,28 @@ def pool_hall():
     floor = Mesh(name="floor", geometry=square,
                  material=MeshBasicMaterial(color=0xffffff,
                                             map=Texture(image=Image("deck", url="images/deck.png"), repeat=[L, W], wrap=[RepeatWrapping, RepeatWrapping])),
-                 position=[0, -1, 0],
+                 position=[0, 0, 0],
                  scale=[L,1,W],
                  userData={'cannonData': {'mass': 0, 'shapes': ['Plane']}})
     scene.add(floor)
-    pool_table = Mesh(geometry=BoxGeometry(1.17, 0.03, 2.34),
+    # 8ft table:
+    y_table = 0.876
+    pool_table = Mesh(geometry=BoxGeometry(1.17, y_table, 2.34),
                       material=MeshLambertMaterial(color=0x00aa00),
-                      position=[0, -0.6, 0],
+                      position=[0, y_table / 2, 0],
                       receiveShadow=True,
                       userData={'cannonData': {'mass': 0, 'shapes': ['Box']}})
     scene.add(pool_table)
-    cue_ball = Mesh(geometry=SphereBufferGeometry(radius=0.05715 / 2, widthSegments=16, heightSegments=32),
+    radius = 0.05715 / 2
+    sphere = SphereBufferGeometry(radius=radius, widthSegments=16, heightSegments=32)
+    userData = {'cannonData': {'mass': 0.17, 'shapes': ['Sphere']}}
+    cue_ball = Mesh(geometry=sphere,
                     material=MeshPhongMaterial(color=0xeeeeee),
-                    position=[0, 1, 0],
+                    position=[0, y_table + radius + 0.001, 0.7],
                     castShadow=True,
-                    userData={'cannonData': {'mass': 0.17, 'shapes': ['Sphere']}})
+                    userData=userData)
     scene.add(cue_ball)
+    ball00 = Mesh(geometry=sphere, material=MeshPhongMaterial(color=0xee0000),
+                  position=[0, y_table + radius + 0.001, -0.7], castShadow=True, userData=userData)
+    scene.add(ball00)
     return scene.export()

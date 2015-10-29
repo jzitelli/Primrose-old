@@ -75,10 +75,10 @@ function addHands(parent) {
     }
 }
 
-var addTool = (function () {
+var makeTool = (function () {
     var UP = new THREE.Vector3(0, 1, 0);
     var direction = new THREE.Vector3(0, 0, 0);
-    function addTool(parent) {
+    function makeTool() {
         var leapController = new Leap.Controller({frameEventName: 'animationFrame'});
         leapController.connect();
         var scale = 0.001;
@@ -89,7 +89,6 @@ var addTool = (function () {
         toolRoot.position.set(0, -0.4, -2);
         toolRoot.scale.set(scale, scale, scale);
         toolRoot.add(toolMesh);
-        parent.add(toolRoot);
         toolRoot.visible = false;
         leapController.on('frame', onFrame);
         function onFrame(frame) {
@@ -104,6 +103,7 @@ var addTool = (function () {
                 toolRoot.visible = false;
             }
         }
+        return toolRoot;
     }
-    return addTool;
+    return makeTool;
 })();

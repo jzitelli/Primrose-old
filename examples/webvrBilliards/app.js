@@ -1,11 +1,12 @@
 /* global WebVRApplication, CrapLoader, THREE, CANNON, URL_PARAMS, JSON_SCENE, SPE */
 
 var application;
-var options = {};
+var options = {gravity: 0.3};
 
 function onLoad() {
     "use strict";
     var avatar = new THREE.Object3D();
+    avatar.position.y = 1.2;
     avatar.position.z = 2;
 
     var scene;
@@ -21,11 +22,14 @@ function onLoad() {
     application.scene.add(avatar);
 
     // leap motion tool tracking (the pool stick)
-    addTool(avatar);
+    var toolRoot = makeTool();
+    avatar.add(toolRoot);
 
     application.start();
 }
 
-function setupMenu (avatar) {
-
+function setupMenu() {
+    "use strict";
+    var menu = new THREE.Object3D();
+    return menu;
 }

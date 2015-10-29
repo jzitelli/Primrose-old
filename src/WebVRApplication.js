@@ -98,6 +98,12 @@ WebVRApplication = ( function () {
         var world = new CANNON.World();
         world.gravity.set( 0, -options.gravity, 0 );
         world.broadphase = new CANNON.SAPBroadphase( world );
+        //world.broadphase = new CANNON.NaiveBroadphase( world );
+        world.defaultContactMaterial.contactEquationStiffness = 1e7;
+        world.defaultContactMaterial.frictionEquationStiffness = 1e7;
+        world.defaultContactMaterial.contactEquationRelaxation = 4;
+        world.defaultContactMaterial.frictionEquationRelaxation = 4;
+        world.solver.iterations = 4;
         this.world = world;
 
         this.particleGroups = [];
@@ -148,6 +154,9 @@ WebVRApplication = ( function () {
             function waitForResources(t) {
                 if (CrapLoader.isLoaded()) {
                     CrapLoader.CANNONize(scene, world);
+                    for (var i = 0; i < 240*2; i++) {
+                        world.step(1/240);
+                    }
                     lt = t;
                     requestAnimationFrame(animate);
                 } else {
@@ -256,7 +265,7 @@ WebVRApplication = ( function () {
             }
             pitchQuat.setFromAxisAngle(RIGHT, pitch);
 
-            this.world.step(dt);
+            this.world.step(1/60);
 
             for (var j = 0; j < this.world.bodies.length; ++j) {
                 var body = this.world.bodies[j];
