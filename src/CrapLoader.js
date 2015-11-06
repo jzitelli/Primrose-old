@@ -192,17 +192,16 @@ var CrapLoader = ( function () {
         });
 
         function makeCANNON(node, cannonData) {
-            // TODO: rename physics -> body
-            if (node.physics) {
-                return node.physics;
+            if (node.body) {
+                return node.body;
             }
             var body = new CANNON.Body({
                 mass: cannonData.mass,
                 position: node.position,
                 quaternion: node.quaternion
             });
-            body.graphics = node;
-            cannonData.shapes.forEach(function(e, i, a) {
+            body.mesh = node;
+            cannonData.shapes.forEach(function(e) {
                 var shape,
                     position,
                     quaternion,
@@ -228,7 +227,7 @@ var CrapLoader = ( function () {
                     case 'ConvexPolyhedron':
                         var vertices = [];
                         array = node.geometry.getAttribute('position').array;
-                        for (i = 0; i < array.length; i += 3) {
+                        for (var i = 0; i < array.length; i += 3) {
                             vertices.push(new CANNON.Vec3(array[i], array[i + 1], array[i + 2]));
                         }
                         var faces = [];
@@ -276,7 +275,7 @@ var CrapLoader = ( function () {
                 }
                 body.addShape(shape, position, quaternion);
             });
-            node.physics = body;
+            node.body = body;
             return body;
         }
     }

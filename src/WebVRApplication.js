@@ -103,11 +103,11 @@ WebVRApplication = ( function () {
         world.gravity.set( 0, -options.gravity, 0 );
         world.broadphase = new CANNON.SAPBroadphase( world );
         //world.broadphase = new CANNON.NaiveBroadphase( world );
-        world.defaultContactMaterial.contactEquationStiffness = 1e7;
+        world.defaultContactMaterial.contactEquationStiffness = 1e8;
         world.defaultContactMaterial.frictionEquationStiffness = 1e7;
-        world.defaultContactMaterial.contactEquationRelaxation = 4;
-        world.defaultContactMaterial.frictionEquationRelaxation = 4;
-        world.solver.iterations = 3;
+        world.defaultContactMaterial.contactEquationRelaxation = 3;
+        world.defaultContactMaterial.frictionEquationRelaxation = 3;
+        world.solver.iterations = 5;
         this.world = world;
 
         window.addEventListener("resize", function () {
@@ -192,6 +192,18 @@ WebVRApplication = ( function () {
         };
         this.picked = null;
 
+        this.addEventListener = function ( event, thunk ) {
+            if ( this.listeners[event] ) {
+                this.listeners[event].push( thunk );
+            }
+        }.bind(this);
+
+        this.fire = function ( name, dt ) {
+            for ( var i = 0; i < this.listeners[name].length; ++i ) {
+                this.listeners[name][i]( dt );
+            }
+        }.bind(this);
+
         var UP = new THREE.Vector3(0, 1, 0),
             RIGHT = new THREE.Vector3(1, 0, 0),
             heading = 0,
@@ -203,30 +215,12 @@ WebVRApplication = ( function () {
             kbheading = 0,
             kbpitch = 0,
             walkSpeed = options.moveSpeed,
-            floatSpeed = 0.9 * options.moveSpeed;
+            floatSpeed = 0.9 * options.moveSpeed,
+            bodyPosition = new THREE.Vector3();
         var animate = function (t) {
             requestAnimationFrame(animate);
             var dt = (t - lt) * 0.001;
             lt = t;
-
-            if (mousePointer.visible && picking) {
-                origin.set(0, 0, 0);
-                direction.set(0, 0, 0);
-                direction.subVectors(mousePointer.localToWorld(direction), camera.localToWorld(origin)).normalize();
-                raycaster.set(origin, direction);
-                var intersects = raycaster.intersectObjects(pickables);
-                if (intersects.length > 0) {
-                    if (this.picked != intersects[0].object) {
-                        if (this.picked) this.picked.material.color.setHex(this.picked.currentHex);
-                        this.picked = intersects[0].object;
-                        this.picked.currentHex = this.picked.material.color.getHex();
-                        this.picked.material.color.setHex(0xff4444); //0x44ff44);
-                    }
-                } else {
-                    if (this.picked) this.picked.material.color.setHex(this.picked.currentHex);
-                    this.picked = null;
-                }
-            }
 
             if (this.vrControls.enabled) {
                 this.vrControls.update();
@@ -267,28 +261,37 @@ WebVRApplication = ( function () {
             }
             pitchQuat.setFromAxisAngle(RIGHT, pitch);
 
-            // TODO: resolve CANNON issues w/ initial low framerate
-            this.world.step(1/60);
-
-            for (var j = 0; j < this.world.bodies.length; ++j) {
-                var body = this.world.bodies[j];
-                if (body.graphics) {
-                    body.graphics.position.copy(body.position);
-                    body.graphics.quaternion.copy(body.quaternion);
+            if (mousePointer.visible && picking) {
+                origin.set(0, 0, 0);
+                direction.set(0, 0, 0);
+                direction.subVectors(mousePointer.localToWorld(direction), camera.localToWorld(origin)).normalize();
+                raycaster.set(origin, direction);
+                var intersects = raycaster.intersectObjects(pickables);
+                if (intersects.length > 0) {
+                    if (this.picked != intersects[0].object) {
+                        if (this.picked) this.picked.material.color.setHex(this.picked.currentHex);
+                        this.picked = intersects[0].object;
+                        this.picked.currentHex = this.picked.material.color.getHex();
+                        this.picked.material.color.setHex(0xff4444); //0x44ff44);
+                    }
+                } else {
+                    if (this.picked) this.picked.material.color.setHex(this.picked.currentHex);
+                    this.picked = null;
                 }
             }
 
-            this.fire('update', dt);
+            // TODO: resolve CANNON issues w/ initial low framerate
+            this.world.step(1/60);
 
-            if (this.avatar.physics) {
+            if (this.avatar.body) {
 
-                this.avatar.physics.quaternion.setFromAxisAngle(UP, heading);
-                this.avatar.physics.quaternion.mult(pitchQuat, this.avatar.physics.quaternion);
-                this.avatar.physics.velocity.x = this.avatar.physics.velocity.x * 0.9 +
+                this.avatar.body.quaternion.setFromAxisAngle(UP, heading);
+                this.avatar.body.quaternion.mult(pitchQuat, this.avatar.body.quaternion);
+                this.avatar.body.velocity.x = this.avatar.body.velocity.x * 0.9 +
                     0.1 * (strafe * cosHeading + drive * sinHeading * cosPitch);
-                this.avatar.physics.velocity.z = this.avatar.physics.velocity.z * 0.9 +
+                this.avatar.body.velocity.z = this.avatar.body.velocity.z * 0.9 +
                     0.1 * ((drive * cosHeading  * cosPitch - strafe * sinHeading));
-                this.avatar.physics.velocity.y = this.avatar.physics.velocity.y * 0.9 +
+                this.avatar.body.velocity.y = this.avatar.body.velocity.y * 0.9 +
                     0.08 * floatUp + 0.1 * drive * (-sinPitch);
 
             } else {
@@ -300,6 +303,19 @@ WebVRApplication = ( function () {
                 this.avatar.position.y += dt * floatUp;
 
             }
+
+            for (var j = 0; j < this.world.bodies.length; ++j) {
+                var body = this.world.bodies[j];
+                if (body.mesh && body.type === CANNON.Body.DYNAMIC) {
+                    // bodyPosition.copy(body.position);
+                    // body.mesh.position.copy(body.mesh.worldToLocal(bodyPosition));
+                    body.mesh.position.copy(body.position);
+                    // TODO: quaternion local/world concerns?
+                    body.mesh.quaternion.copy(body.quaternion);
+                }
+            }
+
+            this.fire('update', dt);
 
             // if (this.particleGroups) {
             //     this.particleGroups.forEach(function (group) {
@@ -332,17 +348,6 @@ WebVRApplication = ( function () {
 
     }
 
-      WebVRApplication.prototype.addEventListener = function ( event, thunk ) {
-        if ( this.listeners[event] ) {
-          this.listeners[event].push( thunk );
-        }
-      };
-
-      WebVRApplication.prototype.fire = function ( name, arg1, arg2, arg3, arg4 ) {
-        for ( var i = 0; i < this.listeners[name].length; ++i ) {
-          this.listeners[name][i]( arg1, arg2, arg3, arg4 );
-        }
-      };
 
     var wireframeMaterial = new THREE.MeshBasicMaterial({color: 0xeeddaa, wireframe: true});
     WebVRApplication.prototype.toggleWireframe = function () {

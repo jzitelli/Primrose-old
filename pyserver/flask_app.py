@@ -104,13 +104,13 @@ var JSON_SCENE = %s;
                            indent=(2 if app.debug else None)))))
 
 
-@app.route('/vrSound')
+@app.route('/audiovr')
 def vrSound():
     """vrSound demo app"""
     if (app.debug or app.testing) and app.config.get('ALWAYS_GRUNT'):
         subprocess.call("grunt quick", shell=True)
     scene = request.args.get('scene', 'some_room')
-    return render_template('vrSound.html',
+    return render_template('audiovr.html',
         json_config=Markup(r"""<script>
 var JSON_CONFIG = %s;
 var JSON_SCENE = %s;

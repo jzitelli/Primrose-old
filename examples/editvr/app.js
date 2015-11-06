@@ -119,12 +119,12 @@ function onLoad() {
     });
 
     // TODO: investigate slow firefox performance:
-    // var editorMesh = application.makeEditor("python_editor", 2, 2, {tokenizer: Primrose.Text.Grammars.Python});
-    // editorMesh.position.set(1.25, 0, -1.5);
-    // pyserver.readFile('examples/editvr/test.py', function (text) {
-    //     editorMesh.textBox.value = text;
-    //     scene.add(editorMesh);
-    // });
+    var editorMesh = application.makeEditor("python_editor", 2, 2, {tokenizer: Primrose.Text.Grammars.Python});
+    editorMesh.position.set(1.25, 0, -1.5);
+    pyserver.readFile('examples/editvr/test.py', function (text) {
+        editorMesh.textBox.value = text;
+        scene.add(editorMesh);
+    });
 
     application.start();
 }

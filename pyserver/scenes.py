@@ -114,37 +114,37 @@ def underwater_tomb(length=25.0, width=25.0, height=30.0):
                          position=[-0.45 * L, yAvg, -0.4 * W]),
               Mesh(geometry=sphere, material=MeshBasicMaterial(color=0x008800),
                    position=[-0.45 * L, yAvg, -0.4 * W]))
-    cannonData = {'mass': 0, 'shapes': ['Plane']}
-    scene.add(Mesh(name="left", geometry=square,
-                   material=MeshPhongMaterial(shading=FlatShading, color=side_colors[3]),
-                   position=[xMin, yAvg, 0],
-                   rotation=[np.pi/2, np.pi/2, 0],
-                   scale=[W,1,H],
-                   userData={'cannonData': cannonData}))
-    scene.add(Mesh(name="right", geometry=square,
-                   material=MeshPhongMaterial(shading=FlatShading, color=side_colors[2]),
-                   position=[xMax, yAvg, 0],
-                   rotation=[np.pi/2, -np.pi/2, 0],
-                   scale=[W,1,H],
-                   userData={'cannonData': cannonData}))
-    scene.add(Mesh(name="front", geometry=square,
-                   material=MeshPhongMaterial(shading=FlatShading, color=side_colors[0]),
-                   position=[0, yAvg, zMax],
-                   rotation=[np.pi/2, np.pi, 0],
-                   scale=[L,1,H],
-                   userData={'cannonData': cannonData}))
-    scene.add(Mesh(name="back", geometry=square,
-                   material=MeshPhongMaterial(shading=FlatShading, color=side_colors[4]),
-                   position=[0, yAvg, zMin],
-                   rotation=[-np.pi/2, np.pi, 0],
-                   scale=[L,1,H],
-                   userData={'cannonData': cannonData}))
-    scene.add(Mesh(name="ceiling", geometry=square,
-                   material=MeshPhongMaterial(shading=FlatShading, color=side_colors[1]),
-                   position=[0, yMax, 0],
-                   rotation=[np.pi, 0, 0],
-                   scale=[L, 1, W],
-                   userData={'cannonData': cannonData}))
+    # cannonData = {'mass': 0, 'shapes': ['Plane']}
+    # scene.add(Mesh(name="left", geometry=square,
+    #                material=MeshPhongMaterial(shading=FlatShading, color=side_colors[3]),
+    #                position=[xMin, yAvg, 0],
+    #                rotation=[np.pi/2, np.pi/2, 0],
+    #                scale=[W,1,H],
+    #                userData={'cannonData': cannonData}))
+    # scene.add(Mesh(name="right", geometry=square,
+    #                material=MeshPhongMaterial(shading=FlatShading, color=side_colors[2]),
+    #                position=[xMax, yAvg, 0],
+    #                rotation=[np.pi/2, -np.pi/2, 0],
+    #                scale=[W,1,H],
+    #                userData={'cannonData': cannonData}))
+    # scene.add(Mesh(name="front", geometry=square,
+    #                material=MeshPhongMaterial(shading=FlatShading, color=side_colors[0]),
+    #                position=[0, yAvg, zMax],
+    #                rotation=[np.pi/2, np.pi, 0],
+    #                scale=[L,1,H],
+    #                userData={'cannonData': cannonData}))
+    # scene.add(Mesh(name="back", geometry=square,
+    #                material=MeshPhongMaterial(shading=FlatShading, color=side_colors[4]),
+    #                position=[0, yAvg, zMin],
+    #                rotation=[-np.pi/2, np.pi, 0],
+    #                scale=[L,1,H],
+    #                userData={'cannonData': cannonData}))
+    # scene.add(Mesh(name="ceiling", geometry=square,
+    #                material=MeshPhongMaterial(shading=FlatShading, color=side_colors[1]),
+    #                position=[0, yMax, 0],
+    #                rotation=[np.pi, 0, 0],
+    #                scale=[L, 1, W],
+    #                userData={'cannonData': cannonData}))
     scene.add(Mesh(name="heightfield",
                    geometry=PlaneBufferGeometry(width=L, height=W, widthSegments=255, heightSegments=255),
                    material=MeshLambertMaterial(color=0xffffff, shading=SmoothShading),
@@ -222,4 +222,7 @@ def pool_hall():
     ball02 = Mesh(geometry=sphere, material=MeshPhongMaterial(color=0x00ee00),
                   position=[0, y_table + radius + 0.001, 0], castShadow=True, userData=userData)
     scene.add(ball02)
+    ball03 = Mesh(geometry=sphere, material=MeshPhongMaterial(color=0xddee00),
+                  position=[1.17 / 3, y_table + radius + 0.001, 0], castShadow=True, userData=userData)
+    scene.add(ball03)
     return scene.export()

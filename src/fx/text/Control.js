@@ -10,8 +10,8 @@ Primrose.Text.Control = ( function () {
     }
     requestAnimationFrame( updateControls );
   }
-
-  requestAnimationFrame( updateControls );
+  // TODO:
+  //requestAnimationFrame( updateControls );
 
   function Control () {
     CONTROLS.push( this );

@@ -74,37 +74,3 @@ function addHands(parent) {
         }
     }
 }
-
-var makeTool = (function () {
-    var UP = new THREE.Vector3(0, 1, 0);
-    var direction = new THREE.Vector3(0, 0, 0);
-    function makeTool() {
-        var leapController = new Leap.Controller({frameEventName: 'animationFrame'});
-        leapController.connect();
-        var scale = 0.001;
-        var toolGeom = new THREE.CylinderGeometry(0.016 / scale, 0.016 / scale, 0.5 / scale, 7, 1, false, 0, 2*Math.PI);
-        var toolMaterial = new THREE.MeshLambertMaterial({color: 0xeebbff});
-        var toolMesh = new THREE.Mesh(toolGeom, toolMaterial);
-        toolMesh.castShadow = true;
-        var toolRoot = new THREE.Object3D();
-        toolRoot.scale.set(scale, scale, scale);
-        toolRoot.add(toolMesh);
-        toolRoot.visible = false;
-        //toolRoot.userData.cannonData = {mass: 1, shapes: ['Cylinder']};
-        leapController.on('frame', onFrame);
-        function onFrame(frame) {
-            if (frame.tools.length == 1) {
-                var tool = frame.tools[0];
-                toolMesh.position.set(tool.tipPosition[0], tool.tipPosition[1], tool.tipPosition[2]);
-                // toolMesh.position.set(tool.stabilizedTipPosition[0], tool.stabilizedTipPosition[1], tool.stabilizedTipPosition[2]);
-                direction.set(tool.direction[0], tool.direction[1], tool.direction[2]);
-                toolMesh.quaternion.setFromUnitVectors(UP, direction);
-                toolRoot.visible = true;
-            } else {
-                toolRoot.visible = false;
-            }
-        }
-        return toolRoot;
-    }
-    return makeTool;
-})();
