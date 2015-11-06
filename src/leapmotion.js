@@ -67,8 +67,8 @@ function addHands(parent) {
         rightRoot.visible = false;
         if (frame.hands.length == 1) {
             leftRoot.visible = true;
-        } else
-        if (frame.hands.length == 2) {
+        }
+        else if (frame.hands.length == 2) {
             leftRoot.visible = true;
             rightRoot.visible = true;
         }
@@ -82,14 +82,15 @@ var makeTool = (function () {
         var leapController = new Leap.Controller({frameEventName: 'animationFrame'});
         leapController.connect();
         var scale = 0.001;
-        var toolGeom = new THREE.CylinderGeometry(0.02 / scale, 0.02 / scale, 0.5 / scale, 7, 1, false, 0, 2*Math.PI);
+        var toolGeom = new THREE.CylinderGeometry(0.016 / scale, 0.016 / scale, 0.5 / scale, 7, 1, false, 0, 2*Math.PI);
         var toolMaterial = new THREE.MeshLambertMaterial({color: 0xeebbff});
         var toolMesh = new THREE.Mesh(toolGeom, toolMaterial);
+        toolMesh.castShadow = true;
         var toolRoot = new THREE.Object3D();
-        toolRoot.position.set(0, -0.4, -2);
         toolRoot.scale.set(scale, scale, scale);
         toolRoot.add(toolMesh);
         toolRoot.visible = false;
+        //toolRoot.userData.cannonData = {mass: 1, shapes: ['Cylinder']};
         leapController.on('frame', onFrame);
         function onFrame(frame) {
             if (frame.tools.length == 1) {

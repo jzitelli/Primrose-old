@@ -78,11 +78,39 @@ var CrapLoader = ( function () {
             }
         } );
         function onLoad(obj) {
+            function findInJSON(object, uuid) {
+                if (object.uuid == uuid) {
+                    return object;
+                }
+                else {
+                    for (var i = 0; i < object.children.length; i++) {
+                        var child = object.children[i];
+                        var found = findInJSON(child, uuid);
+                        if (found) return found;
+                    }
+                    return null;
+                }
+            }
             obj.traverse( function (node) {
                 if (node instanceof THREE.Mesh) {
                     node.geometry.computeBoundingSphere();
                     node.geometry.computeBoundingBox();
                 }
+                // else if (node instanceof THREE.SpotLight && node.castShadow) {
+                //     var lightJSON = findInJSON(json.object, node.uuid);
+                //     if (lightJSON.shadowCameraNear !== undefined) {
+                //         console.log(lightJSON.shadowCameraNear);
+                //         console.log(node.shadowCameraNear);
+                //         node.shadowCameraNear = lightJSON.shadowCameraNear;
+                //         console.log(lightJSON.shadowCameraNear);
+                //         console.log(node.shadowCameraNear);
+                //     }
+                //     if (lightJSON.shadowCameraFar !== undefined) node.shadowCameraFar = lightJSON.shadowCameraFar;
+                //     if (lightJSON.shadowCameraFov !== undefined) node.shadowCameraFov = lightJSON.shadowCameraFov;
+                //     if (lightJSON.shadowMapWidth !== undefined) node.shadowMapWidth = lightJSON.shadowMapWidth;
+                //     if (lightJSON.shadowMapHeight !== undefined) node.shadowMapHeight = lightJSON.shadowMapHeight;
+                //     // console.log(node);
+                // }
             });
             loadHeightfields(obj);
         }
@@ -99,7 +127,7 @@ var CrapLoader = ( function () {
     }
 
     function loadHeightfields(obj) {
-
+        // TODO: use new CANNON routine
         function getPixel(imagedata, x, y) {
             var position = (x + imagedata.width * y) * 4,
                 data = imagedata.data;
@@ -164,6 +192,7 @@ var CrapLoader = ( function () {
         });
 
         function makeCANNON(node, cannonData) {
+            // TODO: rename physics -> body
             if (node.physics) {
                 return node.physics;
             }

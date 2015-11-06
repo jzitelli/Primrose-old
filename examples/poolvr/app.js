@@ -1,7 +1,10 @@
 /* global WebVRApplication, CrapLoader, THREE, CANNON, URL_PARAMS, JSON_SCENE, SPE */
 
 var application;
-var options = {gravity: 0.3};
+var options = {
+    gravity: 9.8,
+    shadowMap: true
+};
 
 function onLoad() {
     "use strict";
@@ -15,6 +18,13 @@ function onLoad() {
     } else {
         scene = new THREE.Scene();
     }
+    var spotLight = new THREE.SpotLight(0xffffff);
+    spotLight.position.set(0, 3, 0);
+    spotLight.castShadow = true;
+    spotLight.shadowCameraNear = 0.02;
+    spotLight.shadowCameraFar = 3;
+    spotLight.shadowCameraFov = 90;
+    scene.add(spotLight);
 
     application = new WebVRApplication("poolvr", avatar, scene, options);
 
@@ -24,6 +34,8 @@ function onLoad() {
     // leap motion tool tracking (the pool stick)
     var toolRoot = makeTool();
     avatar.add(toolRoot);
+    toolRoot.position.set(0, -0.5, -0.75);
+    //CrapLoader.CANNONize(toolRoot, application.world);
 
     application.start();
 }

@@ -23,7 +23,7 @@ function GFXTablet(scene, width, height) {
     canvasMesh.position.z = -4;
     paintableMaterial.map.needsUpdate = true;
 
-    var cursorMaterial = new THREE.MeshBasicMaterial({color: 0xeeff66});
+    var cursorMaterial = new THREE.MeshBasicMaterial({color: 0xee9966});
     cursorMaterial.transparent = true;
     cursorMaterial.opacity = 0.25;
     var cursor = new THREE.Mesh(new THREE.CircleGeometry(0.02), cursorMaterial);
@@ -40,8 +40,8 @@ function GFXTablet(scene, width, height) {
             return;
         var start = points[0];
         ctx.beginPath();
-        ctx.strokeStyle = 'rgba(0,255,100,1)'; //stroke.color;
-        ctx.lineWidth = 5; //normalizeLineSize(stroke.size);
+        ctx.strokeStyle = 'rgba(0,255,50,0.92)'; //stroke.color;
+        ctx.lineWidth = start.p * 10; //normalizeLineSize(stroke.size);
         ctx.moveTo(gfxtabletCanvas.width * start.x, gfxtabletCanvas.height * start.y);
         for (var j = 1; j < points.length; j++) {
             var end = points[j];
@@ -71,16 +71,17 @@ function GFXTablet(scene, width, height) {
     };
     var points = [];
     var stroking = false;
+    var NP = 1;
     socket.onmessage = function (message) {
         var data = JSON.parse(message.data);
         if (data.p > 0) {
             points.push(data);
             // circle(gfxtabletCanvas.width * data.x, gfxtabletCanvas.height * data.y,
             //     2 + 50*data.p * data.p, '255,0,0', 0.1 + 0.9 * data.p);
-            if (points.length > 3) {
+            if (points.length > NP) {
                 drawStroke(points);
                 paintableMaterial.map.needsUpdate = true;
-                points.splice(0, 3);
+                points.splice(0, NP);
             }
         }
         if (data.button !== undefined) {

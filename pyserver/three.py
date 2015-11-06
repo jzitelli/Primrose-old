@@ -56,9 +56,9 @@ class Object3D(Three):
     def __init__(self, name=None, position=(0,0,0), rotation=(0,0,0), scale=(1,1,1), visible=None, castShadow=None, receiveShadow=None, userData=None, **kwargs):
         # TODO: use kwargs, don't convert to ndarray?
         Three.__init__(self, name)
-        self.position = np.array(position)
-        self.rotation = np.array(rotation)
-        self.scale = np.array(scale)
+        self.position = position #np.array(position)
+        self.rotation = rotation #np.array(rotation)
+        self.scale = scale #np.array(scale)
         self.children = []
         if visible is not None:
             self.visible = visible
@@ -105,7 +105,13 @@ class Object3D(Three):
                 images[tex.image.uuid] = tex.image
         return images
     def json(self):
-        # TODO: realized ObjectLoader will also accept pos/rot/scale in place of matrix
+        d = Three.json(self)
+        # d['position'] = list(self.position)
+        # d['rotation'] = list(self.rotation)
+        # d['scale'] = list(self.scale)
+        # d['children'] = [c.json() for c in self.children]
+        # d.update({k: v for k, v in self.__dict__.items()
+        #           if v is not None and k not in d})
         S = np.diag(list(self.scale) + [1])
         I = np.eye(4)
         T = I.copy()
@@ -124,11 +130,10 @@ class Object3D(Three):
         Rz[0,0] = c; Rz[0,1] = -s
         Rz[1,0] = s; Rz[1,1] = c
         matrix = T.dot(Rz).dot(Ry).dot(Rx).dot(S)
-        d = Three.json(self)
         d.update({"matrix": matrix.T.ravel().tolist(),
                   'children': [c.json() for c in self.children]})
         d.update({k: v for k, v in self.__dict__.items()
-            if k not in ['position', 'rotation', 'scale'] + list(d.keys())})
+                  if v is not None and k not in ['position', 'rotation', 'scale'] + list(d.keys())})
         return d
     def export(self, geometries=None, materials=None, textures=None, images=None):
         if geometries is None:
@@ -172,22 +177,14 @@ class Points(Object3D):
 
 
 class Light(Object3D):
-    def __init__(self, color=0xffffff, intensity=None, distance=None, **kwargs):
+    def __init__(self, color=0xffffff, intensity=None, distance=None, shadowCameraNear=None, shadowCameraFar=None, shadowCameraFov=None, **kwargs):
         Object3D.__init__(self, **kwargs)
         self.color = color
-        if intensity is not None:
-            self.intensity = intensity
-        if distance is not None:
-            self.distance = distance
-    def json(self):
-        d = Object3D.json(self)
-        d.update({k: v for k, v in self.__dict__.items()
-                  if k in ('color', 'intensity', 'distance',
-                           'shadowDarkness', 'shadowCameraNear',
-                           'shadowCameraFar', 'shadowCameraLeft',
-                           'shadowCameraRight', 'shadowCameraTop', 'shadowCameraBottom',
-                           'decay', 'angle', 'exponent', 'groundColor')})
-        return d
+        self.intensity = intensity
+        self.distance = distance
+        self.shadowCameraNear = shadowCameraNear
+        self.shadowCameraFar = shadowCameraFar
+        self.shadowCameraFov = shadowCameraFov
 
 
 class AmbientLight(Light):
@@ -199,28 +196,24 @@ class PointLight(Light):
 
 
 class DirectionalLight(Light):
-    # TODO: investigate specifying direction
+    # TODO: specifying direction
     def __init__(self, target=None, **kwargs):
         Light.__init__(self, **kwargs)
-        if target is None:
-            target = np.zeros(3)
         self.target = target
-    def json(self):
-        d = Light.json(self)
-        d['target'] = self.target.tolist()
-        return d
 
 
 class SpotLight(Light):
-    def __init__(self, angle=None, exponent=None, decay=None, **kwargs):
+    # TODO: set target (ObjectLoader does not support)
+    def __init__(self, angle=None, exponent=None, decay=None, target=None, **kwargs):
         Light.__init__(self, **kwargs)
         self.angle = angle
         self.exponent = exponent
         self.decay = decay
-
+        self.target = target
 
 
 class HemisphereLight(Light):
+    # TODO
     pass
 
 
@@ -231,11 +224,6 @@ class PerspectiveCamera(Object3D):
         self.aspect = aspect
         self.near = near
         self.far = far
-    def json(self):
-        d = Object3D.json(self)
-        d['type'] = 'Camera'
-        d.update({k: self.__dict__[k] for k in ['fov', 'aspect', 'near', 'far']})
-        return d
 
 
 class Material(Three):
@@ -348,6 +336,10 @@ class Geometry(Three):
         self.vertices = vertices
         self.colors = colors
         self.faces = faces
+    def json(self):
+        d = Three.json(self)
+        d.update({k: v for k, v in self.__dict__.items() if k not in d and v is not None})
+        return d
     def as_buffer_geometry(self):
         # TODO
         return BufferGeometry(name=self.name, vertices=self.vertices, indices=self.indices, normals=self.normals, uvs=self.uvs)
@@ -405,10 +397,6 @@ class CylinderGeometry(Geometry):
         self.openEnded = openEnded
         self.thetaStart = thetaStart
         self.thetaLength = thetaLength
-    def json(self):
-        d = Three.json(self)
-        d.update({k: v for k, v in self.__dict__.items() if k not in d and v is not None})
-        return d
 
 
 class DodecahedronGeometry(Geometry):
@@ -416,10 +404,6 @@ class DodecahedronGeometry(Geometry):
         Geometry.__init__(self)
         self.radius = radius
         self.detail = detail
-    def json(self):
-        d = Three.json(self)
-        d.update({k: v for k, v in self.__dict__.items() if k not in d and v is not None})
-        return d
 
 
 def _tri_faces(rect_face):
@@ -442,10 +426,6 @@ class BoxGeometry(Geometry):
         self.widthSegments = widthSegments
         self.heightSegments = heightSegments
         self.depthSegments = depthSegments
-    def json(self):
-        d = Three.json(self)
-        d.update({k: v for k, v in self.__dict__.items() if k not in d and v is not None})
-        return d
 
 
 class BoxBufferGeometry(BufferGeometry):

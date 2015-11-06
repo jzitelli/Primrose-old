@@ -78,7 +78,9 @@ WebVRApplication = ( function () {
         this.renderer.setClearColor(options.backgroundColor);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         if (options.shadowMap) {
+            console.log("shadow mapping enabled");
             this.renderer.shadowMap.enabled = true;
+            this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         }
         document.body.appendChild(this.renderer.domElement);
         this.vrEffect = new THREE.VREffect(this.renderer);
@@ -105,7 +107,7 @@ WebVRApplication = ( function () {
         world.defaultContactMaterial.frictionEquationStiffness = 1e7;
         world.defaultContactMaterial.contactEquationRelaxation = 4;
         world.defaultContactMaterial.frictionEquationRelaxation = 4;
-        world.solver.iterations = 4;
+        world.solver.iterations = 3;
         this.world = world;
 
         window.addEventListener("resize", function () {
