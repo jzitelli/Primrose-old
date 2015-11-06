@@ -1,5 +1,6 @@
 """Collection of functions which generate three.js scenes."""
 from copy import deepcopy
+import scipy.ndimage as ndimage
 
 from three import *
 
@@ -145,8 +146,10 @@ def underwater_tomb(length=25.0, width=25.0, height=30.0):
     #                rotation=[np.pi, 0, 0],
     #                scale=[L, 1, W],
     #                userData={'cannonData': cannonData}))
+    heightmap = 'images/terrain256.png'
+    image = ndimage.imread(heightmap)
     scene.add(Mesh(name="heightfield",
-                   geometry=PlaneBufferGeometry(width=L, height=W, widthSegments=255, heightSegments=255),
+                   geometry=PlaneBufferGeometry(width=L, height=W, widthSegments=image.shape[0]-1, heightSegments=image.shape[1]-1),
                    material=MeshLambertMaterial(color=0xffffff, shading=SmoothShading),
                    position=[0,-7,0],
                    rotation=[-np.pi/2, 0, 0],
@@ -154,7 +157,7 @@ def underwater_tomb(length=25.0, width=25.0, height=30.0):
                                'mass': 0.0,
                                'shapes': ['Heightfield']
                               },
-                              'heightmap': 'images/terrain256.png'
+                              'heightmap': heightmap
                             }))
     return scene.export()
 

@@ -55,21 +55,16 @@
 {% if mystery %}
 {{ mystery }}
 {% else %}
-    <script type="text/javascript">
-      WebVRApplication.prototype.mystery = function() {
-        console.log("you pressed the mystery button");
-        console.log(avatar);
-        console.log(this);
-      };
-    </script>
 {% endif %}
 
 {% if test %}
+<!-- TODO
     <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='jasmine/lib/jasmine-2.3.4/jasmine_favicon.png') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='jasmine/lib/jasmine-2.3.4/jasmine.css') }}">
     <script type="text/javascript" src="{{ url_for('static', filename='jasmine/lib/jasmine-2.3.4/jasmine.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='jasmine/lib/jasmine-2.3.4/jasmine-html.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='jasmine/lib/jasmine-2.3.4/boot.js') }}"></script>
+ -->
 {% endif %}
 
   </body>
