@@ -5,80 +5,52 @@ WebVRApplication = ( function () {
         this.name = name;
         this.avatar = avatar;
         this.scene = scene;
-        var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this.camera = camera;
-
-        this.audioContext = new AudioContext();
-
-        this.log = function(msg) {
-            console.log(msg);
+        // default keyboard controls:
+        var keyboardCommands = {
+            turnLeft: {buttons: [-Primrose.Input.Keyboard.LEFTARROW]},
+            turnRight: {buttons: [Primrose.Input.Keyboard.RIGHTARROW]},
+            driveForward: {buttons: [-Primrose.Input.Keyboard.W]},
+            driveBack: {buttons: [Primrose.Input.Keyboard.S]},
+            strafeLeft: {buttons: [-Primrose.Input.Keyboard.A]},
+            strafeRight: {buttons: [Primrose.Input.Keyboard.D]},
+            floatUp: {buttons: [Primrose.Input.Keyboard.E]},
+            floatDown: {buttons: [-Primrose.Input.Keyboard.C]},
+            toggleVRControls: {buttons: [Primrose.Input.Keyboard.V],
+                               commandDown: this.toggleVRControls.bind(this), dt: 0.25},
+            toggleWireframe: {buttons: [Primrose.Input.Keyboard.U],
+                              commandDown: this.toggleWireframe.bind(this), dt: 0.25},
+            resetVRSensor: {buttons: [Primrose.Input.Keyboard.Z],
+                            commandDown: this.resetVRSensor.bind(this), dt: 0.25}
         };
-
-        this.listeners = {'update': []};
-
-        // TODO: make this object, not array
-        var keyboardCommands = [{name: "turnLeft", buttons: [-Primrose.Input.Keyboard.LEFTARROW]},
-                {name: "turnRight", buttons: [Primrose.Input.Keyboard.RIGHTARROW]},
-                {name: "driveForward", buttons: [-Primrose.Input.Keyboard.W]},
-                {name: "driveBack", buttons: [Primrose.Input.Keyboard.S]},
-                {name: "strafeLeft", buttons: [-Primrose.Input.Keyboard.A]},
-                {name: "strafeRight", buttons: [Primrose.Input.Keyboard.D]},
-                {name: "floatUp", buttons: [Primrose.Input.Keyboard.E]},
-                {name: "floatDown", buttons: [-Primrose.Input.Keyboard.C]},
-                {name: "toggleVRControls", buttons: [Primrose.Input.Keyboard.V], commandDown: this.toggleVRControls.bind(this), dt: 0.25},
-                {name: "toggleWireframe", buttons: [Primrose.Input.Keyboard.U], commandDown: this.toggleWireframe.bind(this), dt: 0.25},
-                {name: 'resetVRSensor', buttons: [Primrose.Input.Keyboard.Z], commandDown: this.resetVRSensor.bind(this), dt: 0.25}];
-        if (options.keyboardCommands) {
-            Array.prototype.push.apply(options.keyboardCommands, keyboardCommands);
-        } else {
-            options.keyboardCommands = keyboardCommands;
-        }
-        var gamepadCommands = [{name: "strafe", axes: [Primrose.Input.Gamepad.LSX], deadzone: 0.15},
-                {name: "drive", axes: [Primrose.Input.Gamepad.LSY], deadzone: 0.15},
-                {name: "heading", axes: [-Primrose.Input.Gamepad.RSX], integrate: true, deadzone: 0.15},
-                {name: "dheading", commands: ["heading"], delta: true},
-                {name: "pitch", axes: [Primrose.Input.Gamepad.RSY], integrate: true, deadzone: 0.15, max: 0.5 * Math.PI, min: -0.5 * Math.PI},
-                {name: "float", axes: [-Primrose.Input.Gamepad.LSY], deadzone: 0.12},
-                {name: "toggleFloatMode", buttons: [Primrose.Input.Gamepad.XBOX_BUTTONS.leftStick],
-                    commandDown: function () { application.avatar.floatMode = true; },
-                    commandUp: function () { application.avatar.floatMode = false; } },
-                {name: "resetVRSensor", buttons: [Primrose.Input.Gamepad.XBOX_BUTTONS.back],
-                    commandDown: function () { application.resetVRSensor(); }, dt: 0.25}];
-        if (options.gamepadCommands) {
-            Array.prototype.push.apply(options.gamepadCommands, gamepadCommands);
-        } else {
-            options.gamepadCommands = gamepadCommands;
-        }
+        options.keyboardCommands = combineDefaults(options.keyboardCommands || {}, keyboardCommands);
+        options.keyboardCommands = Object.keys(options.keyboardCommands).map(function (k) {
+            return combineDefaults({name: k}, options.keyboardCommands[k]);
+        });
+        // default gamepad controls:
+        var gamepadCommands = {
+            strafe: {axes: [Primrose.Input.Gamepad.LSX], deadzone: 0.15},
+            drive: {axes: [Primrose.Input.Gamepad.LSY], deadzone: 0.15},
+            heading: {axes: [-Primrose.Input.Gamepad.RSX], integrate: true, deadzone: 0.15},
+            dheading: {commands: ["heading"], delta: true},
+            pitch: {axes: [Primrose.Input.Gamepad.RSY], integrate: true, deadzone: 0.15,
+                    max: 0.5 * Math.PI, min: -0.5 * Math.PI},
+            float: {axes: [-Primrose.Input.Gamepad.LSY], deadzone: 0.12},
+            toggleFloatMode: {buttons: [Primrose.Input.Gamepad.XBOX_BUTTONS.leftStick],
+                              commandDown: function () { application.avatar.floatMode = true; },
+                              commandUp: function () { application.avatar.floatMode = false; } },
+            resetVRSensor: {buttons: [Primrose.Input.Gamepad.XBOX_BUTTONS.back],
+                            commandDown: function () { application.resetVRSensor(); }, dt: 0.25}
+        };
+        options.gamepadCommands = combineDefaults(options.gamepadCommands || {}, gamepadCommands);
+        options.gamepadCommands = Object.keys(options.gamepadCommands).map(function (k) {
+            return combineDefaults({name: k}, options.gamepadCommands[k]);
+        });
         options = combineDefaults(options, {
             gravity: 0,
             backgroundColor: 0x000000,
-            mouseCommands: [{name: "dx", axes: [-Primrose.Input.Mouse.X], delta: true, scale: 0.5},
-                {name: "heading", commands: ["dx"], integrate: true},
-                {name: "dy", axes: [-Primrose.Input.Mouse.Y], delta: true, scale: 0.5},
-                {name: "pitch", commands: ["dy"], integrate: true, min: -Math.PI * 0.5, max: Math.PI * 0.5}],
             moveSpeed: 1,
             mousePointerColor: 0xff3322
         });
-
-        var renderer = new THREE.WebGLRenderer({
-            antialias: true,
-            alpha: true
-        });
-        this.renderer = renderer;
-        this.renderer.setPixelRatio(window.devicePixelRatio);
-        this.renderer.setClearColor(options.backgroundColor);
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
-        if (options.shadowMap) {
-            this.renderer.shadowMap.enabled = true;
-        }
-        document.body.appendChild(this.renderer.domElement);
-
-        this.vrEffect = new THREE.VREffect(this.renderer);
-        this.vrManager = new WebVRManager(this.renderer, this.vrEffect, {
-            hideButton: false
-        });
-        this.vrControls = new THREE.VRControls(this.camera);
-        this.vrControls.enabled = false;
 
         this.keyboard = new Primrose.Input.Keyboard("keyboard", window, options.keyboardCommands);
         window.addEventListener("keydown", function (evt) {
@@ -95,6 +67,36 @@ WebVRApplication = ( function () {
             }
         }.bind(this), false);
 
+        var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.camera = camera;
+        var renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: true
+        });
+        this.renderer = renderer;
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.setClearColor(options.backgroundColor);
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        if (options.shadowMap) {
+            this.renderer.shadowMap.enabled = true;
+        }
+        document.body.appendChild(this.renderer.domElement);
+        this.vrEffect = new THREE.VREffect(this.renderer);
+        this.vrManager = new WebVRManager(this.renderer, this.vrEffect, {
+            hideButton: false
+        });
+
+        this.vrControls = new THREE.VRControls(this.camera);
+        this.vrControls.enabled = false;
+
+        this.audioContext = new AudioContext();
+
+        this.log = function(msg) {
+            console.log(msg);
+        };
+
+        this.listeners = {'update': []};
+
         var world = new CANNON.World();
         world.gravity.set( 0, -options.gravity, 0 );
         world.broadphase = new CANNON.SAPBroadphase( world );
@@ -105,8 +107,6 @@ WebVRApplication = ( function () {
         world.defaultContactMaterial.frictionEquationRelaxation = 4;
         world.solver.iterations = 4;
         this.world = world;
-
-        this.particleGroups = [];
 
         window.addEventListener("resize", function () {
             var canvasWidth = window.innerWidth,
@@ -121,10 +121,10 @@ WebVRApplication = ( function () {
         }.bind(this), false);
 
         var mousePointer = new THREE.Mesh(new THREE.SphereBufferGeometry(0.0123), new THREE.MeshBasicMaterial({color: options.mousePointerColor}));
+        this.mousePointer = mousePointer;
         mousePointer.position.z = -2;
         avatar.add(mousePointer);
         mousePointer.visible = false;
-        this.mousePointer = mousePointer;
         if ("onpointerlockchange" in document) {
           document.addEventListener('pointerlockchange', lockChangeAlert, false);
         } else if ("onmozpointerlockchange" in document) {
@@ -134,11 +134,11 @@ WebVRApplication = ( function () {
         }
         function lockChangeAlert() {
           if( document.pointerLockElement || document.mozPointerLockElement || document.webkitPointerLockElement ) {
-            console.log('The pointer lock status is now locked');
+            console.log('pointer lock status is now locked');
             mousePointer.visible = true;
             mousePointer.position.x = mousePointer.position.y = 0;
           } else {
-            console.log('The pointer lock status is now unlocked');
+            console.log('pointer lock status is now unlocked');
             mousePointer.visible = false;
           }
         }
@@ -265,6 +265,7 @@ WebVRApplication = ( function () {
             }
             pitchQuat.setFromAxisAngle(RIGHT, pitch);
 
+            // TODO: resolve CANNON issues w/ initial low framerate
             this.world.step(1/60);
 
             for (var j = 0; j < this.world.bodies.length; ++j) {
@@ -298,11 +299,11 @@ WebVRApplication = ( function () {
 
             }
 
-            if (this.particleGroups) {
-                this.particleGroups.forEach(function (group) {
-                    group.tick(dt);
-                });
-            }
+            // if (this.particleGroups) {
+            //     this.particleGroups.forEach(function (group) {
+            //         group.tick(dt);
+            //     });
+            // }
 
         }.bind(this);
 
