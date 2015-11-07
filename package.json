@@ -3,7 +3,7 @@
   "description": "Primrose is a lightweight text editor control for Web browsers. It can be used as a texture on a WebGL mesh. It includes basic syntax highlighting and keyboard shortcuts.",
   "version": "0.13.0",
   "contributors": ["Sean T. McBeth <sean@seanmcbeth.com> (https://www.seanmcbeth.com)",
-                   "Jeffrey Zitelli <jeffrey.zitelli@gmail.com>"],
+                   "Jeffrey Zitelli <jeffrey.zitelli@gmail.com> (http://www.subvr.info)"],
   "license": "GPL-3.0",
   "homepage": "https://www.primroseeditor.com",
   "repository": {
@@ -15,8 +15,11 @@
     "LICENSE",
     "README.md",
     "bin/",
+    "lib/",
     "examples/",
-    "lib/"
+    "models/",
+    "sounds/",
+    "images/"
   ],
   "keywords": [
     "text",
@@ -27,7 +30,6 @@
     "highlighting"
   ],
   "dependencies": {
-    "cannon": "schteppe/cannon.js",
     "leapjs": "^0.6.4",
     "socket.io": "^1.3.6",
     "socket.io-client": "^1.3.6"
