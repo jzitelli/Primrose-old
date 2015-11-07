@@ -21,14 +21,9 @@ except ImportError:
 
 from flask import Flask, render_template, request, jsonify, Markup, render_template_string
 import default_settings
-if os.environ.get("PYSERVER_RELEASE"):
-    default_settings.DEBUG = False
-    default_settings.TESTING = False
-    STATIC_FOLDER = os.environ.get('PYSERVER_STATIC_FOLDER')
-    TEMPLATE_FOLDER = os.environ.get('PYSERVER_TEMPLATE_FOLDER')
-elif default_settings.DEBUG:
-    STATIC_FOLDER = os.environ.get('PYSERVER_STATIC_FOLDER', os.path.join(os.getcwd()))
-    TEMPLATE_FOLDER = os.environ.get('PYSERVER_TEMPLATE_FOLDER', os.path.join(os.getcwd(), 'pyserver', 'templates'))
+
+STATIC_FOLDER = os.environ.get('PYSERVER_STATIC_FOLDER', os.path.join(os.getcwd()))
+TEMPLATE_FOLDER = os.environ.get('PYSERVER_TEMPLATE_FOLDER', os.path.join(os.getcwd(), 'pyserver', 'templates'))
 app = Flask(__name__,
             static_folder=STATIC_FOLDER,
             template_folder=TEMPLATE_FOLDER,
