@@ -1,81 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>subvr.info</title>
+<head>
 
-    <style>
-      html {
-          font-family: sans-serif;
-          font-size: 108%;
-          background: url("images/tunnel.png") no-repeat center center fixed;
-          background-size: cover;
-          /*background-color: #0c0032;*/
-      }
-      body {
-          /*position: absolute;*/
-          /*left: 5%;*/
-          /*margin-left: 30px;*/
-          /*margin-bottom: 30px;*/
-      }
-      div {
-          /*width: 303%;*/
-          /*color: #5ee252;*/
-          /*background-color: rgba(111,85,114, 0.6); /* #6f5572 */*/
-          /*box-shadow: 8px 5px 10px rgba(55,40,56, 0.6);*/
-          /*padding: 4px;*/
-          /*margin: inherit;*/
-          /*box-sizing: border-box;*/
-      }
-      h1 {
-          color: #69f556;
-      }
-      h2 {
-          color: rgb(150, 210, 40);
-      }
-      p {
-          color: rgb(204, 95, 16);
-          /*color: rgb(91, 222, 83);*/
-      }
-      a {
-          text-decoration: none;
-      }
-    </style>
+<meta charset="utf-8">
 
-  </head>
-  <body>
+<title>subvr.info</title>
 
-<div>
-<a href="subvr">
-<h2>subvr</h2>
-</a>
-</div>
+<style>
+  html {
+      font-family: sans-serif;
+      font-size: 108%;
+      background: url("images/tunnel.png") no-repeat center center fixed;
+      background-size: cover;
+  }
+  body {
+      margin-top: 50px;
+      /*position: absolute;*/
+      /*left: 5%;*/
+      /*margin-left: 27px;*/
+      /*margin-bottom: 30px;*/
+  }
+  div {
+      margin: 20px 20px 20px 20px;
+      /*left: 5%;*/
+      /*margin: inherit;*/
+      /*padding: 4px;*/
+      /*width: 303%;*/
+      /*color: #5ee252;*/
+      /*box-shadow: 8px 5px 10px rgba(55,40,56, 0.6);*/
+      /*box-sizing: border-box;*/
+  }
+  .center {
+      /*position: absolute;*/
+      margin: auto;
+      width: 75%;
+  }
+  .apps {
+      -webkit-column-count: 4; /* Chrome, Safari, Opera */
+      -moz-column-count: 4; /* Firefox */
+      column-count: 4;
+  }
+  .app {
+      background-color: rgba(40, 70, 70, 0.4);
+      column-span: 1;
+      padding: 10px;
+      margin: auto;
+      width: 90%;
+  }      
+  h1 {
+      color: #69f556;
+  }
+  h2 {
+      color: rgb(150, 210, 40);
+  }
+  p {
+      color: rgb(204, 95, 16);
+  }
+  a {
+      color: rgb(150, 210, 40);
+      text-decoration: none;
+      /*background-color: rgba(50, 100, 150, 0.4);*/
+  }
+</style>
 
-<div>
-<a href="editvr">
-<h2>editvr</h2>
-</a>
-</div>
+</head>
 
-<div>
-<a href="poolvr">
-<h2>poolvr</h2>
-</a>
-</div>
+<body>
 
-<div>
-<a href="audiovr">
-<h2>audiovr</h2>
-</a>
+
+<div class=center>
+  <h1>WebVR / HTML5 apps (works in progress):</h1>
+
+  <div class=apps>
+
+    <div class=app>
+      <a href="subvr">
+	<h2>subvr</h2>
+      </a>
+    </div>
+
+    <div class=app>
+      <a href="editvr">
+	<h2>editvr</h2>
+      </a>
+    </div>
+
+    <div class=app>
+      <a href="poolvr">
+	<h2>poolvr</h2>
+      </a>
+    </div>
+
+    <div class=app>
+      <a href="audiovr">
+	<h2>audiovr</h2>
+      </a>
+    </div>
+
+  </div>
 </div>
 
 <br><br>
 
 <div>
-<a href="blog">
-<h2>blog</h2>
-</a>
+  <h1><a href="blog">THE subvr.info BLOG</a></h1>
 </div>
 
-  </body>
+<br><br>
+
+<div>
+  <h1>Contact / Support / Feedback:</h1>
+  <div>
+    <a href="https://github.com/jzitelli/Primrose"><h2>GitHub repository</h2></a>
+  </div>
+  <div>
+    <a href="https://twitter.com/SUBVR_DOT_INFO"><h2>Follow subvr on Twitter!</h2></a>
+  </div>
+</div>
+
+
+<br><br><br><br>
+
+
+<div>
+  <h1>Open-Source Libraries:</h1>
+
+  <div>
+    <a href="http://threejs.org">
+    <h2>three.js</h2>
+    </a>
+  </div>
+
+  <div>
+    <a href="http://cannonjs.org">
+    <h2>Cannon.js</h2>
+    </a>
+  </div>
+
+</div>
+
+
+<br><br>
+
+
+<div>
+  <h1>Other WebVR sites:</h1>
+
+  <div>
+    <a href="http://www.primroseeditor.com"><h2>Primrose (official site)</h2></a>
+  </div>
+
+  <div>
+    <a href="http://brian.peiris.io/RiftSketch/">
+    <h2>RiftSketch</h2>
+    </a>
+  </div>
+
+  <div>
+    <a href="http://borismus.github.io/webvr-boilerplate/">
+    <h2>WebVR Boilerplate Demo</h2>
+    </a>
+  </div>
+
+  <div>
+    <a href="http://mozvr.com">
+    <h2>MozVR</h2>
+    </a>
+  </div>
+
+</div>
+
+</body>
 </html>

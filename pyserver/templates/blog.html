@@ -1,60 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-    <title>the subvr.info blog</title>
+<head>
 
-    <style>
-      html {
-          font-family: sans-serif;
-          font-size: 108%;
-          background: url("images/bg0.jpg") no-repeat center center fixed;
-          background-size: cover;
-          background-color: #0c0032;
-      }
-      body {
-          position: absolute;
-          left: 5%;
-          margin-left: 30px;
-          margin-bottom: 30px;
-      }
-      div {
-          width: 303%;
-          color: #5ee252;
-          background-color: rgba(111,85,114, 0.6); /* #6f5572 */
-          box-shadow: 8px 5px 10px rgba(55,40,56, 0.6);
-          padding: 4px;
-          margin: inherit;
-          box-sizing: border-box;
-      }
-      h1 {
-          color: #69f556;
-      }
-      h2 {
-          color: rgb(150, 210, 40);
-      }
-      p {
-          color: rgb(204, 95, 16);
-          /*color: rgb(91, 222, 83);*/
-      }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
 
-  </head>
-  <body>
+  <title>THE subvr.info BLOG</title>
 
+  <style>
+    html {
+        font-family: sans-serif;
+        font-size: 108%;
+        background: url("blog/images/bg0.jpg") no-repeat center center fixed;
+        background-size: cover;
+        background-color: #0c0032;
+    }
+    body {
+        position: absolute;
+        margin-left: 36px;
+        margin-bottom: 30px;
+        margin-right: 36px;
+        /*left: 5%;*/
+    }
+    div.post {
+        width: 66%;
+        color: #5ee252;
+        background-color: rgba(111,85,106, 0.5); /* #6f5572 */
+        box-shadow: 10px 7px 13px rgba(55,40,56, 0.6);
+        padding: 4px;
+        margin: inherit;
+        margin-bottom: 50px;
+        box-sizing: border-box;
+        overflow: auto;
+        /*margin-left: 20px;*/
+    }
+    div.section {
+        width: 95%;
+        color: #6ff363;
+        background-color: rgba(47,38,54, 0.75); /* #6f5572 */
+        padding: 10px;
+        margin: inherit;
+        box-sizing: border-box;
+        overflow: auto;
+        margin-left: 20px;
+        /*box-shadow: 8px 5px 10px rgba(55,40,56, 0.6);*/
+    }
+    div.sidebar {
+        width: 20%;
+        float: right;
+        background-color: rgba(54,47,38, 0.4); /* #6f5572 */
+        box-shadow: 8px 5px 10px rgba(55,40,56, 0.6);
+        padding: 4px;
+    }
+    h1 {
+        padding: 10px;
+        color: #69f556;
+    }
+    h2 {
+        padding: 6px;
+        color: rgb(150, 210, 40);
+    }
+    h3 {
+        padding: 4px;
+        color: rgb(140, 200, 30);
+    }
+    p {
+        padding: 4px;
+        color: rgb(233, 72, 10);
+    }
+    a {
+        padding: 4px;
+        text-decoration: none;
+        color: #69f556;
+    }
+    img {
+        float: left;
+        margin: 24px 24px 24px 24px;
+    }
+  </style>
 
+</head>
+
+<body>
+
+<br><br>
 <h1>THE subvr.info BLOG</h1>
+<br><br>
 
-<div>
-<h2>10/23/2015</h2>
-<p>
-Stay tuned!
-</p>
+
+<div class=sidebar>
+<a href="/"><h4>subvr.info</h4></a>
 </div>
 
-    <script src="{{ url_for('static', filename='bin/three-r73.js') }}"></script>
-    <script src="{{ url_for('static', filename='bin/VRControls.js') }}"></script>
+{{ posts if posts else "" }}
 
-  </body>
+
+
+</body>
+
 </html>

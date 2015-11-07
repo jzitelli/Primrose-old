@@ -117,7 +117,12 @@ var JSON_SCENE = %s;
 
 @app.route("/blog")
 def blog():
-    return render_template("blog.html")
+    posts = []
+    for filename in sorted(os.listdir(os.path.join(os.getcwd(), 'blog'))):
+        if filename[-4:] == 'html':
+            with open(os.path.join(os.getcwd(), 'blog', filename)) as f:
+                posts.append(f.read())
+    return render_template("blog.html", posts=Markup("\n\n".join(posts[::-1])))
 
 
 @app.route('/pyexec', methods=['POST'])
@@ -167,20 +172,20 @@ def read():
     return jsonify(response)
 
 
-@app.route("/write", methods=['POST'])
-def write():
-    filename = os.path.join(os.getcwd(), 'writes', os.path.split(request.args['file'])[1])
-    try:
-        if request.json is not None:
-            with open(filename, 'w') as f:
-                f.write(json.dumps(request.json))
-        else:
-            with open(filename, 'w') as f:
-                f.write(request.form['text'])
-        response = {'filename': filename}
-    except Exception as err:
-        response = {'error': str(err)}
-    return jsonify(response)
+# @app.route("/write", methods=['POST'])
+# def write():
+#     filename = os.path.join(os.getcwd(), 'writes', os.path.split(request.args['file'])[1])
+#     try:
+#         if request.json is not None:
+#             with open(filename, 'w') as f:
+#                 f.write(json.dumps(request.json))
+#         else:
+#             with open(filename, 'w') as f:
+#                 f.write(request.form['text'])
+#         response = {'filename': filename}
+#     except Exception as err:
+#         response = {'error': str(err)}
+#     return jsonify(response)
 
 
 def main():

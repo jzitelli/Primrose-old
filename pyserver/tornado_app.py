@@ -36,11 +36,14 @@ handlers = websocket_handlers + [('.*', FallbackHandler, dict(fallback=WSGIConta
 def main():
     app.config['WEBSOCKETS'] = [wh[0] for wh in websocket_handlers]
     tornado_app = Application(handlers, debug=app.debug)
-    tornado_app.listen(5000)
+    if app.debug:
+        tornado_app.listen(5000)
+    else:
+        tornado_app.listen(80)
     _logger.info("STATIC_FOLDER = %s" % STATIC_FOLDER)
     _logger.info("TEMPLATE_FOLDER = %s" % TEMPLATE_FOLDER)
     _logger.debug("server's local IP:  %s" % socket.gethostbyname(socket.gethostname()))
-    _logger.debug("starting IO loop...")
+    _logger.info("starting IO loop...")
     _logger.info("press CTRL-C to terminate the server")
     IOLoop.instance().start()
 
