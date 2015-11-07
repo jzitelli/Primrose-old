@@ -1,5 +1,3 @@
-
-
 # Dependency directory
 # Commenting this out is preferred by some people, see
 # https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git-
@@ -11,8 +9,7 @@ bin
 models/ConfigUtilDeskScene.json
 models/ConfigUtilDeskScene.png
 
-primrose.sublime-project
-primrose.sublime-workspace
+blog
 
 *.py~
 *.pyc
