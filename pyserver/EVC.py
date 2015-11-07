@@ -1,3 +1,6 @@
+"""Based on Karl Sims, 'Evolving Virtual Creatures'
+"""
+
 from networkx import DiGraph # conda install networkx
 from three import *
 
@@ -5,6 +8,7 @@ from three import *
 def construct_phenotype(genotype):
 	phenotype = Object3D()
 	nodes = genotype.nodes(data=True)
+	n_visits = {node[0]: 0 for node in nodes}
 	root, rootData = nodes[0]
 	phenotype.add(rootData['mesh'])
 	return phenotype

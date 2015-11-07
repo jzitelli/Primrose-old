@@ -3,6 +3,7 @@
 import scipy.ndimage as ndimage
 import matplotlib.pyplot as plt
 
+
 def calc_irradiance_diffuse(cube_images):
 	"""Calculates diffuse environment irradiance map (as a cube map)"""
 	for image in cube_images:

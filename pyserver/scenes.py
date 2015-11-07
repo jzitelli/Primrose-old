@@ -46,13 +46,13 @@ def some_room(length=15.0, width=12.0, height=10.0):
                    material=MeshPhongMaterial(shading=FlatShading, color=side_colors[2]),
                    position=[0, yAvg, zMax],
                    rotation=[np.pi/2, np.pi, 0],
-                   scale=[L,1,H],
+                   scale=[L, 1, H],
                    userData={'cannonData': cannonData}))
     scene.add(Mesh(name="left", geometry=square,
                    material=MeshPhongMaterial(shading=FlatShading, color=side_colors[3]),
                    position=[xMin, yAvg, 0],
                    rotation=[np.pi/2, np.pi/2, 0],
-                   scale=[W,1,H],
+                   scale=[W, 1, H],
                    userData={'cannonData': cannonData}))
     if ShaderLib is not None:
         shader = deepcopy(ShaderLib['cube'])
@@ -73,7 +73,6 @@ def shader_room(length=10, width=10, height=10):
     xMin, xMax = -L/2, L/2
     zMin, zMax = -W/2, W/2
     yAvg = (yMin + yMax) / 2
-    textures = [Texture(image=Image("deck", url="images/deck.png"), repeat=[L, W], wrap=[RepeatWrapping, RepeatWrapping])]
     scene = Scene()
     scene.add(AmbientLight(color=0x151515))
     scene.add(PointLight(color=0x880000, intensity=0.7, distance=50,
@@ -83,18 +82,21 @@ def shader_room(length=10, width=10, height=10):
     cannonData = {'mass': 0, 'shapes': ['Plane']}
     scene.add(Mesh(name="floor", geometry=square,
                    material=MeshBasicMaterial(side=FrontSide, color=0xffffff,
-                                              map=textures[0]),
+                                              map=Texture(image=Image("deck", url="images/deck.png"),
+                                                          repeat=[L, W], wrap=[RepeatWrapping, RepeatWrapping])),
                    receiveShadow=True,
                    position=[0, yMin, 0],
-                   scale=[L,1,W],
+                   scale=[L, 1, W],
                    userData={'cannonData': cannonData}))
+    heightmap = 'images/terrain128.png'
+    image = ndimage.imread(heightmap)
     scene.add(Mesh(name="heightfield",
-                   geometry=PlaneBufferGeometry(width=L, height=W, widthSegments=127, heightSegments=127),
+                   geometry=PlaneBufferGeometry(width=L, height=W, widthSegments=image.shape[0]-1, heightSegments=image.shape[1]-1),
                    material=MeshLambertMaterial(color=0xffffff, shading=SmoothShading),
-                   position=[L,-6,0],
+                   position=[L, -6, 0],
                    rotation=[-np.pi/2, 0, 0],
                    userData={'cannonData': {'mass': 0.0, 'shapes': ['Heightfield']},
-                             'heightmap': 'images/terrain128.png'}))
+                             'heightmap': heightmap}))
     return scene.export()
 
 
@@ -151,7 +153,7 @@ def underwater_tomb(length=25.0, width=25.0, height=30.0):
     scene.add(Mesh(name="heightfield",
                    geometry=PlaneBufferGeometry(width=L, height=W, widthSegments=image.shape[0]-1, heightSegments=image.shape[1]-1),
                    material=MeshLambertMaterial(color=0xffffff, shading=SmoothShading),
-                   position=[0,-7,0],
+                   position=[0, -4, 0],
                    rotation=[-np.pi/2, 0, 0],
                    userData={'cannonData': {
                                'mass': 0.0,
