@@ -24,27 +24,26 @@
 
   <body onload="onLoad()">
 
-    <script src="{{ url_for('static', filename='bin/three-r73'     + js_suffix) }}"></script>
-    <script src="{{ url_for('static', filename='bin/TextGeometry'  + js_suffix) }}"></script>
-    <script src="{{ url_for('static', filename='bin/FontUtils'     + js_suffix) }}"></script>
-    <script src="{{ url_for('static', filename='bin/ColladaLoader' + js_suffix) }}"></script>
-
-    <script src="{{ url_for('static', filename='bin/socket.io'      + js_suffix) }}"></script>
-    <script src="{{ url_for('static', filename='bin/cannon'         + js_suffix) }}"></script>
-    <script src="{{ url_for('static', filename='bin/leap-0.6.4'     + js_suffix) }}"></script>
-    <script src="{{ url_for('static', filename='bin/Primrose'       + js_suffix) }}"></script>
+    <script src="{{ url_for('static', filename='bin/three-r73'      + js_suffix) }}"></script>
+    <script src="{{ url_for('static', filename='bin/TextGeometry'   + js_suffix) }}"></script>
+    <script src="{{ url_for('static', filename='bin/FontUtils'      + js_suffix) }}"></script>
+    <script src="{{ url_for('static', filename='bin/ColladaLoader'  + js_suffix) }}"></script>
     <script src="{{ url_for('static', filename='bin/VREffect'       + js_suffix) }}"></script>
     <script src="{{ url_for('static', filename='bin/VRControls'     + js_suffix) }}"></script>
     <script src="{{ url_for('static', filename='bin/webvr-polyfill' + js_suffix) }}"></script>
     <script src="{{ url_for('static', filename='bin/webvr-manager'  + js_suffix) }}"></script>
 
-    <script src="{{ url_for('static', filename='lib/leap.transform.js') }}"></script>
+    <script src="{{ url_for('static', filename='bin/socket.io'      + js_suffix) }}"></script>
+    <script src="{{ url_for('static', filename='bin/cannon'         + js_suffix) }}"></script>
+    <script src="{{ url_for('static', filename='bin/leap-0.6.4'     + js_suffix) }}"></script>
+    <script src="{{ url_for('static', filename='bin/leap.transform' + js_suffix) }}"></script>
+    <script src="{{ url_for('static', filename='bin/Primrose'       + js_suffix) }}"></script>
 
     <script src="{{ url_for('static', filename='src/pyserver.js') }}"></script>
     <script src="{{ url_for('static', filename='src/CrapLoader.js') }}"></script>
     <script src="{{ url_for('static', filename='src/WebVRApplication.js') }}"></script>
     <script src="{{ url_for('static', filename='src/LeapHands.js') }}"></script>
-    <!-- <script src="{{ url_for('static', filename='src/LeapTools.js') }}"></script> -->
+    <script src="{{ url_for('static', filename='src/LeapTools.js') }}"></script>
 
     <script src="{{ url_for('static', filename='lib/fonts/helvetiker_regular.typeface.js') }}"></script>
     <script src="{{ url_for('static', filename='lib/fonts/helvetiker_bold.typeface.js') }}"></script>

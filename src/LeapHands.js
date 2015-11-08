@@ -1,6 +1,6 @@
 function addHands(parent, transformOptions) {
     var leapController = new Leap.Controller({frameEventName: 'animationFrame'});
-    transformOptions = transformOptions;
+    transformOptions = transformOptions || {};
     leapController.use('transform', transformOptions).connect();
     var leftRoot = new THREE.Object3D(),
         rightRoot = new THREE.Object3D();

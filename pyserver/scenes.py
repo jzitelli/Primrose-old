@@ -230,4 +230,10 @@ def pool_hall():
     ball03 = Mesh(geometry=sphere, material=MeshPhongMaterial(color=0xddee00),
                   position=[1.17 / 3, y_table + radius + 0.001, 0], castShadow=True, userData=userData)
     scene.add(ball03)
+    if ShaderLib is not None:
+        shader = deepcopy(ShaderLib['cube'])
+        shader['uniforms']['tCube']['value'] = ["images/skybox/%s.jpg" % pos
+                                                for pos in ('px', 'nx', 'py', 'ny', 'pz', 'nz')]
+        scene.add(Mesh(geometry=BoxGeometry(900, 900, 900),
+                       material=ShaderMaterial(side=BackSide, **shader)))
     return scene.export()

@@ -10,9 +10,9 @@ var scene = CrapLoader.parse(JSON_SCENE);
 
 var avatar = new THREE.Object3D();
 // TODO:
-// avatar.position.y = 1.2;
-// avatar.position.z = 2;
-scene.children.forEach(function (c) {c.position.y -= 1.4;}); //
+avatar.position.y = 1.2;
+avatar.position.z = 2;
+// scene.children.forEach(function (c) {c.position.y -= 1.4;}); //
 
 function onLoad() {
     "use strict";
@@ -27,8 +27,8 @@ function onLoad() {
     application = new WebVRApplication("poolvr", avatar, scene, options);
 
     // TODO:
-    // avatar.add(application.camera);
-    application.scene.add(application.camera); //
+    avatar.add(application.camera);
+    // application.scene.add(application.camera); //
 
     application.scene.add(avatar);
 

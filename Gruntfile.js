@@ -12,11 +12,13 @@ var fs = require( "fs" ),
       "lib/webvr-polyfill.js",
       "lib/webvr-manager.js",
       "lib/cannon.js",
+      "lib/SPE.js",
+      "lib/leap.transform.js",
       "node_modules/leapjs/leap-0.6.4.js",
       "node_modules/socket.io-client/socket.io.js"
     ],
     uglifyFiles = files.map( function ( s ) {
-      return{
+      return {
         src: s,
         dest: s.replace( /.*\/(.*).js/, "bin/$1.min.js" )
       };
