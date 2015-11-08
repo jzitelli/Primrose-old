@@ -365,7 +365,7 @@ WebVRApplication = ( function () {
         if (this.vrControls.enabled) {
             this.vrControls.enabled = false;
             this.camera.position.set(0, 0, 0);
-            this.camera.rotation.set(0, 0, 0);
+            this.camera.quaternion.set(0, 0, 0, 1);
         } else {
             this.vrControls.enabled = true;
             this.vrControls.update();
