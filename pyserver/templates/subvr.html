@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
 
+    <link rel="shortcut icon" href="{{ url_for('static', filename='examples/subvr/favicon.ico') }}">
+
     <title>subvr</title>
 
     <style>
@@ -22,19 +24,19 @@
 
   <body onload="onLoad()">
 
-    <script src="{{ url_for('static', filename='bin/three-r73.js') }}"></script>
-    <script src="{{ url_for('static', filename='bin/TextGeometry.js') }}"></script>
-    <script src="{{ url_for('static', filename='bin/FontUtils.js') }}"></script>
-    <script src="{{ url_for('static', filename='bin/ColladaLoader.js') }}"></script>
+    <script src="{{ url_for('static', filename='bin/three-r73'     + js_suffix) }}"></script>
+    <script src="{{ url_for('static', filename='bin/TextGeometry'  + js_suffix) }}"></script>
+    <script src="{{ url_for('static', filename='bin/FontUtils'     + js_suffix) }}"></script>
+    <script src="{{ url_for('static', filename='bin/ColladaLoader' + js_suffix) }}"></script>
 
-    <script src="{{ url_for('static', filename='bin/cannon.js') }}"></script>
-    <script src="{{ url_for('static', filename='bin/leap-0.6.4.js') }}"></script>
-    <script src="{{ url_for('static', filename='bin/socket.io.js') }}"></script>
-    <script src="{{ url_for('static', filename='bin/Primrose.js') }}"></script>
-    <script src="{{ url_for('static', filename='bin/VREffect.js') }}"></script>
-    <script src="{{ url_for('static', filename='bin/VRControls.js') }}"></script>
-    <script src="{{ url_for('static', filename='bin/webvr-polyfill.js') }}"></script>
-    <script src="{{ url_for('static', filename='bin/webvr-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='bin/socket.io'      + js_suffix) }}"></script>
+    <script src="{{ url_for('static', filename='bin/cannon'         + js_suffix) }}"></script>
+    <script src="{{ url_for('static', filename='bin/leap-0.6.4'     + js_suffix) }}"></script>
+    <script src="{{ url_for('static', filename='bin/Primrose'       + js_suffix) }}"></script>
+    <script src="{{ url_for('static', filename='bin/VREffect'       + js_suffix) }}"></script>
+    <script src="{{ url_for('static', filename='bin/VRControls'     + js_suffix) }}"></script>
+    <script src="{{ url_for('static', filename='bin/webvr-polyfill' + js_suffix) }}"></script>
+    <script src="{{ url_for('static', filename='bin/webvr-manager'  + js_suffix) }}"></script>
 
     <script src="{{ url_for('static', filename='src/pyserver.js') }}"></script>
     <script src="{{ url_for('static', filename='src/CrapLoader.js') }}"></script>

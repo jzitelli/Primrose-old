@@ -47,6 +47,14 @@ _logger = logging.getLogger(__name__)
 #         return func
 
 
+@app.context_processor
+def js_suffix():
+    if app.debug:
+        return {'js_suffix': '.js'}
+    else:
+        return {'js_suffix': '.min.js'}
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
