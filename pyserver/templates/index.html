@@ -4,6 +4,8 @@
 
 <meta charset="utf-8">
 
+<link rel="shortcut icon" href="{{ url_for('static', filename='examples/subvr/favicon.ico') }}">
+
 <title>subvr.info</title>
 
 <style>
@@ -21,52 +23,59 @@
       /*margin-bottom: 30px;*/
   }
   div {
-      margin: 20px 20px 20px 20px;
-      /*left: 5%;*/
-      /*margin: inherit;*/
-      /*padding: 4px;*/
-      /*width: 303%;*/
+      margin-bottom: 3px;
+      margin-left: 20px;
+      margin-right: 20px;
       /*color: #5ee252;*/
       /*box-shadow: 8px 5px 10px rgba(55,40,56, 0.6);*/
       /*box-sizing: border-box;*/
   }
+  img {
+      float: left;
+      padding: 7px;
+  }
   .center {
-      /*position: absolute;*/
       margin: auto;
-      width: 75%;
+      width: 85%;
   }
   .apps {
-      -webkit-column-count: 4; /* Chrome, Safari, Opera */
-      -moz-column-count: 4; /* Firefox */
-      column-count: 4;
+      margin-bottom: 10px;
+      -webkit-column-count: 3; /* Chrome, Safari, Opera */
+      -moz-column-count: 3; /* Firefox */
+      column-count: 3;
   }
   .app {
       background-color: rgba(40, 70, 70, 0.4);
       column-span: 1;
-      padding: 10px;
-      margin: auto;
-      width: 90%;
-  }      
+      padding: 4px;
+      width: 256px;
+      overflow: auto;
+      border-radius: 25px;
+  }
+  .two {
+      -webkit-column-count: 2; /* Chrome, Safari, Opera */
+      -moz-column-count: 2; /* Firefox */
+      column-count: 2;
+  }
+  .col{
+      column-span: 1;
+      overflow: auto;
+  }
   h1 {
       color: #69f556;
   }
   h2 {
       color: rgb(150, 210, 40);
   }
-  p {
-      color: rgb(204, 95, 16);
-  }
   a {
       color: rgb(150, 210, 40);
       text-decoration: none;
-      /*background-color: rgba(50, 100, 150, 0.4);*/
   }
 </style>
 
 </head>
 
 <body>
-
 
 <div class=center>
   <h1>WebVR / HTML5 apps (works in progress):</h1>
@@ -75,97 +84,118 @@
 
     <div class=app>
       <a href="subvr">
-	<h2>subvr</h2>
+      <img src="examples/subvr/favicon.ico">
+      <h2>subvr</h2>
       </a>
     </div>
 
     <div class=app>
       <a href="editvr">
-	<h2>editvr</h2>
+      <img src="examples/subvr/favicon.ico">
+      <h2>editvr</h2>
       </a>
     </div>
 
     <div class=app>
       <a href="poolvr">
-	<h2>poolvr</h2>
+      <img src="examples/poolvr/favicon.ico">
+      <h2>poolvr</h2>
       </a>
     </div>
 
-    <div class=app>
+<!--     <div class=app>
       <a href="audiovr">
-	<h2>audiovr</h2>
+      <img src="examples/subvr/favicon.ico">
+      <h2>audiovr</h2>
       </a>
     </div>
-
+ -->
   </div>
 </div>
 
-<br><br>
+<br>
+<br>
+<br>
 
-<div>
-  <h1><a href="blog">THE subvr.info BLOG</a></h1>
-</div>
+<div class=two>
 
-<br><br>
+  <div class=col>
 
-<div>
-  <h1>Contact / Support / Feedback:</h1>
-  <div>
-    <a href="https://github.com/jzitelli/Primrose"><h2>GitHub repository</h2></a>
-  </div>
-  <div>
-    <a href="https://twitter.com/SUBVR_DOT_INFO"><h2>Follow subvr on Twitter!</h2></a>
-  </div>
-</div>
+    <div>
+      <h1><a href="blog">THE subvr.info BLOG</a></h1>
+    </div>
+
+    <br>
+
+    <h1>CONTACT / SUPPORT / FEEDBACK:</h1>
+    <div>
+      <a href="https://github.com/jzitelli/Primrose"><h2>GitHub repository</h2></a>
+    </div>
+    <div>
+      <a href="https://twitter.com/SUBVR_DOT_INFO"><h2>Follow subvr on Twitter!</h2></a>
+    </div>
 
 
-<br><br><br><br>
+    <br>
 
 
-<div>
-  <h1>Open-Source Libraries:</h1>
-
-  <div>
+    <h1>OPEN SOURCE LIBRARIES:</h1>
+    <div>
     <a href="http://threejs.org">
     <h2>three.js</h2>
     </a>
-  </div>
-
-  <div>
     <a href="http://cannonjs.org">
     <h2>Cannon.js</h2>
     </a>
+    </div>
+
   </div>
 
-</div>
+  <div class=col>
+    <h1>Other WebVR sites:</h1>
 
+    <div>
+      <a href="http://www.primroseeditor.com">
+      <h2>Primrose</h2>
+      </a>
+    </div>
 
-<br><br>
+    <div>
+      <a href="http://brian.peiris.io/RiftSketch/">
+      <h2>RiftSketch</h2>
+      </a>
+    </div>
 
+    <div>
+      <a href="http://vizor.io">
+      <h2>Vizor</h2>
+      </a>
+    </div>
 
-<div>
-  <h1>Other WebVR sites:</h1>
+    <div>
+      <a href="http://www.scenevr.com">
+      <h2>SceneVR</h2>
+      </a>
+    </div>
 
-  <div>
-    <a href="http://www.primroseeditor.com"><h2>Primrose (official site)</h2></a>
-  </div>
+    <div>
+      <a href="http://mozvr.com">
+      <h2>MozVR</h2>
+      </a>
+    </div>
 
-  <div>
-    <a href="http://brian.peiris.io/RiftSketch/">
-    <h2>RiftSketch</h2>
-    </a>
-  </div>
+    <div>
+      <a href="http://borismus.github.io/webvr-boilerplate/">
+      <h2>WebVR Boilerplate</h2>
+      </a>
+    </div>
 
-  <div>
-    <a href="http://borismus.github.io/webvr-boilerplate/">
-    <h2>WebVR Boilerplate Demo</h2>
-    </a>
-  </div>
+    <div>
+      <a href="http://webvr.info">
+      <h2>webvr.info</h2>
+      </a>
+    </div>
 
-  <div>
-    <a href="http://mozvr.com">
-    <h2>MozVR</h2>
-    </a>
   </div>
 
 </div>
