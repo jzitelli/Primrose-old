@@ -1,5 +1,7 @@
-DEBUG        = True
-TESTING      = True
-ALWAYS_GRUNT = True
-GFXTABLET    = True
-WEBSOCKETS   = []
+DEBUG         = True
+TESTING       = False
+ALWAYS_GRUNT  = True
+
+# websocket interfaces:
+GFXTABLET     = True
+POINTEREVENTS = True

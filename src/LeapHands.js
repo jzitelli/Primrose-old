@@ -1,4 +1,5 @@
 function addHands(parent, transformOptions) {
+    "use strict";
     var leapController = new Leap.Controller({frameEventName: 'animationFrame'});
     transformOptions = transformOptions || {};
     leapController.use('transform', transformOptions).connect();
