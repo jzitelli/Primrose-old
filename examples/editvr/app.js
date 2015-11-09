@@ -13,8 +13,8 @@ function onLoad() {
     }
 
     var makeEditor = (function () {
-	var quad = new THREE.PlaneBufferGeometry(1, 1);
-	function makeEditor( id, w, h, options ) {
+        var quad = new THREE.PlaneBufferGeometry(1, 1);
+        function makeEditor( id, w, h, options ) {
             var textSize = new Primrose.Text.Size( 1024 * w, 1024 * h );
             options.size = options.size || textSize;
             options.fontSize = options.fontSize || 50;
@@ -24,8 +24,8 @@ function onLoad() {
             var mesh = new THREE.Mesh(quad.clone(), new THREE.MeshBasicMaterial({map: t.getRenderer().getTexture()}));
             mesh.textBox = t;
             return mesh;
-	}
-	return makeEditor;
+        }
+        return makeEditor;
     })();
 
     function executePython() {
