@@ -38,7 +38,8 @@ function onLoad() {
     var options = {
         keyboardCommands: [{name: 'exec',
                             buttons: [Primrose.Input.Keyboard.CTRL, Primrose.Input.Keyboard.X],
-                            commandDown: executePython, dt: 0.25}]
+                            commandDown: executePython, dt: 0.25}],
+        showMousePointerOnLock: true
     };
     application = new WebVRApplication("editvr", avatar, scene, options);
 

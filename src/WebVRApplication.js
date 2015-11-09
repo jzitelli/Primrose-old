@@ -49,7 +49,8 @@ WebVRApplication = ( function () {
             gravity: 0,
             backgroundColor: 0x000000,
             moveSpeed: 1,
-            mousePointerColor: 0xff3322
+            mousePointerColor: 0xff3322,
+            showMousePointerOnLock: false
         });
 
         this.keyboard = new Primrose.Input.Keyboard("keyboard", window, options.keyboardCommands);
@@ -137,7 +138,9 @@ WebVRApplication = ( function () {
         function lockChangeAlert() {
           if( document.pointerLockElement || document.mozPointerLockElement || document.webkitPointerLockElement ) {
             console.log('pointer lock status is now locked');
-            mousePointer.visible = true;
+            if (options.showMousePointerOnLock) {
+                mousePointer.visible = true;
+            }
             mousePointer.position.x = mousePointer.position.y = 0;
           } else {
             console.log('pointer lock status is now unlocked');
