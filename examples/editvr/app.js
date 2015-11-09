@@ -12,6 +12,22 @@ function onLoad() {
         scene = new THREE.Scene();
     }
 
+    var makeEditor = (function () {
+	var quad = new THREE.PlaneBufferGeometry(1, 1);
+	function makeEditor( id, w, h, options ) {
+            var textSize = new Primrose.Text.Size( 1024 * w, 1024 * h );
+            options.size = options.size || textSize;
+            options.fontSize = options.fontSize || 50;
+            options.theme = options.theme || Primrose.Text.Themes.Dark;
+            options.tokenizer = options.tokenizer || Primrose.Text.Grammars.PlainText;
+            var t = new Primrose.Text.Controls.TextBox( id, options );
+            var mesh = new THREE.Mesh(quad.clone(), new THREE.MeshBasicMaterial({map: t.getRenderer().getTexture()}));
+            mesh.textBox = t;
+            return mesh;
+	}
+	return makeEditor;
+    })();
+
     function executePython() {
         pyserver.exec(editorMesh.textBox.value, function (returned) {
             console.log("execution returned value:");
@@ -33,13 +49,13 @@ function onLoad() {
     GFXTablet(scene);
 
 
-    CrapLoader.load("models/ConfigUtilDeskScene.json", function (object) {
-        object.position.z = -2;
-        object.position.y = -0.85;
-        object.scale.set(0.01, 0.01, 0.01);
-        scene.add(object);
-        application.setPicking(true);
-    });
+    // CrapLoader.load("models/ConfigUtilDeskScene.json", function (object) {
+    //     object.position.z = -2;
+    //     object.position.y = -0.85;
+    //     object.scale.set(0.01, 0.01, 0.01);
+    //     scene.add(object);
+    //     application.setPicking(true);
+    // });
 
 
     addHands(avatar);
@@ -118,7 +134,7 @@ function onLoad() {
     window.addEventListener("wheel", function (evt) {
     });
 
-    var editorMesh = application.makeEditor("python_editor", 2, 2, {tokenizer: Primrose.Text.Grammars.Python});
+    var editorMesh = makeEditor("python_editor", 2, 2, {tokenizer: Primrose.Text.Grammars.Python});
     editorMesh.position.set(1.25, 0, -1.5);
     pyserver.readFile('examples/editvr/test.py', function (text) {
         editorMesh.textBox.value = text;
@@ -126,21 +142,5 @@ function onLoad() {
     });
 
     application.start();
+    application.setPicking(true);
 }
-
-
-WebVRApplication.prototype.makeEditor = (function () {
-    var quad = new THREE.PlaneBufferGeometry(1, 1);
-    var textSize = new Primrose.Text.Size( 1024 * w, 1024 * h );
-    function makeEditor( id, w, h, options ) {
-        options.size = options.size || textSize;
-        options.fontSize = options.fontSize || 50;
-        options.theme = options.theme || Primrose.Text.Themes.Dark;
-        options.tokenizer = options.tokenizer || Primrose.Text.Grammars.PlainText;
-        var t = new Primrose.Text.Controls.TextBox( id, options );
-        var mesh = new THREE.Mesh(quad.clone(), new THREE.MeshBasicMaterial({map: t.getRenderer().getTexture()}));
-        mesh.textBox = t;
-        return mesh;
-    }
-    return makeEditor;
-})();

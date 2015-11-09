@@ -45,6 +45,16 @@
         margin-left: 20px;
         /*box-shadow: 8px 5px 10px rgba(55,40,56, 0.6);*/
     }
+    div.alert {
+        width: 95%;
+        color: #ffffff;
+        background-color: rgba(99,22,22, 0.75); /* #6f5572 */
+        padding: 10px;
+        margin: inherit;
+        box-sizing: border-box;
+        overflow: auto;
+        margin-left: 20px;
+    }
     div.sidebar {
         width: 20%;
         float: right;
@@ -65,8 +75,12 @@
         color: rgb(140, 200, 30);
     }
     p {
-        padding: 4px;
         color: rgb(233, 72, 10);
+        padding: 4px;
+    }
+    p.white {
+        color: rgb(255, 255, 255);
+        padding: 4px;
     }
     a {
         padding: 4px;
@@ -88,12 +102,12 @@
 <br><br>
 
 
-<div class=sidebar>
-<a href="/"><h4>subvr.info</h4></a>
-</div>
+<!-- <div class=sidebar> -->
+<!-- <a href="/"><h4>subvr.info</h4></a> -->
+<!-- </div> -->
+
 
 {{ posts if posts else "" }}
-
 
 
 </body>
