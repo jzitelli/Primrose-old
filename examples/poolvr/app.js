@@ -26,10 +26,15 @@ function onLoad() {
     avatar.add(application.camera);
     application.scene.add(avatar);
 
-    // addHands(avatar, {vr: true, effectiveParent: application.camera});
-
-    // addTool(avatar, application.world, {vr: true, effectiveParent: application.camera});
+    // ##### Desktop mode: #####
+    // # no plugin: tool ok, hands no
+    // # plugin: hands ok, tool no
     addTool(avatar, application.world);
+    // addTool(avatar, application.world, true, {vr: 'desktop'});
+
+    // ##### HMD mode: #####
+    // # plugin: hands ok, tool no - need to modify leap.transform.js
+    // addTool(avatar, application.world, true, {vr: true, effectiveParent: application.camera});
 
     application.start();
 }
