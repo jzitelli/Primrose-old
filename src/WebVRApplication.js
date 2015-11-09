@@ -235,8 +235,11 @@ WebVRApplication = ( function () {
             heading = kbheading + this.gamepad.getValue("heading");
             var cosHeading = Math.cos(heading),
                 sinHeading = Math.sin(heading);
-            kbpitch -= 0.8 * dt * (this.keyboard.getValue("pitchUp") + this.keyboard.getValue("pitchDown"));
-            pitch = -(this.gamepad.getValue("pitch") + kbpitch);
+            if (!this.vrControls.enabled || options.vrPitching) {
+                kbpitch -= 0.8 * dt * (this.keyboard.getValue("pitchUp") + this.keyboard.getValue("pitchDown"));
+                pitch = -(this.gamepad.getValue("pitch") + kbpitch);
+                pitchQuat.setFromAxisAngle(RIGHT, pitch);
+            }
             var cosPitch = Math.cos(pitch),
                 sinPitch = Math.sin(pitch);
             strafe = this.keyboard.getValue("strafeRight") +
@@ -259,7 +262,6 @@ WebVRApplication = ( function () {
                 strafe = 0;
                 drive = 0;
             }
-            pitchQuat.setFromAxisAngle(RIGHT, pitch);
 
             if (mousePointer.visible && picking) {
                 origin.set(0, 0, 0);
@@ -306,11 +308,11 @@ WebVRApplication = ( function () {
 
             for (var j = 0; j < this.world.bodies.length; ++j) {
                 var body = this.world.bodies[j];
-                if (body.mesh && body.type === CANNON.Body.DYNAMIC) {
+                if (body.mesh && body.type !== CANNON.Body.STATIC) {
                     // bodyPosition.copy(body.position);
                     // body.mesh.position.copy(body.mesh.worldToLocal(bodyPosition));
-                    body.mesh.position.copy(body.position);
                     // TODO: quaternion local/world concerns?
+                    body.mesh.position.copy(body.position);
                     body.mesh.quaternion.copy(body.quaternion);
                 }
             }
@@ -375,19 +377,6 @@ WebVRApplication = ( function () {
 
     WebVRApplication.prototype.resetVRSensor = function () {
         this.vrControls.resetSensor();
-    };
-
-
-    var quad = new THREE.PlaneBufferGeometry(1, 1);
-    WebVRApplication.prototype.makeEditor = function ( id, w, h, options ) {
-        options.size = options.size || new Primrose.Text.Size( 1024 * w, 1024 * h );
-        options.fontSize = options.fontSize || 50;
-        options.theme = options.theme || Primrose.Text.Themes.Dark;
-        options.tokenizer = options.tokenizer || Primrose.Text.Grammars.PlainText;
-        var t = new Primrose.Text.Controls.TextBox( id, options );
-        var mesh = new THREE.Mesh(quad.clone(), new THREE.MeshBasicMaterial({map: t.getRenderer().getTexture()}));
-        mesh.textBox = t;
-        return mesh;
     };
 
     return WebVRApplication;

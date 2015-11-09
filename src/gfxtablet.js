@@ -25,7 +25,7 @@ function GFXTablet(scene, width, height) {
 
     var cursorMaterial = new THREE.MeshBasicMaterial({color: 0xee9966});
     cursorMaterial.transparent = true;
-    cursorMaterial.opacity = 0.25;
+    cursorMaterial.opacity = 0.5;
     var cursor = new THREE.Mesh(new THREE.CircleGeometry(0.02), cursorMaterial);
     canvasMesh.add(cursor);
     cursor.position.z = 0.01;

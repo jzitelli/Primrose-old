@@ -29,7 +29,7 @@ function onLoad() {
     // addHands(avatar, {vr: true, effectiveParent: application.camera});
 
     // addTool(avatar, application.world, {vr: true, effectiveParent: application.camera});
-    addTool(avatar, application.world, scene);
+    addTool(avatar, application.world);
 
     application.start();
 }
