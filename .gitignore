@@ -9,10 +9,13 @@ bin
 models/ConfigUtilDeskScene.json
 models/ConfigUtilDeskScene.png
 
-blog
+references
+
+pyserver/LeapPython.pyd
 
 *.py~
 *.pyc
+
 *.js~
 
 # Logs
